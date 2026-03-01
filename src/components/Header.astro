@@ -1,0 +1,189 @@
+---
+import { useTranslations, getLocalizedPath, getAlternateLang } from '../i18n/utils';
+import { languages, type Lang } from '../i18n/languages';
+import OWLLogo from './OWLLogo.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const altLang = getAlternateLang(lang);
+
+const navItems = [
+  { key: 'nav.about' as const, anchor: 'about' },
+  { key: 'nav.disciplines' as const, anchor: 'disciplines' },
+  { key: 'nav.workshops' as const, anchor: 'workshops' },
+  { key: 'nav.calendar' as const, anchor: 'calendar' },
+  { key: 'nav.publications' as const, anchor: 'publications' },
+  { key: 'nav.contact' as const, anchor: 'contact' },
+];
+---
+
+<header
+  id="main-header"
+  class="fixed top-0 left-0 w-full z-50 transition-all duration-300"
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16 md:h-20">
+      <!-- Logo -->
+      <a href={getLocalizedPath(lang)} class="shrink-0" aria-label="OWL - Open Workshop Lab">
+        <OWLLogo size="sm" />
+      </a>
+
+      <!-- Desktop Nav -->
+      <nav class="hidden lg:flex items-center gap-1" aria-label="Main navigation">
+        {navItems.map((item) => (
+          <a
+            href={`#${item.anchor}`}
+            class="nav-link px-3 py-2 text-sm font-heading font-medium text-text-secondary hover:text-gold-500 transition-colors duration-200 relative"
+            data-section={item.anchor}
+          >
+            {t(item.key)}
+          </a>
+        ))}
+      </nav>
+
+      <!-- Right side: Language Toggle + Mobile Menu -->
+      <div class="flex items-center gap-3">
+        <!-- Language Toggle -->
+        <a
+          href={getLocalizedPath(altLang)}
+          class="flex items-center gap-1.5 px-3 py-1.5 text-sm font-heading font-medium text-gold-500 border border-gold-500/30 rounded-md hover:bg-gold-500/10 transition-all duration-200"
+          aria-label={`Switch to ${languages[altLang].label}`}
+        >
+          {altLang.toUpperCase()}
+        </a>
+
+        <!-- Mobile Hamburger -->
+        <button
+          id="mobile-menu-btn"
+          class="lg:hidden flex flex-col gap-1.5 p-2 group"
+          aria-label="Toggle menu"
+          aria-expanded="false"
+        >
+          <span class="block w-6 h-[2px] bg-text-primary transition-all duration-300 origin-center group-[.open]:rotate-45 group-[.open]:translate-y-[4px]"></span>
+          <span class="block w-6 h-[2px] bg-text-primary transition-all duration-300 group-[.open]:opacity-0"></span>
+          <span class="block w-6 h-[2px] bg-text-primary transition-all duration-300 origin-center group-[.open]:-rotate-45 group-[.open]:-translate-y-[4px]"></span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Mobile Menu Overlay -->
+  <div
+    id="mobile-menu"
+    class="lg:hidden fixed inset-0 top-16 bg-bg-primary/98 backdrop-blur-xl -translate-x-full transition-transform duration-300 ease-out"
+  >
+    <nav class="flex flex-col items-center justify-center h-full gap-8 -mt-16" aria-label="Mobile navigation">
+      {navItems.map((item) => (
+        <a
+          href={`#${item.anchor}`}
+          class="mobile-nav-link text-2xl font-heading font-medium text-text-secondary hover:text-gold-500 transition-colors duration-200"
+          data-section={item.anchor}
+        >
+          {t(item.key)}
+        </a>
+      ))}
+    </nav>
+  </div>
+</header>
+
+<script>
+  // Scroll-based header background
+  const header = document.getElementById('main-header');
+  const updateHeader = () => {
+    if (!header) return;
+    if (window.scrollY > 50) {
+      header.classList.add('header-scrolled');
+    } else {
+      header.classList.remove('header-scrolled');
+    }
+  };
+  window.addEventListener('scroll', updateHeader, { passive: true });
+  updateHeader();
+
+  // Mobile menu toggle
+  const btn = document.getElementById('mobile-menu-btn');
+  const menu = document.getElementById('mobile-menu');
+
+  btn?.addEventListener('click', () => {
+    const isOpen = btn.classList.toggle('open');
+    btn.setAttribute('aria-expanded', String(isOpen));
+    if (isOpen) {
+      menu?.classList.remove('-translate-x-full');
+      menu?.classList.add('translate-x-0');
+      document.body.style.overflow = 'hidden';
+    } else {
+      menu?.classList.remove('translate-x-0');
+      menu?.classList.add('-translate-x-full');
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Close mobile menu on link click
+  document.querySelectorAll('.mobile-nav-link').forEach((link) => {
+    link.addEventListener('click', () => {
+      btn?.classList.remove('open');
+      btn?.setAttribute('aria-expanded', 'false');
+      menu?.classList.remove('translate-x-0');
+      menu?.classList.add('-translate-x-full');
+      document.body.style.overflow = '';
+    });
+  });
+
+  // Active section tracking
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+
+  const sectionObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          navLinks.forEach((link) => {
+            const el = link as HTMLElement;
+            if (el.dataset.section === id) {
+              el.classList.add('text-gold-500');
+              el.classList.remove('text-text-secondary');
+            } else {
+              el.classList.remove('text-gold-500');
+              el.classList.add('text-text-secondary');
+            }
+          });
+        }
+      });
+    },
+    { threshold: 0.3, rootMargin: '-80px 0px -50% 0px' }
+  );
+
+  sections.forEach((section) => sectionObserver.observe(section));
+</script>
+
+<style>
+  #main-header.header-scrolled {
+    background: rgba(10, 10, 15, 0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+    border-bottom: 1px solid rgba(212, 168, 67, 0.08);
+  }
+
+  .nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%) scaleX(0);
+    width: 60%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #D4A843, transparent);
+    transition: transform 0.3s ease;
+  }
+
+  .nav-link:hover::after,
+  .nav-link.text-gold-500::after {
+    transform: translateX(-50%) scaleX(1);
+  }
+</style>

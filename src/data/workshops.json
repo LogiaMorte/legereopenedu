@@ -1,0 +1,56 @@
+[
+  {
+    "id": "ws-2026-spring-criminology",
+    "title": {
+      "tr": "Dijital Kriminoloji ve Veri Analizi Atölyesi",
+      "en": "Digital Criminology and Data Analysis Workshop"
+    },
+    "dateStart": "2026-04-07",
+    "dateEnd": "2026-04-25",
+    "disciplines": ["criminology", "data-science"],
+    "status": "open",
+    "currentParticipants": 28,
+    "maxParticipants": 50,
+    "googleFormUrl": "https://forms.google.com",
+    "description": {
+      "tr": "Dijital ortamda suç analizi, veri madenciliği teknikleri ve adli bilişim konularında üç haftalık yoğun araştırma programı.",
+      "en": "A three-week intensive research program on crime analysis in digital environments, data mining techniques, and digital forensics."
+    }
+  },
+  {
+    "id": "ws-2026-spring-philosophy",
+    "title": {
+      "tr": "Yapay Zeka Etiği ve Teknoloji Felsefesi",
+      "en": "AI Ethics and Philosophy of Technology"
+    },
+    "dateStart": "2026-05-12",
+    "dateEnd": "2026-05-30",
+    "disciplines": ["philosophy", "data-science"],
+    "status": "upcoming",
+    "currentParticipants": 0,
+    "maxParticipants": 50,
+    "googleFormUrl": "https://forms.google.com",
+    "description": {
+      "tr": "Yapay zeka sistemlerinin etik boyutları, algoritmik adalet ve teknolojinin toplumsal etkilerine dair felsefi sorgulamalar.",
+      "en": "Philosophical inquiries into the ethical dimensions of AI systems, algorithmic justice, and the societal impact of technology."
+    }
+  },
+  {
+    "id": "ws-2026-summer-sociology",
+    "title": {
+      "tr": "Dijital Toplum ve Kolektif Davranış",
+      "en": "Digital Society and Collective Behavior"
+    },
+    "dateStart": "2026-06-15",
+    "dateEnd": "2026-07-03",
+    "disciplines": ["sociology", "data-science"],
+    "status": "upcoming",
+    "currentParticipants": 0,
+    "maxParticipants": 50,
+    "googleFormUrl": "https://forms.google.com",
+    "description": {
+      "tr": "Sosyal medya dinamikleri, dijital topluluklar ve kolektif davranış örüntülerinin sosyolojik ve veri bilimsel analizi.",
+      "en": "Sociological and data-driven analysis of social media dynamics, digital communities, and collective behavior patterns."
+    }
+  }
+]

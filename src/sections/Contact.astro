@@ -1,0 +1,173 @@
+---
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/languages';
+import SectionHeading from '../components/SectionHeading.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const actionCards = [
+  {
+    key: 'workshop' as const,
+    icon: 'beaker',
+    color: 'from-gold-500/20 to-gold-500/5',
+  },
+  {
+    key: 'seminar' as const,
+    icon: 'megaphone',
+    color: 'from-gold-500/15 to-gold-500/5',
+  },
+  {
+    key: 'publication' as const,
+    icon: 'book',
+    color: 'from-gold-500/15 to-gold-500/5',
+  },
+  {
+    key: 'invite' as const,
+    icon: 'building',
+    color: 'from-gold-500/20 to-gold-500/5',
+  },
+];
+---
+
+<section id="contact" class="relative section-padding bg-bg-secondary/50">
+  <div class="max-w-6xl mx-auto">
+    <SectionHeading
+      title={t('contact.title')}
+      subtitle={t('contact.subtitle')}
+    />
+
+    <!-- Email prominent card -->
+    <div class="glass p-6 md:p-8 text-center mb-12 max-w-md mx-auto gold-glow" data-animate>
+      <div class="inline-flex items-center justify-center w-14 h-14 rounded-full glass-subtle mb-4">
+        <svg class="w-6 h-6 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+        </svg>
+      </div>
+      <h3 class="text-lg font-heading font-bold text-text-primary mb-2">
+        {t('contact.email')}
+      </h3>
+      <a
+        href="mailto:info@legereopenedu.com"
+        class="text-gold-500 hover:text-gold-300 transition-colors font-mono text-sm"
+      >
+        info@legereopenedu.com
+      </a>
+    </div>
+
+    <!-- 4 Action Cards -->
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5" data-animate-stagger>
+      <!-- Workshop Card -->
+      <a href="mailto:info@legereopenedu.com?subject=Atölye%20Kurma%20Talebi" class="contact-action-card glass group hover:gold-glow transition-all duration-300 p-6 flex flex-col items-start gap-4 no-underline">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-gold-500/20 to-gold-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <svg class="w-6 h-6 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 0 1-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 0 1 4.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0 1 12 15a9.065 9.065 0 0 0-6.23.693L5 14.5m14.8.8 1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0 1 12 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+          </svg>
+        </div>
+        <div>
+          <h4 class="font-heading font-bold text-text-primary mb-1.5 text-sm">
+            {t('contact.workshop.title')}
+          </h4>
+          <p class="text-text-secondary text-xs leading-relaxed">
+            {t('contact.workshop.desc')}
+          </p>
+        </div>
+        <div class="mt-auto pt-2 flex items-center gap-1.5 text-gold-500 text-xs font-heading font-semibold group-hover:gap-2.5 transition-all">
+          {t('contact.cta')}
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
+      </a>
+
+      <!-- Seminar Card -->
+      <a href="mailto:info@legereopenedu.com?subject=Seminer%20/%20Kongre%20Önerisi" class="contact-action-card glass group hover:gold-glow transition-all duration-300 p-6 flex flex-col items-start gap-4 no-underline">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-gold-500/15 to-gold-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <svg class="w-6 h-6 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M10.34 15.84c-.688-.06-1.386-.09-2.09-.09H7.5a4.5 4.5 0 1 1 0-9h.75c.704 0 1.402-.03 2.09-.09m0 9.18c.253.962.584 1.892.985 2.783.247.55.06 1.21-.463 1.511l-.657.38c-.551.318-1.26.117-1.527-.461a20.845 20.845 0 0 1-1.44-4.282m3.102.069a18.03 18.03 0 0 1-.59-4.59c0-1.586.205-3.124.59-4.59m0 9.18a23.848 23.848 0 0 1 8.835 2.535M10.34 6.66a23.847 23.847 0 0 0 8.835-2.535m0 0A23.74 23.74 0 0 0 18.795 3m.38 1.125a23.91 23.91 0 0 1 1.014 5.395m-1.014 8.855c-.118.38-.245.754-.38 1.125m.38-1.125a23.91 23.91 0 0 0 1.014-5.395m0-3.46c.495.413.811 1.035.811 1.73 0 .695-.316 1.317-.811 1.73m0-3.46a24.347 24.347 0 0 1 0 3.46" />
+          </svg>
+        </div>
+        <div>
+          <h4 class="font-heading font-bold text-text-primary mb-1.5 text-sm">
+            {t('contact.seminar.title')}
+          </h4>
+          <p class="text-text-secondary text-xs leading-relaxed">
+            {t('contact.seminar.desc')}
+          </p>
+        </div>
+        <div class="mt-auto pt-2 flex items-center gap-1.5 text-gold-500 text-xs font-heading font-semibold group-hover:gap-2.5 transition-all">
+          {t('contact.cta')}
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
+      </a>
+
+      <!-- Publication Card -->
+      <a href="mailto:info@legereopenedu.com?subject=Yayın%20Projesi" class="contact-action-card glass group hover:gold-glow transition-all duration-300 p-6 flex flex-col items-start gap-4 no-underline">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-gold-500/15 to-gold-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <svg class="w-6 h-6 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+          </svg>
+        </div>
+        <div>
+          <h4 class="font-heading font-bold text-text-primary mb-1.5 text-sm">
+            {t('contact.publication.title')}
+          </h4>
+          <p class="text-text-secondary text-xs leading-relaxed">
+            {t('contact.publication.desc')}
+          </p>
+        </div>
+        <div class="mt-auto pt-2 flex items-center gap-1.5 text-gold-500 text-xs font-heading font-semibold group-hover:gap-2.5 transition-all">
+          {t('contact.cta')}
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
+      </a>
+
+      <!-- Invite Card -->
+      <a href="mailto:info@legereopenedu.com?subject=Davet%20-%20OWL%20Misafir%20Etmek%20İstiyoruz" class="contact-action-card glass group hover:gold-glow transition-all duration-300 p-6 flex flex-col items-start gap-4 no-underline">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-gold-500/20 to-gold-500/5 flex items-center justify-center group-hover:scale-110 transition-transform">
+          <svg class="w-6 h-6 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0 0 12 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75Z" />
+          </svg>
+        </div>
+        <div>
+          <h4 class="font-heading font-bold text-text-primary mb-1.5 text-sm">
+            {t('contact.invite.title')}
+          </h4>
+          <p class="text-text-secondary text-xs leading-relaxed">
+            {t('contact.invite.desc')}
+          </p>
+        </div>
+        <div class="mt-auto pt-2 flex items-center gap-1.5 text-gold-500 text-xs font-heading font-semibold group-hover:gap-2.5 transition-all">
+          {t('contact.cta')}
+          <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+          </svg>
+        </div>
+      </a>
+    </div>
+
+    <!-- Social links hint -->
+    <div class="mt-10 flex flex-wrap items-center justify-center gap-6" data-animate>
+      <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-text-secondary hover:text-gold-500 transition-colors text-sm">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/>
+        </svg>
+        Instagram
+      </a>
+      <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="flex items-center gap-2 text-text-secondary hover:text-gold-500 transition-colors text-sm">
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+        </svg>
+        LinkedIn
+      </a>
+    </div>
+  </div>
+</section>

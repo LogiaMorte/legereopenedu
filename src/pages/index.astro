@@ -1,0 +1,24 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Hero from '../sections/Hero.astro';
+import About from '../sections/About.astro';
+import Universities from '../sections/Universities.astro';
+import Disciplines from '../sections/Disciplines.astro';
+import Workshops from '../sections/Workshops.astro';
+import Calendar from '../sections/Calendar.astro';
+import Publications from '../sections/Publications.astro';
+import Contact from '../sections/Contact.astro';
+
+const lang = 'tr' as const;
+---
+
+<Layout lang={lang}>
+  <Hero lang={lang} />
+  <About lang={lang} />
+  <Universities lang={lang} />
+  <Disciplines lang={lang} />
+  <Workshops lang={lang} />
+  <Calendar lang={lang} />
+  <Publications lang={lang} />
+  <Contact lang={lang} />
+</Layout>

@@ -1,0 +1,81 @@
+---
+import type { Lang } from '../i18n/languages';
+import { useTranslations } from '../i18n/utils';
+
+interface EventItem {
+  title: Record<string, string>;
+  date: string;
+  endDate?: string;
+  type: 'workshop' | 'seminar' | 'congress';
+  description: Record<string, string>;
+  location: Record<string, string>;
+}
+
+interface Props {
+  lang: Lang;
+  events: EventItem[];
+}
+
+const { lang, events } = Astro.props;
+const t = useTranslations(lang);
+
+const typeConfig = {
+  workshop: { label: t('calendar.type.workshop'), class: 'badge-open' },
+  seminar: { label: t('calendar.type.seminar'), class: 'badge-upcoming' },
+  congress: { label: t('calendar.type.congress'), class: 'badge-discipline' },
+};
+
+const now = new Date();
+
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  return date.toLocaleDateString(lang === 'tr' ? 'tr-TR' : 'en-US', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  });
+};
+---
+
+<div class="relative">
+  <!-- Timeline line -->
+  <div class="absolute left-4 md:left-1/2 md:-translate-x-px top-0 bottom-0 w-[2px] bg-gradient-to-b from-gold-500/40 via-gold-500/20 to-transparent"></div>
+
+  <div class="space-y-8 md:space-y-12">
+    {events.map((event, i) => {
+      const isPast = new Date(event.date) < now;
+      const isEven = i % 2 === 0;
+
+      return (
+        <div class={`relative flex items-start gap-6 md:gap-0 ${isPast ? 'opacity-50' : ''}`} data-animate>
+          <!-- Timeline dot -->
+          <div class={`absolute left-4 md:left-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 z-10 mt-6 ${isPast ? 'border-text-secondary bg-bg-primary' : 'border-gold-500 bg-gold-500/30'}`}>
+            {!isPast && <div class="absolute inset-0 rounded-full bg-gold-500/50 animate-ping"></div>}
+          </div>
+
+          <!-- Card -->
+          <div class={`ml-10 md:ml-0 md:w-[calc(50%-2rem)] glass p-5 ${isEven ? 'md:mr-auto md:pr-8' : 'md:ml-auto md:pl-8'}`}>
+            <div class="flex items-center gap-2 mb-2">
+              <span class={`badge text-xs ${typeConfig[event.type].class}`}>
+                {typeConfig[event.type].label}
+              </span>
+            </div>
+            <h3 class="text-lg font-heading font-bold text-text-primary mb-1">
+              {event.title[lang]}
+            </h3>
+            <p class="text-gold-500/80 text-sm font-mono mb-2">
+              {formatDate(event.date)}
+              {event.endDate && ` — ${formatDate(event.endDate)}`}
+            </p>
+            <p class="text-text-secondary text-sm mb-2">
+              {event.description[lang]}
+            </p>
+            <p class="text-text-secondary/60 text-xs">
+              📍 {event.location[lang]}
+            </p>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+</div>

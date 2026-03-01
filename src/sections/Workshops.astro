@@ -1,0 +1,96 @@
+---
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/languages';
+import SectionHeading from '../components/SectionHeading.astro';
+import WorkshopCard from '../components/WorkshopCard.astro';
+import workshopsData from '../data/workshops.json';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section id="workshops" class="relative section-padding">
+  <div class="max-w-7xl mx-auto">
+    <SectionHeading
+      title={t('workshops.title')}
+      subtitle={t('workshops.subtitle')}
+    />
+
+    <!-- Capacity badge -->
+    <div class="flex justify-center mb-8" data-animate>
+      <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full glass-subtle">
+        <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+        </svg>
+        <span class="text-sm font-heading font-medium text-gold-500">{t('workshops.capacity')}</span>
+      </div>
+    </div>
+
+    <!-- Workshops grid/scroll -->
+    {workshopsData.length > 0 ? (
+      <div class="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible" data-animate-stagger>
+        {workshopsData.map((ws: any) => (
+          <div class="snap-start shrink-0 w-[85vw] md:w-auto">
+            <WorkshopCard
+              lang={lang}
+              title={ws.title[lang]}
+              dateStart={ws.dateStart}
+              dateEnd={ws.dateEnd}
+              disciplines={ws.disciplines}
+              status={ws.status}
+              currentParticipants={ws.currentParticipants}
+              maxParticipants={ws.maxParticipants}
+              googleFormUrl={ws.googleFormUrl}
+              description={ws.description[lang]}
+            />
+          </div>
+        ))}
+      </div>
+    ) : (
+      <div class="glass p-12 text-center" data-animate>
+        <p class="text-text-secondary text-lg">{t('workshops.empty')}</p>
+      </div>
+    )}
+
+    <!-- Free registration note -->
+    <p class="text-center text-text-secondary/70 text-sm mt-8 max-w-xl mx-auto" data-animate>
+      {t('workshops.free')}
+    </p>
+
+    <!-- How It Works info box -->
+    <div class="mt-12 max-w-3xl mx-auto" data-animate>
+      <div class="glass p-6 md:p-8 relative overflow-hidden">
+        <div class="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-gold-500 to-gold-500/20 rounded-full"></div>
+        <div class="flex items-start gap-4 pl-4">
+          <div class="shrink-0 w-10 h-10 rounded-xl bg-gold-500/10 flex items-center justify-center mt-0.5">
+            <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+            </svg>
+          </div>
+          <div>
+            <h4 class="font-heading font-bold text-gold-500 text-sm mb-2">
+              {t('workshops.howItWorks')}
+            </h4>
+            <p class="text-text-secondary text-sm leading-relaxed">
+              {t('workshops.howItWorksDesc')}
+            </p>
+            <div class="flex items-center gap-4 mt-4">
+              <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-gold-500 transition-colors">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                Instagram
+              </a>
+              <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs text-text-secondary hover:text-gold-500 transition-colors">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                LinkedIn
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

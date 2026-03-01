@@ -1,0 +1,31 @@
+---
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/languages';
+import SectionHeading from '../components/SectionHeading.astro';
+import EventTimeline from '../components/EventTimeline.astro';
+import eventsData from '../data/events.json';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section id="calendar" class="relative section-padding bg-bg-secondary/50">
+  <div class="max-w-5xl mx-auto">
+    <SectionHeading
+      title={t('calendar.title')}
+      subtitle={t('calendar.subtitle')}
+    />
+
+    {eventsData.length > 0 ? (
+      <EventTimeline lang={lang} events={eventsData} />
+    ) : (
+      <div class="glass p-12 text-center" data-animate>
+        <p class="text-text-secondary text-lg">{t('calendar.empty')}</p>
+      </div>
+    )}
+  </div>
+</section>

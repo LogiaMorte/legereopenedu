@@ -1,0 +1,147 @@
+---
+import '../styles/global.css';
+import '@fontsource/space-grotesk/400.css';
+import '@fontsource/space-grotesk/500.css';
+import '@fontsource/space-grotesk/700.css';
+import '@fontsource/inter/300.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/jetbrains-mono/400.css';
+import '@fontsource/jetbrains-mono/500.css';
+import { ClientRouter } from 'astro:transitions';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import ScrollProgress from '../components/ScrollProgress.astro';
+
+interface Props {
+  lang: 'tr' | 'en';
+}
+
+const { lang } = Astro.props;
+const isEn = lang === 'en';
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+const description = isEn
+  ? 'OWL - Open Workshop Lab: An interdisciplinary academic research network at the intersection of criminology, sociology, philosophy, and data science.'
+  : 'OWL - Open Workshop Lab: Kriminoloji, sosyoloji, felsefe ve veri bilimi kesişiminde disiplinlerarası akademik araştırma ağı.';
+const title = isEn ? 'OWL | Open Workshop Lab' : 'OWL | Açık Atölye Laboratuvarı';
+---
+
+<!doctype html>
+<html lang={lang} class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="canonical" href={canonicalUrl} />
+  <link rel="alternate" hreflang="tr" href={new URL('/', Astro.site)} />
+  <link rel="alternate" hreflang="en" href={new URL('/en/', Astro.site)} />
+  <link rel="alternate" hreflang="x-default" href={new URL('/', Astro.site)} />
+
+  <meta name="description" content={description} />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:title" content={title} />
+  <meta property="og:description" content={description} />
+  <meta property="og:locale" content={isEn ? 'en_US' : 'tr_TR'} />
+  <meta property="og:site_name" content="Legere Open Edu" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content={title} />
+  <meta name="twitter:description" content={description} />
+
+  <!-- JSON-LD -->
+  <script type="application/ld+json" set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "EducationalOrganization",
+    "name": "OWL - Open Workshop Lab",
+    "alternateName": "Legere Open Edu",
+    "url": "https://legereopenedu.com",
+    "email": "info@legereopenedu.com",
+    "description": "Independent interdisciplinary academic research network",
+    "areaServed": "Global",
+    "knowsAbout": ["Criminology", "Sociology", "Philosophy", "Data Science"]
+  })} />
+
+  <title>{title}</title>
+  <ClientRouter />
+</head>
+<body class="bg-bg-primary text-text-primary antialiased overflow-x-hidden">
+  <a href="#main-content" class="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[200] focus:px-4 focus:py-2 focus:bg-gold-500 focus:text-bg-primary focus:rounded-md focus:font-heading focus:font-bold">
+    {isEn ? 'Skip to content' : 'İçeriğe geç'}
+  </a>
+
+  <ScrollProgress />
+  <Header lang={lang} />
+
+  <main id="main-content">
+    <slot />
+  </main>
+
+  <Footer lang={lang} />
+
+  <!-- Back to Top Button -->
+  <button
+    id="back-to-top"
+    class="fixed bottom-6 right-6 z-40 w-11 h-11 rounded-full flex items-center justify-center opacity-0 pointer-events-none transition-all duration-300 hover:-translate-y-1"
+    style="background: linear-gradient(135deg, #B8922E, #D4A843); box-shadow: 0 0 20px rgba(212,168,67,0.25);"
+    aria-label={isEn ? 'Back to top' : 'Yukarı dön'}
+  >
+    <svg class="w-5 h-5 text-bg-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5" />
+    </svg>
+  </button>
+
+  <!-- Scroll animation observer -->
+  <script>
+    const initAnimations = () => {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        },
+        { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+      );
+
+      document
+        .querySelectorAll('[data-animate], [data-animate-stagger]')
+        .forEach((el) => observer.observe(el));
+    };
+
+    initAnimations();
+    document.addEventListener('astro:after-swap', initAnimations);
+
+    // Back to top button
+    const initBackToTop = () => {
+      const btn = document.getElementById('back-to-top');
+      if (!btn) return;
+
+      const toggle = () => {
+        if (window.scrollY > 600) {
+          btn.style.opacity = '1';
+          btn.style.pointerEvents = 'auto';
+        } else {
+          btn.style.opacity = '0';
+          btn.style.pointerEvents = 'none';
+        }
+      };
+
+      window.addEventListener('scroll', toggle, { passive: true });
+      btn.addEventListener('click', () => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      });
+      toggle();
+    };
+
+    initBackToTop();
+    document.addEventListener('astro:after-swap', initBackToTop);
+  </script>
+</body>
+</html>

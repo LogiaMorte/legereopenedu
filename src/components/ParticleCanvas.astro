@@ -1,0 +1,123 @@
+---
+---
+
+<canvas
+  id="particle-canvas"
+  class="particle-canvas fixed inset-0 w-full h-full pointer-events-none z-0"
+  aria-hidden="true"
+></canvas>
+
+<script>
+  const initParticles = () => {
+    const canvas = document.getElementById('particle-canvas') as HTMLCanvasElement;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // Respect reduced motion
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      canvas.style.display = 'none';
+      return;
+    }
+
+    let particles: Array<{
+      x: number;
+      y: number;
+      vx: number;
+      vy: number;
+      r: number;
+      opacity: number;
+    }> = [];
+
+    let animationId: number;
+    const PARTICLE_COUNT = 50;
+    const CONNECTION_DIST = 150;
+    const GOLD_R = 212;
+    const GOLD_G = 168;
+    const GOLD_B = 67;
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+
+    const createParticles = () => {
+      particles = [];
+      for (let i = 0; i < PARTICLE_COUNT; i++) {
+        particles.push({
+          x: Math.random() * canvas.width,
+          y: Math.random() * canvas.height,
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: (Math.random() - 0.5) * 0.4,
+          r: Math.random() * 2 + 0.5,
+          opacity: Math.random() * 0.4 + 0.1,
+        });
+      }
+    };
+
+    const draw = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw connections
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+
+          if (dist < CONNECTION_DIST) {
+            const alpha = (1 - dist / CONNECTION_DIST) * 0.15;
+            ctx.strokeStyle = `rgba(${GOLD_R}, ${GOLD_G}, ${GOLD_B}, ${alpha})`;
+            ctx.lineWidth = 0.5;
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw particles
+      for (const p of particles) {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${GOLD_R}, ${GOLD_G}, ${GOLD_B}, ${p.opacity})`;
+        ctx.fill();
+      }
+    };
+
+    const update = () => {
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+
+        if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+        if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+      }
+    };
+
+    const loop = () => {
+      update();
+      draw();
+      animationId = requestAnimationFrame(loop);
+    };
+
+    resize();
+    createParticles();
+    loop();
+
+    window.addEventListener('resize', () => {
+      resize();
+      createParticles();
+    });
+
+    // Cleanup on page transition
+    document.addEventListener('astro:before-swap', () => {
+      cancelAnimationFrame(animationId);
+    });
+  };
+
+  initParticles();
+  document.addEventListener('astro:after-swap', initParticles);
+</script>

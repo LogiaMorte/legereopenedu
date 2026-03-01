@@ -1,0 +1,99 @@
+---
+interface Props {
+  size?: 'sm' | 'md' | 'lg' | 'hero';
+  animate?: boolean;
+}
+
+const { size = 'md', animate = false } = Astro.props;
+
+const sizeMap = {
+  sm: 'h-8',
+  md: 'h-10',
+  lg: 'h-14',
+  hero: 'h-24 md:h-32',
+};
+---
+
+<div class={`inline-flex items-center gap-3 ${animate ? 'owl-animate' : ''}`}>
+  <svg
+    viewBox="0 0 64 64"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    class={`${sizeMap[size]} w-auto`}
+    aria-hidden="true"
+  >
+    <!-- Outer hexagonal frame -->
+    <path
+      d="M32 4L56 18V46L32 60L8 46V18L32 4Z"
+      stroke="url(#goldGrad)"
+      stroke-width="1.5"
+      fill="none"
+      opacity="0.4"
+    />
+
+    <!-- Owl face outline -->
+    <path
+      d="M32 14C22 14 16 22 16 30C16 38 22 46 32 50C42 46 48 38 48 30C48 22 42 14 32 14Z"
+      fill="rgba(212, 168, 67, 0.08)"
+      stroke="url(#goldGrad)"
+      stroke-width="1.2"
+    />
+
+    <!-- Left eye -->
+    <circle cx="25" cy="28" r="6" stroke="#D4A843" stroke-width="1.2" fill="rgba(10, 10, 15, 0.8)" />
+    <circle cx="25" cy="28" r="2.5" fill="#D4A843" />
+    <circle cx="26" cy="27" r="1" fill="#FFF8E1" opacity="0.8" />
+
+    <!-- Right eye -->
+    <circle cx="39" cy="28" r="6" stroke="#D4A843" stroke-width="1.2" fill="rgba(10, 10, 15, 0.8)" />
+    <circle cx="39" cy="28" r="2.5" fill="#D4A843" />
+    <circle cx="40" cy="27" r="1" fill="#FFF8E1" opacity="0.8" />
+
+    <!-- Beak -->
+    <path d="M32 33L29 37L32 36L35 37L32 33Z" fill="#D4A843" opacity="0.9" />
+
+    <!-- Ear tufts -->
+    <path d="M18 20L22 16L20 22" stroke="#D4A843" stroke-width="1" fill="none" opacity="0.6" />
+    <path d="M46 20L42 16L44 22" stroke="#D4A843" stroke-width="1" fill="none" opacity="0.6" />
+
+    <!-- Connection nodes (representing interdisciplinary links) -->
+    <circle cx="12" cy="32" r="1.5" fill="#D4A843" opacity="0.4" />
+    <circle cx="52" cy="32" r="1.5" fill="#D4A843" opacity="0.4" />
+    <circle cx="32" cy="8" r="1.5" fill="#D4A843" opacity="0.4" />
+    <circle cx="32" cy="56" r="1.5" fill="#D4A843" opacity="0.4" />
+
+    <!-- Connection lines -->
+    <line x1="12" y1="32" x2="16" y2="30" stroke="#D4A843" stroke-width="0.5" opacity="0.3" />
+    <line x1="52" y1="32" x2="48" y2="30" stroke="#D4A843" stroke-width="0.5" opacity="0.3" />
+
+    <defs>
+      <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#FFD54F" />
+        <stop offset="50%" stop-color="#D4A843" />
+        <stop offset="100%" stop-color="#B8922E" />
+      </linearGradient>
+    </defs>
+  </svg>
+
+  {size !== 'sm' && (
+    <div class="flex flex-col">
+      <span
+        class="font-heading font-bold tracking-widest text-gradient-gold"
+        style={size === 'hero' ? 'font-size: clamp(1.5rem, 3vw, 2.5rem)' : ''}
+      >
+        OWL
+      </span>
+      {(size === 'lg' || size === 'hero') && (
+        <span class="text-text-secondary text-xs tracking-wider font-heading">
+          OPEN WORKSHOP LAB
+        </span>
+      )}
+    </div>
+  )}
+</div>
+
+<style>
+  .owl-animate svg {
+    animation: goldPulse 3s ease-in-out infinite;
+  }
+</style>

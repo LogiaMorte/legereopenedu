@@ -1,0 +1,23 @@
+{
+  "name": "legereopenedu",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "astro": "^5.7.0",
+    "@astrojs/sitemap": "^3.3.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.0",
+    "tailwindcss": "^4.1.0",
+    "@fontsource/space-grotesk": "^5.0.0",
+    "@fontsource/inter": "^5.0.0",
+    "@fontsource/jetbrains-mono": "^5.0.0",
+    "typescript": "^5.8.0"
+  }
+}

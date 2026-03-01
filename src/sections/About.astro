@@ -1,0 +1,119 @@
+---
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/languages';
+import SectionHeading from '../components/SectionHeading.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const stats = [
+  { value: '12', label: t('about.stat.disciplines'), icon: '◆' },
+  { value: '100+', label: t('about.stat.members'), icon: '◉' },
+  { value: '3', label: t('about.stat.period'), icon: '◷' },
+  { value: '50', label: t('about.stat.researchers'), icon: '◈' },
+];
+---
+
+<section id="about" class="relative section-padding">
+  <div class="max-w-7xl mx-auto">
+    <SectionHeading title={t('about.title')} />
+
+    <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center mb-16">
+      <!-- Text content -->
+      <div class="space-y-6" data-animate="fade-right">
+        <p class="text-text-secondary text-lg leading-relaxed">
+          {t('about.p1')}
+        </p>
+        <p class="text-text-secondary text-lg leading-relaxed">
+          {t('about.p2')}
+        </p>
+        <p class="text-text-secondary text-lg leading-relaxed">
+          {t('about.p3')}
+        </p>
+      </div>
+
+      <!-- Decorative: Interconnection Graph -->
+      <div class="flex justify-center" data-animate="fade-left">
+        <div class="relative w-72 h-72 md:w-80 md:h-80">
+          <!-- Central node -->
+          <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full glass gold-glow flex items-center justify-center">
+            <span class="text-2xl font-heading font-bold text-gradient-gold">OWL</span>
+          </div>
+
+          <!-- Orbiting nodes with float animations -->
+          <div class="about-node absolute top-4 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full glass flex items-center justify-center text-xs font-mono text-gold-300" style="animation: nodeFloat1 4s ease-in-out infinite;">
+            {lang === 'tr' ? 'KRM' : 'CRM'}
+          </div>
+          <div class="about-node absolute bottom-4 left-1/2 -translate-x-1/2 w-14 h-14 rounded-full glass flex items-center justify-center text-xs font-mono text-gold-300" style="animation: nodeFloat2 4.5s ease-in-out infinite;">
+            {lang === 'tr' ? 'FLS' : 'PHL'}
+          </div>
+          <div class="about-node absolute top-1/2 left-4 -translate-y-1/2 w-14 h-14 rounded-full glass flex items-center justify-center text-xs font-mono text-gold-300" style="animation: nodeFloat3 5s ease-in-out infinite;">
+            {lang === 'tr' ? 'SOS' : 'SOC'}
+          </div>
+          <div class="about-node absolute top-1/2 right-4 -translate-y-1/2 w-14 h-14 rounded-full glass flex items-center justify-center text-xs font-mono text-gold-300" style="animation: nodeFloat4 4.2s ease-in-out infinite;">
+            {lang === 'tr' ? 'VB' : 'DS'}
+          </div>
+
+          <!-- Connection lines (SVG) -->
+          <svg class="absolute inset-0 w-full h-full" viewBox="0 0 320 320" fill="none" aria-hidden="true">
+            <!-- Lines from center to nodes -->
+            <line x1="160" y1="160" x2="160" y2="40" stroke="#D4A843" stroke-width="0.5" opacity="0.3" />
+            <line x1="160" y1="160" x2="160" y2="280" stroke="#D4A843" stroke-width="0.5" opacity="0.3" />
+            <line x1="160" y1="160" x2="40" y2="160" stroke="#D4A843" stroke-width="0.5" opacity="0.3" />
+            <line x1="160" y1="160" x2="280" y2="160" stroke="#D4A843" stroke-width="0.5" opacity="0.3" />
+            <!-- Cross connections -->
+            <line x1="160" y1="40" x2="40" y2="160" stroke="#D4A843" stroke-width="0.3" opacity="0.15" stroke-dasharray="4 4" />
+            <line x1="160" y1="40" x2="280" y2="160" stroke="#D4A843" stroke-width="0.3" opacity="0.15" stroke-dasharray="4 4" />
+            <line x1="40" y1="160" x2="160" y2="280" stroke="#D4A843" stroke-width="0.3" opacity="0.15" stroke-dasharray="4 4" />
+            <line x1="280" y1="160" x2="160" y2="280" stroke="#D4A843" stroke-width="0.3" opacity="0.15" stroke-dasharray="4 4" />
+            <!-- Outer ring -->
+            <circle cx="160" cy="160" r="130" stroke="#D4A843" stroke-width="0.5" opacity="0.1" stroke-dasharray="8 4" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4" data-animate-stagger>
+      {stats.map((stat) => (
+        <div class="glass p-6 text-center group hover:gold-glow transition-all duration-300">
+          <div class="text-3xl md:text-4xl font-heading font-bold text-gradient-gold mb-1">
+            {stat.value}
+          </div>
+          <div class="text-text-secondary text-sm font-heading tracking-wide">
+            {stat.label}
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  @keyframes nodeFloat1 {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, -8px); }
+  }
+  @keyframes nodeFloat2 {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, 8px); }
+  }
+  @keyframes nodeFloat3 {
+    0%, 100% { transform: translate(0, -50%); }
+    50% { transform: translate(-8px, -50%); }
+  }
+  @keyframes nodeFloat4 {
+    0%, 100% { transform: translate(0, -50%); }
+    50% { transform: translate(8px, -50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .about-node {
+      animation: none !important;
+    }
+  }
+</style>

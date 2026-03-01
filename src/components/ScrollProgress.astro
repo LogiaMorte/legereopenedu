@@ -1,0 +1,23 @@
+---
+---
+
+<div
+  id="scroll-progress"
+  class="fixed top-0 left-0 h-[2px] z-[100] pointer-events-none"
+  style="width: 0%; background: linear-gradient(90deg, #B8922E, #D4A843, #FFD54F);"
+  aria-hidden="true"
+></div>
+
+<script>
+  const bar = document.getElementById('scroll-progress');
+  if (bar) {
+    const update = () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      bar.style.width = `${progress}%`;
+    };
+    window.addEventListener('scroll', update, { passive: true });
+    update();
+  }
+</script>

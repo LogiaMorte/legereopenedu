@@ -1,0 +1,259 @@
+---
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/languages';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const universities = [
+  { name: 'Boğaziçi Üniversitesi', short: 'BÜ' },
+  { name: 'Galatasaray Üniversitesi', short: 'GSÜ' },
+  { name: 'Mimar Sinan Güzel Sanatlar Üniversitesi', short: 'MSGSÜ' },
+  { name: 'Marmara Üniversitesi', short: 'MÜ' },
+  { name: 'Polis Akademisi', short: 'PA' },
+];
+---
+
+<section class="uni-section relative py-20 overflow-hidden">
+  <!-- Ambient background glow -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[200px] bg-gold-500/[0.03] rounded-full blur-[100px]"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-[1]">
+    <!-- Title with decorative lines -->
+    <div class="flex items-center justify-center gap-4 mb-14" data-animate>
+      <div class="h-px flex-1 max-w-[100px] bg-gradient-to-r from-transparent to-gold-500/30"></div>
+      <p class="text-xs font-heading font-semibold tracking-[0.35em] uppercase text-gold-500/70">
+        {t('universities.title')}
+      </p>
+      <div class="h-px flex-1 max-w-[100px] bg-gradient-to-l from-transparent to-gold-500/30"></div>
+    </div>
+
+    <!-- Marquee wrapper -->
+    <div class="marquee-wrapper relative">
+      <!-- Gradient fade edges -->
+      <div class="uni-fade-left"></div>
+      <div class="uni-fade-right"></div>
+
+      <!-- Animated gold track line -->
+      <div class="absolute bottom-0 left-0 right-0 h-px bg-gold-500/10">
+        <div class="uni-glow-line"></div>
+      </div>
+
+      <div class="marquee-track">
+        {[0, 1].map((setIndex) => (
+          <div class="marquee-content" aria-hidden={setIndex === 1 ? "true" : "false"}>
+            {universities.map((uni, i) => (
+              <div class="uni-card group" style={`--i: ${i}`}>
+                <div class="uni-card-inner">
+                  <!-- Animated border glow -->
+                  <div class="uni-border-glow"></div>
+
+                  <!-- Card content -->
+                  <div class="relative z-[1] flex items-center gap-4">
+                    <!-- University emblem circle -->
+                    <div class="uni-emblem">
+                      <span class="font-heading font-bold text-[11px] text-gold-500 leading-none">
+                        {uni.short}
+                      </span>
+                    </div>
+
+                    <!-- Name + active indicator -->
+                    <div class="flex flex-col">
+                      <span class="font-heading font-semibold text-text-primary whitespace-nowrap text-[13px] md:text-sm group-hover:text-gold-300 transition-colors duration-300">
+                        {uni.name}
+                      </span>
+                      <span class="flex items-center gap-1.5 mt-0.5">
+                        <span class="uni-active-dot"></span>
+                        <span class="text-[10px] text-text-secondary/50 font-mono uppercase tracking-wider">aktif</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Track & Scroll */
+  .marquee-track {
+    display: flex;
+    width: max-content;
+    animation: marqueeScroll 35s linear infinite;
+  }
+
+  .marquee-track:hover {
+    animation-play-state: paused;
+  }
+
+  .marquee-content {
+    display: flex;
+    gap: 2rem;
+    padding-right: 2rem;
+  }
+
+  @keyframes marqueeScroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  /* Fade edges */
+  .uni-fade-left,
+  .uni-fade-right {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 80px;
+    z-index: 10;
+    pointer-events: none;
+  }
+  .uni-fade-left {
+    left: 0;
+    background: linear-gradient(to right, var(--color-bg-primary), transparent);
+  }
+  .uni-fade-right {
+    right: 0;
+    background: linear-gradient(to left, var(--color-bg-primary), transparent);
+  }
+
+  /* Animated gold glow line at bottom */
+  .uni-glow-line {
+    position: absolute;
+    top: -1px;
+    width: 120px;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, rgba(212, 168, 67, 0.6), transparent);
+    border-radius: 2px;
+    animation: glowLineMove 4s ease-in-out infinite;
+  }
+
+  @keyframes glowLineMove {
+    0%, 100% { left: 0%; }
+    50% { left: calc(100% - 120px); }
+  }
+
+  /* Card */
+  .uni-card-inner {
+    position: relative;
+    padding: 14px 22px;
+    border-radius: 14px;
+    background: rgba(212, 168, 67, 0.03);
+    border: 1px solid rgba(212, 168, 67, 0.12);
+    backdrop-filter: blur(12px);
+    overflow: hidden;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .uni-card:hover .uni-card-inner {
+    background: rgba(212, 168, 67, 0.07);
+    border-color: rgba(212, 168, 67, 0.35);
+    transform: translateY(-2px);
+    box-shadow:
+      0 8px 32px rgba(212, 168, 67, 0.1),
+      0 0 0 1px rgba(212, 168, 67, 0.1),
+      inset 0 1px 0 rgba(212, 168, 67, 0.1);
+  }
+
+  /* Animated border glow (comet trail) */
+  .uni-border-glow {
+    position: absolute;
+    inset: -1px;
+    border-radius: 14px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    background: conic-gradient(
+      from calc(var(--i, 0) * 72deg),
+      transparent 0%,
+      transparent 70%,
+      rgba(212, 168, 67, 0.4) 85%,
+      transparent 100%
+    );
+    animation: borderRotate 6s linear infinite;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    padding: 1px;
+  }
+
+  .uni-card:hover .uni-border-glow {
+    opacity: 1;
+  }
+
+  @keyframes borderRotate {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* University emblem */
+  .uni-emblem {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(212, 168, 67, 0.12), rgba(212, 168, 67, 0.04));
+    border: 1px solid rgba(212, 168, 67, 0.2);
+    flex-shrink: 0;
+    transition: all 0.3s ease;
+  }
+
+  .uni-card:hover .uni-emblem {
+    background: linear-gradient(135deg, rgba(212, 168, 67, 0.2), rgba(212, 168, 67, 0.08));
+    border-color: rgba(212, 168, 67, 0.4);
+    box-shadow: 0 0 16px rgba(212, 168, 67, 0.15);
+  }
+
+  /* Active pulsing dot */
+  .uni-active-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: #4ade80;
+    display: inline-block;
+    animation: activePulse 2s ease-in-out infinite;
+  }
+
+  @keyframes activePulse {
+    0%, 100% {
+      opacity: 1;
+      box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.4);
+    }
+    50% {
+      opacity: 0.7;
+      box-shadow: 0 0 0 4px rgba(74, 222, 128, 0);
+    }
+  }
+
+  /* Reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    .marquee-track {
+      animation: none;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+    }
+    .marquee-content:last-child {
+      display: none;
+    }
+    .marquee-content {
+      padding-right: 0;
+    }
+    .uni-border-glow,
+    .uni-glow-line {
+      animation: none;
+    }
+    .uni-active-dot {
+      animation: none;
+    }
+  }
+</style>

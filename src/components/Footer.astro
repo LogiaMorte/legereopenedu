@@ -1,0 +1,38 @@
+---
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/languages';
+import OWLLogo from './OWLLogo.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const year = new Date().getFullYear();
+---
+
+<footer class="relative border-t border-white/5">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex flex-col items-center md:items-start gap-2">
+        <OWLLogo size="sm" />
+        <p class="text-text-secondary text-sm font-heading tracking-wide">
+          {t('footer.tagline')}
+        </p>
+      </div>
+
+      <div class="flex flex-col items-center md:items-end gap-2">
+        <a
+          href="mailto:info@legereopenedu.com"
+          class="text-text-secondary hover:text-gold-500 text-sm transition-colors"
+        >
+          info@legereopenedu.com
+        </a>
+        <p class="text-text-secondary/60 text-xs">
+          &copy; {year} Legere Open Edu. {t('footer.rights')}
+        </p>
+      </div>
+    </div>
+  </div>
+</footer>

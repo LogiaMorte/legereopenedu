@@ -1,0 +1,73 @@
+[
+  {
+    "id": "evt-001",
+    "title": {
+      "tr": "Dijital Kriminoloji ve Veri Analizi Atölyesi",
+      "en": "Digital Criminology and Data Analysis Workshop"
+    },
+    "date": "2026-04-07",
+    "endDate": "2026-04-25",
+    "type": "workshop",
+    "description": {
+      "tr": "Dijital ortamda suç analizi ve veri madenciliği üzerine üç haftalık yoğun atölye programı.",
+      "en": "Three-week intensive workshop on crime analysis and data mining in digital environments."
+    },
+    "location": {
+      "tr": "Çevrimiçi",
+      "en": "Online"
+    }
+  },
+  {
+    "id": "evt-002",
+    "title": {
+      "tr": "Disiplinlerarası Araştırma Yöntemleri Semineri",
+      "en": "Interdisciplinary Research Methods Seminar"
+    },
+    "date": "2026-04-15",
+    "type": "seminar",
+    "description": {
+      "tr": "Farklı disiplinlerden araştırmacıların ortak metodoloji geliştirme deneyimlerini paylaştığı açık seminer.",
+      "en": "An open seminar where researchers from different disciplines share their experiences in developing common methodologies."
+    },
+    "location": {
+      "tr": "Çevrimiçi",
+      "en": "Online"
+    }
+  },
+  {
+    "id": "evt-003",
+    "title": {
+      "tr": "Yapay Zeka Etiği ve Teknoloji Felsefesi Atölyesi",
+      "en": "AI Ethics and Philosophy of Technology Workshop"
+    },
+    "date": "2026-05-12",
+    "endDate": "2026-05-30",
+    "type": "workshop",
+    "description": {
+      "tr": "Yapay zeka etiği, algoritmik adalet ve teknoloji felsefesi konularında üç haftalık araştırma programı.",
+      "en": "Three-week research program on AI ethics, algorithmic justice, and philosophy of technology."
+    },
+    "location": {
+      "tr": "Çevrimiçi",
+      "en": "Online"
+    }
+  },
+  {
+    "id": "evt-004",
+    "title": {
+      "tr": "Açık Bilim ve Dijital Akademi Kongresi",
+      "en": "Open Science and Digital Academy Congress"
+    },
+    "date": "2026-07-20",
+    "endDate": "2026-07-22",
+    "type": "congress",
+    "description": {
+      "tr": "Açık erişim, açık veri ve dijital akademinin geleceği üzerine uluslararası kongre.",
+      "en": "International congress on open access, open data, and the future of digital academia."
+    },
+    "location": {
+      "tr": "Çevrimiçi + Hibrit",
+      "en": "Online + Hybrid"
+    }
+  }
+]
