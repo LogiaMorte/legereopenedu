@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD54F"/>
+      <stop offset="50%" stop-color="#D4A843"/>
+      <stop offset="100%" stop-color="#B8922E"/>
+    </linearGradient>
+  </defs>
+  <rect width="200" height="200" fill="#0A0A0F"/>
+  <circle cx="100" cy="85" r="35" fill="rgba(212,168,67,0.08)" stroke="rgba(212,168,67,0.3)" stroke-width="1.5"/>
+  <text x="100" y="95" text-anchor="middle" font-size="32">🌐</text>
+  <text x="100" y="155" text-anchor="middle" font-family="'Space Grotesk', sans-serif" font-weight="600" font-size="16" fill="url(#goldGrad)">TOPLULUK</text>
+  <text x="100" y="175" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="1" fill="#A0A0B0" opacity="0.5">COMMUNITY</text>
+</svg>

@@ -1,0 +1,314 @@
+---
+import Layout from '../layouts/Layout.astro';
+const lang = 'tr' as const;
+---
+
+<Layout lang={lang} pageTitle="Admin Panel">
+  <div class="relative min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto">
+      <a href="/" class="inline-flex items-center gap-2 text-gold-500 hover:text-gold-300 transition-colors font-heading text-sm mb-10 group">
+        <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+        Ana Sayfaya Dön
+      </a>
+
+      <h1 class="text-3xl font-heading font-bold text-text-primary mb-2">Başvuru Yönetimi</h1>
+      <p class="text-text-secondary text-sm mb-8">Atölye ön kayıt başvurularını yönetin. Kabul/red kararlarınız otomatik e-posta olarak iletilir.</p>
+
+      <!-- Auth -->
+      <div id="auth-section" class="glass p-6 mb-8">
+        <label for="admin-key" class="block text-text-secondary text-xs font-heading font-medium mb-2">Admin Anahtarı</label>
+        <div class="flex gap-3">
+          <input type="password" id="admin-key" class="flex-1 px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none" placeholder="ADMIN_KEY değerinizi girin" />
+          <button id="fetch-btn" class="btn-gold text-sm px-6" onclick="fetchRegistrations()">Yükle</button>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div id="stats-section" class="hidden grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+        <div class="glass p-4 text-center">
+          <div id="stat-total" class="text-2xl font-heading font-bold text-gradient-gold">0</div>
+          <div class="text-text-secondary text-xs">Toplam</div>
+        </div>
+        <div class="glass p-4 text-center">
+          <div id="stat-pending" class="text-2xl font-heading font-bold text-yellow-400">0</div>
+          <div class="text-text-secondary text-xs">Bekleyen</div>
+        </div>
+        <div class="glass p-4 text-center">
+          <div id="stat-accepted" class="text-2xl font-heading font-bold text-status-open">0</div>
+          <div class="text-text-secondary text-xs">Kabul</div>
+        </div>
+        <div class="glass p-4 text-center">
+          <div id="stat-rejected" class="text-2xl font-heading font-bold text-status-closed">0</div>
+          <div class="text-text-secondary text-xs">Red</div>
+        </div>
+        <div class="glass p-4 text-center">
+          <div id="stat-workshops" class="text-2xl font-heading font-bold text-gradient-gold">0</div>
+          <div class="text-text-secondary text-xs">Atölye</div>
+        </div>
+      </div>
+
+      <!-- Filter tabs -->
+      <div id="filter-section" class="hidden flex gap-2 mb-6 flex-wrap">
+        <button class="filter-btn badge badge-discipline text-xs cursor-pointer" data-filter="all" onclick="filterRegs('all')">Tümü</button>
+        <button class="filter-btn badge text-xs cursor-pointer bg-yellow-500/10 text-yellow-400 border-yellow-500/25" data-filter="pending" onclick="filterRegs('pending')">⏳ Bekleyen</button>
+        <button class="filter-btn badge text-xs cursor-pointer bg-status-open/10 text-status-open border-status-open/25" data-filter="accepted" onclick="filterRegs('accepted')">✅ Kabul</button>
+        <button class="filter-btn badge text-xs cursor-pointer bg-status-closed/10 text-status-closed border-status-closed/25" data-filter="rejected" onclick="filterRegs('rejected')">❌ Red</button>
+      </div>
+
+      <!-- Cards list -->
+      <div id="cards-section" class="hidden space-y-4"></div>
+
+      <!-- Export -->
+      <div id="export-section" class="hidden mt-6 flex justify-end">
+        <button class="btn-outline text-xs" onclick="exportCSV()">📥 CSV İndir</button>
+      </div>
+
+      <!-- Empty state -->
+      <div id="empty-state" class="hidden glass p-12 text-center">
+        <p class="text-text-secondary">Henüz başvuru bulunmuyor.</p>
+      </div>
+
+      <!-- Error state -->
+      <div id="error-state" class="hidden glass p-6 text-center">
+        <p class="text-red-400 text-sm">Yüklenirken bir hata oluştu. Anahtarınızı kontrol edin.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Action Modal -->
+  <div id="action-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+    <div id="action-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+    <div class="relative w-full max-w-md glass gold-glow rounded-2xl p-6">
+      <h3 id="action-modal-title" class="text-lg font-heading font-bold text-text-primary mb-4"></h3>
+      <p id="action-modal-info" class="text-text-secondary text-sm mb-4"></p>
+      <textarea id="action-message" rows="3" class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none resize-none mb-4" placeholder="Kişiye özel mesaj ekleyin (opsiyonel)"></textarea>
+      <div class="flex gap-3">
+        <button id="action-cancel" class="btn-outline text-sm flex-1" onclick="closeActionModal()">İptal</button>
+        <button id="action-confirm" class="btn-gold text-sm flex-1" onclick="confirmAction()">Onayla</button>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script is:inline>
+  let allRegistrations = [];
+  let currentFilter = 'all';
+  let pendingAction = null; // { regId, action }
+
+  async function fetchRegistrations() {
+    const key = document.getElementById('admin-key').value.trim();
+    if (!key) return;
+    const btn = document.getElementById('fetch-btn');
+    btn.textContent = 'Yükleniyor...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`/api/registrations?key=${encodeURIComponent(key)}`);
+      if (!res.ok) throw new Error('Unauthorized');
+      const data = await res.json();
+      allRegistrations = data.registrations || [];
+      updateStats();
+      renderCards();
+      document.getElementById('stats-section').classList.remove('hidden');
+      document.getElementById('filter-section').classList.remove('hidden');
+      document.getElementById('export-section').classList.remove('hidden');
+      document.getElementById('error-state').classList.add('hidden');
+    } catch (err) {
+      document.getElementById('error-state').classList.remove('hidden');
+      document.getElementById('stats-section').classList.add('hidden');
+      document.getElementById('filter-section').classList.add('hidden');
+    } finally {
+      btn.textContent = 'Yükle';
+      btn.disabled = false;
+    }
+  }
+
+  function updateStats() {
+    const pending = allRegistrations.filter(r => !r.status || r.status === 'pending').length;
+    const accepted = allRegistrations.filter(r => r.status === 'accepted').length;
+    const rejected = allRegistrations.filter(r => r.status === 'rejected').length;
+    const workshops = new Set(allRegistrations.map(r => r.workshop));
+    document.getElementById('stat-total').textContent = allRegistrations.length;
+    document.getElementById('stat-pending').textContent = pending;
+    document.getElementById('stat-accepted').textContent = accepted;
+    document.getElementById('stat-rejected').textContent = rejected;
+    document.getElementById('stat-workshops').textContent = workshops.size;
+  }
+
+  function filterRegs(filter) {
+    currentFilter = filter;
+    document.querySelectorAll('.filter-btn').forEach(b => b.style.opacity = '0.5');
+    document.querySelector(`[data-filter="${filter}"]`).style.opacity = '1';
+    renderCards();
+  }
+
+  function renderCards() {
+    const container = document.getElementById('cards-section');
+    let filtered = allRegistrations;
+    if (currentFilter !== 'all') {
+      filtered = allRegistrations.filter(r => {
+        const s = r.status || 'pending';
+        return s === currentFilter;
+      });
+    }
+
+    if (filtered.length === 0) {
+      container.classList.add('hidden');
+      document.getElementById('empty-state').classList.remove('hidden');
+      return;
+    }
+
+    container.classList.remove('hidden');
+    document.getElementById('empty-state').classList.add('hidden');
+
+    container.innerHTML = filtered.map(r => {
+      const status = r.status || 'pending';
+      const statusBadge = status === 'accepted'
+        ? '<span class="badge text-xs bg-status-open/10 text-status-open border-status-open/25">✅ Kabul</span>'
+        : status === 'rejected'
+        ? '<span class="badge text-xs bg-status-closed/10 text-status-closed border-status-closed/25">❌ Red</span>'
+        : '<span class="badge text-xs bg-yellow-500/10 text-yellow-400 border-yellow-500/25">⏳ Bekleyen</span>';
+
+      const actions = status === 'pending' ? `
+        <div class="flex gap-2 mt-4 pt-4 border-t border-white/5">
+          <button onclick="openAction('${r.id}', 'accept', '${esc(r.name)}')" class="flex-1 py-2 px-3 rounded-lg bg-status-open/10 border border-status-open/25 text-status-open text-xs font-heading font-medium hover:bg-status-open/20 transition-colors cursor-pointer">
+            ✅ Kabul Et
+          </button>
+          <button onclick="openAction('${r.id}', 'reject', '${esc(r.name)}')" class="flex-1 py-2 px-3 rounded-lg bg-status-closed/10 border border-status-closed/25 text-status-closed text-xs font-heading font-medium hover:bg-status-closed/20 transition-colors cursor-pointer">
+            ❌ Reddet
+          </button>
+        </div>
+      ` : (r.reviewedAt ? `<p class="text-text-secondary/40 text-[10px] mt-3 font-mono">Değerlendirildi: ${formatTS(r.reviewedAt)}</p>` : '');
+
+      return `
+        <div class="glass p-5 hover:border-gold-500/15 transition-all">
+          <div class="flex items-start justify-between gap-4 mb-3">
+            <div>
+              <h3 class="font-heading font-bold text-text-primary text-sm">${esc(r.name)}</h3>
+              <p class="text-text-secondary/60 text-xs font-mono">${esc(r.email)}</p>
+            </div>
+            ${statusBadge}
+          </div>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div><span class="text-text-secondary/50">Üniversite:</span><br><span class="text-text-secondary">${esc(r.university)}</span></div>
+            <div><span class="text-text-secondary/50">Bölüm:</span><br><span class="text-text-secondary">${esc(r.department)}</span></div>
+            <div><span class="text-text-secondary/50">Atölye:</span><br><span class="text-gold-500">${esc(r.workshop)}</span></div>
+            <div><span class="text-text-secondary/50">Tarih:</span><br><span class="text-text-secondary font-mono">${formatTS(r.timestamp)}</span></div>
+          </div>
+          ${r.motivation ? `<div class="mt-3 p-3 rounded-lg bg-white/[0.02] border border-white/5"><p class="text-text-secondary text-xs leading-relaxed"><span class="text-text-secondary/50">Motivasyon: </span>${esc(r.motivation)}</p></div>` : ''}
+          ${actions}
+        </div>
+      `;
+    }).join('');
+  }
+
+  function openAction(regId, action, name) {
+    pendingAction = { regId, action };
+    const modal = document.getElementById('action-modal');
+    const title = document.getElementById('action-modal-title');
+    const info = document.getElementById('action-modal-info');
+    const confirmBtn = document.getElementById('action-confirm');
+
+    if (action === 'accept') {
+      title.textContent = '✅ Başvuruyu Kabul Et';
+      info.textContent = `${name} adlı kişinin başvurusu kabul edilecek ve bilgilendirme e-postası gönderilecektir.`;
+      confirmBtn.textContent = 'Kabul Et';
+      confirmBtn.className = 'text-sm flex-1 py-2.5 px-4 rounded-lg bg-status-open text-bg-primary font-heading font-bold cursor-pointer hover:opacity-90 transition-opacity';
+    } else {
+      title.textContent = '❌ Başvuruyu Reddet';
+      info.textContent = `${name} adlı kişinin başvurusu reddedilecek ve bilgilendirme e-postası gönderilecektir.`;
+      confirmBtn.textContent = 'Reddet';
+      confirmBtn.className = 'text-sm flex-1 py-2.5 px-4 rounded-lg bg-status-closed text-white font-heading font-bold cursor-pointer hover:opacity-90 transition-opacity';
+    }
+
+    document.getElementById('action-message').value = '';
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeActionModal() {
+    const modal = document.getElementById('action-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    pendingAction = null;
+  }
+
+  document.getElementById('action-backdrop')?.addEventListener('click', closeActionModal);
+
+  async function confirmAction() {
+    if (!pendingAction) return;
+    const key = document.getElementById('admin-key').value.trim();
+    const message = document.getElementById('action-message').value.trim();
+    const confirmBtn = document.getElementById('action-confirm');
+    confirmBtn.textContent = 'Gönderiliyor...';
+    confirmBtn.disabled = true;
+
+    try {
+      const res = await fetch('/api/registrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key,
+          regId: pendingAction.regId,
+          action: pendingAction.action,
+          message,
+        }),
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        // Update local data
+        const reg = allRegistrations.find(r => r.id === pendingAction.regId);
+        if (reg) {
+          reg.status = pendingAction.action === 'accept' ? 'accepted' : 'rejected';
+          reg.reviewedAt = new Date().toISOString();
+        }
+        closeActionModal();
+        updateStats();
+        renderCards();
+
+        if (!result.emailSent) {
+          alert('Durum güncellendi ancak e-posta gönderilemedi. RESEND_API_KEY kontrol edin.');
+        }
+      } else {
+        alert('İşlem başarısız oldu.');
+      }
+    } catch (err) {
+      alert('Bağlantı hatası.');
+    } finally {
+      confirmBtn.disabled = false;
+    }
+  }
+
+  function esc(str) {
+    const d = document.createElement('div');
+    d.textContent = str || '';
+    return d.innerHTML;
+  }
+
+  function formatTS(ts) {
+    if (!ts) return '-';
+    const d = new Date(ts);
+    return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  }
+
+  function exportCSV() {
+    if (!allRegistrations.length) return;
+    const h = ['Ad Soyad','E-posta','Üniversite','Bölüm','Atölye','Motivasyon','Durum','Tarih','Ülke'];
+    const rows = allRegistrations.map(r => [
+      r.name, r.email, r.university, r.department, r.workshop,
+      r.motivation||'', r.status||'pending', r.timestamp, r.country||''
+    ].map(v => `"${(v||'').replace(/"/g,'""')}"`).join(','));
+    const csv = [h.join(','), ...rows].join('\n');
+    const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `owl-basvurular-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  }
+
+  // Init filter highlight
+  document.querySelector('[data-filter="all"]')?.style && (document.querySelector('[data-filter="all"]').style.opacity = '1');
+</script>

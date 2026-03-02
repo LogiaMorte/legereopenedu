@@ -1,0 +1,16 @@
+{
+  "registration": {
+    "formUrl": "https://forms.google.com",
+    "workshopFieldEntry": "",
+    "instructions": {
+      "tr": "TEK FORM SİSTEMİ: 1) Google Forms'ta tek bir kayıt formu oluşturun (Ad, E-posta, Üniversite, Bölüm, Atölye Seçimi dropdown). 2) formUrl'yi gerçek form URL'siyle değiştirin. 3) Atölye Seçimi dropdown'ının entry ID'sini workshopFieldEntry'ye girin. 4) Yeni atölye eklerken sadece workshops.json'a giriş yapın ve Form'daki dropdown'a yeni seçenek ekleyin.",
+      "en": "SINGLE FORM SYSTEM: 1) Create one registration form in Google Forms (Name, Email, University, Department, Workshop Selection dropdown). 2) Replace formUrl with the real form URL. 3) Put the Workshop Selection dropdown's entry ID in workshopFieldEntry. 4) When adding new workshops, just add entry to workshops.json and add option to the Form dropdown."
+    }
+  },
+  "social": {
+    "linkedin": "https://www.linkedin.com/company/legere-open-edu",
+    "instagram": "https://instagram.com/legereopenedu",
+    "email": "info@legereopenedu.com",
+    "teams": "https://teams.live.com/l/community/FEApfJqwPQhu1UpbAI"
+  }
+}

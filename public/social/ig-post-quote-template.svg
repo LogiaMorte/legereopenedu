@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" width="1080" height="1080">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD54F"/>
+      <stop offset="50%" stop-color="#D4A843"/>
+      <stop offset="100%" stop-color="#B8922E"/>
+    </linearGradient>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0E0E18"/>
+      <stop offset="100%" stop-color="#0A0A0F"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="45%" r="50%">
+      <stop offset="0%" stop-color="rgba(212,168,67,0.08)"/>
+      <stop offset="100%" stop-color="rgba(212,168,67,0)"/>
+    </radialGradient>
+    <filter id="textGlow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8"/>
+      <feColorMatrix values="0 0 0 0 0.83  0 0 0 0 0.66  0 0 0 0 0.26  0 0 0 0.2 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1080" height="1080" fill="url(#bgGrad)"/>
+  <rect width="1080" height="1080" fill="url(#glow)"/>
+
+  <!-- Top and bottom accent lines -->
+  <rect x="0" y="0" width="1080" height="3" fill="url(#goldGrad)" opacity="0.35"/>
+  <rect x="0" y="1077" width="1080" height="3" fill="url(#goldGrad)" opacity="0.35"/>
+
+  <!-- Particle dots -->
+  <circle cx="150" cy="200" r="1.5" fill="#D4A843" opacity="0.15"/>
+  <circle cx="930" cy="180" r="2" fill="#D4A843" opacity="0.12"/>
+  <circle cx="100" cy="800" r="1.2" fill="#D4A843" opacity="0.18"/>
+  <circle cx="980" cy="880" r="1.5" fill="#D4A843" opacity="0.12"/>
+
+  <!-- Large decorative quote mark -->
+  <text x="120" y="350" font-family="Georgia, 'Times New Roman', serif" font-size="300" fill="#D4A843" opacity="0.06">"</text>
+
+  <!-- Quote text area -->
+  <text x="540" y="420" text-anchor="middle" font-family="'Space Grotesk', 'Segoe UI', system-ui, sans-serif" font-weight="500" font-size="42" fill="#F0EDE6" filter="url(#textGlow)">[Alinti metni buraya]</text>
+  <text x="540" y="480" text-anchor="middle" font-family="'Space Grotesk', 'Segoe UI', system-ui, sans-serif" font-weight="500" font-size="42" fill="#F0EDE6">[ikinci satir]</text>
+  <text x="540" y="540" text-anchor="middle" font-family="'Space Grotesk', 'Segoe UI', system-ui, sans-serif" font-weight="500" font-size="42" fill="#F0EDE6">[ucuncu satir]</text>
+
+  <!-- Decorative separator -->
+  <line x1="440" y1="600" x2="640" y2="600" stroke="url(#goldGrad)" stroke-width="1.5" opacity="0.4"/>
+
+  <!-- Author -->
+  <text x="540" y="660" text-anchor="middle" font-family="'Inter', 'Segoe UI', system-ui, sans-serif" font-weight="400" font-size="22" fill="#D4A843" opacity="0.7">— [Yazar Adi]</text>
+  <text x="540" y="695" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="14" letter-spacing="1" fill="#A0A0B0" opacity="0.4">[Kaynak / Eser Adi]</text>
+
+  <!-- Discipline tag -->
+  <rect x="440" y="750" width="200" height="40" rx="20" fill="rgba(212,168,67,0.1)" stroke="rgba(212,168,67,0.25)" stroke-width="1"/>
+  <text x="540" y="776" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="13" letter-spacing="2" fill="#D4A843" opacity="0.7">[DISIPLIN]</text>
+
+  <!-- OWL branding bottom -->
+  <g transform="translate(540, 940)">
+    <!-- Small owl icon -->
+    <g transform="scale(0.7)">
+      <path d="M0 -16C-10 -16 -16 -8 -16 0C-16 8 -10 16 0 20C10 16 16 8 16 0C16 -8 10 -16 0 -16Z" fill="rgba(212,168,67,0.04)" stroke="#D4A843" stroke-width="0.6" opacity="0.4"/>
+      <circle cx="-7" cy="-2" r="2.5" fill="#D4A843" opacity="0.5"/>
+      <circle cx="7" cy="-2" r="2.5" fill="#D4A843" opacity="0.5"/>
+      <path d="M0 3L-3 7L0 6L3 7Z" fill="#D4A843" opacity="0.4"/>
+    </g>
+  </g>
+
+  <text x="540" y="990" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="12" letter-spacing="3" fill="#D4A843" opacity="0.3">OWL — OPEN WORKSHOP LAB</text>
+  <text x="540" y="1015" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="11" letter-spacing="2" fill="#A0A0B0" opacity="0.25">legereopenedu.com</text>
+</svg>

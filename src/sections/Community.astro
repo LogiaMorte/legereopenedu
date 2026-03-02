@@ -1,0 +1,137 @@
+---
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/languages';
+import SectionHeading from '../components/SectionHeading.astro';
+import config from '../data/config.json';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const teamsLink = config.social.teams;
+---
+
+<section id="community" class="relative section-padding">
+  <!-- Ambient background -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-gold-500/[0.02] rounded-full blur-[120px]"></div>
+    <div class="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-gold-500/[0.015] rounded-full blur-[100px]"></div>
+  </div>
+
+  <div class="max-w-5xl mx-auto relative z-[1]">
+    <SectionHeading
+      title={t('community.title')}
+      subtitle={t('community.subtitle')}
+    />
+
+    <!-- Main community card -->
+    <div class="glass gold-glow p-8 md:p-10 lg:p-12 mb-8" data-animate>
+      <div class="flex flex-col lg:flex-row items-start gap-8 lg:gap-12">
+        <!-- Left: Text content -->
+        <div class="flex-1 space-y-6">
+          <div class="flex items-center gap-3 mb-4">
+            <!-- Teams icon -->
+            <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#5B5FC7]/20 to-[#5B5FC7]/5 border border-[#5B5FC7]/30 flex items-center justify-center flex-shrink-0">
+              <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none">
+                <path d="M19.2 6.4C19.2 7.72548 18.1255 8.8 16.8 8.8C15.4745 8.8 14.4 7.72548 14.4 6.4C14.4 5.07452 15.4745 4 16.8 4C18.1255 4 19.2 5.07452 19.2 6.4Z" fill="#7B83EB"/>
+                <path d="M22 10.4H18.4C18.4 10.4 18.4 10.4 18.4 10.4V16.8C18.4 18.1255 17.3255 19.2 16 19.2H11.2C11.2 19.5183 11.2 19.8183 11.2 20C11.2 21.1046 12.0954 22 13.2 22H19.6C20.7046 22 21.6 21.1046 21.6 20V12.8C22.4837 12.8 23.2 12.0837 23.2 11.2C23.2 10.7582 22.6418 10.4 22 10.4Z" fill="#5B5FC7" opacity="0.7"/>
+                <path d="M16 9.6H8C6.89543 9.6 6 10.4954 6 11.6V17.6C6 18.7046 6.89543 19.6 8 19.6H16C17.1046 19.6 18 18.7046 18 17.6V11.6C18 10.4954 17.1046 9.6 16 9.6Z" fill="#7B83EB"/>
+                <path d="M13.6 6.4C13.6 8.16731 12.1673 9.6 10.4 9.6C8.63269 9.6 7.2 8.16731 7.2 6.4C7.2 4.63269 8.63269 3.2 10.4 3.2C12.1673 3.2 13.6 4.63269 13.6 6.4Z" fill="#7B83EB"/>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-heading font-bold text-text-primary text-lg">
+                {t('community.teams')}
+              </h3>
+              <span class="text-[11px] font-mono text-gold-500/60 tracking-wider uppercase">Microsoft Teams</span>
+            </div>
+          </div>
+
+          <p class="text-text-secondary leading-relaxed">
+            {t('community.desc')}
+          </p>
+
+          <!-- Teams CTA Button -->
+          <a
+            href={teamsLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="btn-gold inline-flex items-center gap-3 text-sm mt-2"
+          >
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 0 0 3.741-.479 3 3 0 0 0-4.682-2.72m.94 3.198.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0 1 12 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 0 1 6 18.719m12 0a5.971 5.971 0 0 0-.941-3.197m0 0A5.995 5.995 0 0 0 12 12.75a5.995 5.995 0 0 0-5.058 2.772m0 0a3 3 0 0 0-4.681 2.72 8.986 8.986 0 0 0 3.74.477m.94-3.197a5.971 5.971 0 0 0-.94 3.197M15 6.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Zm6 3a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Zm-13.5 0a2.25 2.25 0 1 1-4.5 0 2.25 2.25 0 0 1 4.5 0Z" />
+            </svg>
+            {t('community.join')}
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 0 0 3 8.25v10.5A2.25 2.25 0 0 0 5.25 21h10.5A2.25 2.25 0 0 0 18 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+          </a>
+
+          <!-- Join note -->
+          <p class="text-text-secondary/60 text-xs mt-3 flex items-center gap-1.5">
+            <svg class="w-3.5 h-3.5 text-gold-500/50 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m11.25 11.25.041-.02a.75.75 0 0 1 1.063.852l-.708 2.836a.75.75 0 0 0 1.063.853l.041-.021M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9-3.75h.008v.008H12V8.25Z" />
+            </svg>
+            {t('community.joinNote')}
+            <a href="mailto:info@legereopenedu.com" class="text-gold-500/60 hover:text-gold-500 transition-colors underline underline-offset-2">info@legereopenedu.com</a>
+          </p>
+        </div>
+
+        <!-- Right: Feature cards -->
+        <div class="flex flex-col gap-4 w-full lg:w-80 flex-shrink-0">
+          <!-- Book Club card -->
+          <div class="glass-subtle p-5 group hover:border-gold-500/25 transition-all duration-300">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-gold-500/15 to-gold-500/5 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-heading font-bold text-text-primary text-sm mb-1">
+                  {t('community.bookclub.title')}
+                </h4>
+                <p class="text-text-secondary text-xs leading-relaxed">
+                  {t('community.bookclub.desc')}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Academic chat card -->
+          <div class="glass-subtle p-5 group hover:border-gold-500/25 transition-all duration-300">
+            <div class="flex items-start gap-3">
+              <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-gold-500/15 to-gold-500/5 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 0 1-.825-.242m9.345-8.334a2.126 2.126 0 0 0-.476-.095 48.64 48.64 0 0 0-8.048 0c-1.131.094-1.976 1.057-1.976 2.192v4.286c0 .837.46 1.58 1.155 1.951m9.345-8.334V6.637c0-1.621-1.152-3.026-2.76-3.235A48.455 48.455 0 0 0 11.25 3c-2.115 0-4.198.137-6.24.402-1.608.209-2.76 1.614-2.76 3.235v6.226c0 1.621 1.152 3.026 2.76 3.235.577.075 1.157.14 1.74.194V21l4.155-4.155" />
+                </svg>
+              </div>
+              <div>
+                <h4 class="font-heading font-bold text-text-primary text-sm mb-1">
+                  {t('community.chat.title')}
+                </h4>
+                <p class="text-text-secondary text-xs leading-relaxed">
+                  {t('community.chat.desc')}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Active indicator -->
+          <div class="flex items-center gap-2 px-2 mt-1">
+            <span class="relative flex h-2.5 w-2.5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-status-open opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-status-open"></span>
+            </span>
+            <span class="text-[11px] font-mono text-text-secondary/50 tracking-wider uppercase">
+              {lang === 'tr' ? 'Aktif Topluluk' : 'Active Community'}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

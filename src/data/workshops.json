@@ -11,7 +11,7 @@
     "status": "open",
     "currentParticipants": 28,
     "maxParticipants": 50,
-    "googleFormUrl": "https://forms.google.com",
+    "formEntryValue": "Dijital Kriminoloji ve Veri Analizi Atölyesi",
     "description": {
       "tr": "Dijital ortamda suç analizi, veri madenciliği teknikleri ve adli bilişim konularında üç haftalık yoğun araştırma programı.",
       "en": "A three-week intensive research program on crime analysis in digital environments, data mining techniques, and digital forensics."
@@ -29,7 +29,7 @@
     "status": "upcoming",
     "currentParticipants": 0,
     "maxParticipants": 50,
-    "googleFormUrl": "https://forms.google.com",
+    "formEntryValue": "Yapay Zeka Etiği ve Teknoloji Felsefesi",
     "description": {
       "tr": "Yapay zeka sistemlerinin etik boyutları, algoritmik adalet ve teknolojinin toplumsal etkilerine dair felsefi sorgulamalar.",
       "en": "Philosophical inquiries into the ethical dimensions of AI systems, algorithmic justice, and the societal impact of technology."
@@ -47,7 +47,7 @@
     "status": "upcoming",
     "currentParticipants": 0,
     "maxParticipants": 50,
-    "googleFormUrl": "https://forms.google.com",
+    "formEntryValue": "Dijital Toplum ve Kolektif Davranış",
     "description": {
       "tr": "Sosyal medya dinamikleri, dijital topluluklar ve kolektif davranış örüntülerinin sosyolojik ve veri bilimsel analizi.",
       "en": "Sociological and data-driven analysis of social media dynamics, digital communities, and collective behavior patterns."

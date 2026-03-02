@@ -8,13 +8,14 @@
     "date": "2026-04-07",
     "endDate": "2026-04-25",
     "type": "workshop",
+    "platform": "classroom",
     "description": {
       "tr": "Dijital ortamda suç analizi ve veri madenciliği üzerine üç haftalık yoğun atölye programı.",
       "en": "Three-week intensive workshop on crime analysis and data mining in digital environments."
     },
     "location": {
-      "tr": "Çevrimiçi",
-      "en": "Online"
+      "tr": "Çevrimiçi — Google Classroom",
+      "en": "Online — Google Classroom"
     }
   },
   {
@@ -25,13 +26,14 @@
     },
     "date": "2026-04-15",
     "type": "seminar",
+    "platform": "meet",
     "description": {
       "tr": "Farklı disiplinlerden araştırmacıların ortak metodoloji geliştirme deneyimlerini paylaştığı açık seminer.",
       "en": "An open seminar where researchers from different disciplines share their experiences in developing common methodologies."
     },
     "location": {
-      "tr": "Çevrimiçi",
-      "en": "Online"
+      "tr": "Çevrimiçi — Google Meet",
+      "en": "Online — Google Meet"
     }
   },
   {
@@ -43,13 +45,14 @@
     "date": "2026-05-12",
     "endDate": "2026-05-30",
     "type": "workshop",
+    "platform": "classroom",
     "description": {
       "tr": "Yapay zeka etiği, algoritmik adalet ve teknoloji felsefesi konularında üç haftalık araştırma programı.",
       "en": "Three-week research program on AI ethics, algorithmic justice, and philosophy of technology."
     },
     "location": {
-      "tr": "Çevrimiçi",
-      "en": "Online"
+      "tr": "Çevrimiçi — Google Classroom",
+      "en": "Online — Google Classroom"
     }
   },
   {
@@ -61,13 +64,14 @@
     "date": "2026-07-20",
     "endDate": "2026-07-22",
     "type": "congress",
+    "platform": "meet",
     "description": {
       "tr": "Açık erişim, açık veri ve dijital akademinin geleceği üzerine uluslararası kongre.",
       "en": "International congress on open access, open data, and the future of digital academia."
     },
     "location": {
-      "tr": "Çevrimiçi + Hibrit",
-      "en": "Online + Hybrid"
+      "tr": "Çevrimiçi + Hibrit — Google Meet",
+      "en": "Online + Hybrid — Google Meet"
     }
   }
 ]

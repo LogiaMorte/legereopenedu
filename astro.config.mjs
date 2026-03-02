@@ -20,6 +20,7 @@ export default defineConfig({
         defaultLocale: 'tr',
         locales: { tr: 'tr-TR', en: 'en-US' },
       },
+      filter: (page) => !page.includes('/admin'),
     }),
   ],
 

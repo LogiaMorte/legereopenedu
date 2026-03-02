@@ -7,6 +7,7 @@ interface EventItem {
   date: string;
   endDate?: string;
   type: 'workshop' | 'seminar' | 'congress';
+  platform?: 'meet' | 'classroom';
   description: Record<string, string>;
   location: Record<string, string>;
 }
@@ -70,9 +71,27 @@ const formatDate = (dateStr: string) => {
             <p class="text-text-secondary text-sm mb-2">
               {event.description[lang]}
             </p>
-            <p class="text-text-secondary/60 text-xs">
-              📍 {event.location[lang]}
-            </p>
+            <div class="flex items-center gap-3 flex-wrap">
+              <p class="text-text-secondary/60 text-xs">
+                📍 {event.location[lang]}
+              </p>
+              {event.platform === 'meet' && (
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#00897B]/10 border border-[#00897B]/25">
+                  <svg class="w-3 h-3 text-[#00897B]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                  </svg>
+                  <span class="text-[10px] font-mono text-[#00897B] tracking-wide">Google Meet</span>
+                </span>
+              )}
+              {event.platform === 'classroom' && (
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-[#1e8e3e]/10 border border-[#1e8e3e]/25">
+                  <svg class="w-3 h-3 text-[#1e8e3e]" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M21.6 6H2.4C1.08 6 0 7.08 0 8.4v7.2C0 16.92 1.08 18 2.4 18h19.2c1.32 0 2.4-1.08 2.4-2.4V8.4C24 7.08 22.92 6 21.6 6zM12 8.4c1.32 0 2.4 1.08 2.4 2.4s-1.08 2.4-2.4 2.4-2.4-1.08-2.4-2.4 1.08-2.4 2.4-2.4zm4.8 8.4H7.2v-.6c0-1.6 3.2-2.48 4.8-2.48s4.8.88 4.8 2.48v.6z"/>
+                  </svg>
+                  <span class="text-[10px] font-mono text-[#1e8e3e] tracking-wide">Classroom</span>
+                </span>
+              )}
+            </div>
           </div>
         </div>
       );

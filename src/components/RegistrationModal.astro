@@ -1,0 +1,286 @@
+---
+import type { Lang } from '../i18n/languages';
+import { useTranslations } from '../i18n/utils';
+import workshopsData from '../data/workshops.json';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const openWorkshops = workshopsData.filter((ws: any) => ws.status === 'open' || ws.status === 'upcoming');
+---
+
+<!-- Registration Modal Overlay -->
+<div
+  id="reg-modal"
+  class="fixed inset-0 z-[100] hidden items-center justify-center p-4"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="reg-modal-title"
+>
+  <!-- Backdrop -->
+  <div id="reg-backdrop" class="absolute inset-0 bg-black/70 backdrop-blur-sm"></div>
+
+  <!-- Modal content -->
+  <div class="relative w-full max-w-lg max-h-[90vh] overflow-y-auto glass gold-glow rounded-2xl">
+    <!-- Close button -->
+    <button
+      id="reg-close-btn"
+      class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full glass-subtle hover:bg-white/10 transition-colors z-10"
+      aria-label={t('reg.close')}
+    >
+      <svg class="w-4 h-4 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <!-- Form states container -->
+    <div class="p-6 md:p-8">
+      <!-- Form state: default -->
+      <div id="reg-form-state">
+        <h2 id="reg-modal-title" class="text-xl font-heading font-bold text-text-primary mb-1">
+          {t('reg.title')}
+        </h2>
+        <p id="reg-workshop-label" class="text-gold-500 text-sm font-mono mb-6"></p>
+
+        <form id="reg-form" class="space-y-4" novalidate>
+          <input type="hidden" id="reg-workshop-value" name="workshop" />
+
+          <!-- Name -->
+          <div>
+            <label for="reg-name" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
+              {t('reg.name')} <span class="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              id="reg-name"
+              name="name"
+              required
+              class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
+              placeholder="Adınız Soyadınız"
+            />
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label for="reg-email" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
+              {t('reg.email')} <span class="text-red-400">*</span>
+            </label>
+            <input
+              type="email"
+              id="reg-email"
+              name="email"
+              required
+              class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
+              placeholder="ornek@universiteadi.edu.tr"
+            />
+          </div>
+
+          <!-- University -->
+          <div>
+            <label for="reg-university" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
+              {t('reg.university')} <span class="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              id="reg-university"
+              name="university"
+              required
+              class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
+            />
+          </div>
+
+          <!-- Department -->
+          <div>
+            <label for="reg-department" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
+              {t('reg.department')} <span class="text-red-400">*</span>
+            </label>
+            <input
+              type="text"
+              id="reg-department"
+              name="department"
+              required
+              class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
+            />
+          </div>
+
+          <!-- Workshop (readonly, auto-filled) -->
+          <div>
+            <label class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
+              {t('reg.workshop')}
+            </label>
+            <div id="reg-workshop-display" class="px-4 py-2.5 rounded-lg bg-gold-500/5 border border-gold-500/20 text-gold-500 text-sm font-mono">
+            </div>
+          </div>
+
+          <!-- Motivation (optional) -->
+          <div>
+            <label for="reg-motivation" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
+              {t('reg.motivation')}
+            </label>
+            <textarea
+              id="reg-motivation"
+              name="motivation"
+              rows="3"
+              class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors resize-none"
+              placeholder={t('reg.motivationHint')}
+            ></textarea>
+          </div>
+
+          <!-- Error message -->
+          <div id="reg-error" class="hidden px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/25 text-red-400 text-sm">
+            {t('reg.error')}
+          </div>
+
+          <!-- Submit -->
+          <button
+            type="submit"
+            id="reg-submit-btn"
+            class="w-full btn-gold justify-center text-sm py-3"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 12 3.269 3.125A59.769 59.769 0 0 1 21.485 12 59.768 59.768 0 0 1 3.27 20.875L5.999 12Zm0 0h7.5" />
+            </svg>
+            <span id="reg-submit-text">{t('reg.submit')}</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Success state -->
+      <div id="reg-success-state" class="hidden text-center py-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-status-open/10 border border-status-open/25 mb-4">
+          <svg class="w-8 h-8 text-status-open" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+          </svg>
+        </div>
+        <h3 class="text-xl font-heading font-bold text-text-primary mb-2">
+          {t('reg.success')}
+        </h3>
+        <p class="text-text-secondary text-sm mb-6">
+          {t('reg.successDesc')}
+        </p>
+        <button
+          id="reg-success-close"
+          class="btn-outline text-sm mx-auto"
+        >
+          {t('reg.close')}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script is:inline>
+  // Registration Modal Controller
+  (function() {
+    const modal = document.getElementById('reg-modal');
+    const backdrop = document.getElementById('reg-backdrop');
+    const closeBtn = document.getElementById('reg-close-btn');
+    const form = document.getElementById('reg-form');
+    const formState = document.getElementById('reg-form-state');
+    const successState = document.getElementById('reg-success-state');
+    const successClose = document.getElementById('reg-success-close');
+    const submitBtn = document.getElementById('reg-submit-btn');
+    const submitText = document.getElementById('reg-submit-text');
+    const errorEl = document.getElementById('reg-error');
+    const workshopValue = document.getElementById('reg-workshop-value');
+    const workshopDisplay = document.getElementById('reg-workshop-display');
+    const workshopLabel = document.getElementById('reg-workshop-label');
+
+    // Open modal
+    window.openRegistration = function(workshopTitle, workshopId) {
+      if (!modal) return;
+      workshopValue.value = workshopId;
+      workshopDisplay.textContent = workshopTitle;
+      workshopLabel.textContent = workshopTitle;
+
+      // Reset state
+      formState.classList.remove('hidden');
+      successState.classList.add('hidden');
+      errorEl.classList.add('hidden');
+      form.reset();
+      workshopValue.value = workshopId;
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      document.body.style.overflow = 'hidden';
+
+      // Focus first input
+      setTimeout(() => document.getElementById('reg-name')?.focus(), 100);
+    };
+
+    // Close modal
+    function closeModal() {
+      if (!modal) return;
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+      document.body.style.overflow = '';
+    }
+
+    backdrop?.addEventListener('click', closeModal);
+    closeBtn?.addEventListener('click', closeModal);
+    successClose?.addEventListener('click', closeModal);
+
+    // ESC key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !modal?.classList.contains('hidden')) {
+        closeModal();
+      }
+    });
+
+    // Form submit
+    form?.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      const data = {
+        name: formData.get('name')?.toString().trim(),
+        email: formData.get('email')?.toString().trim(),
+        university: formData.get('university')?.toString().trim(),
+        department: formData.get('department')?.toString().trim(),
+        workshop: formData.get('workshop')?.toString().trim(),
+        motivation: formData.get('motivation')?.toString().trim() || '',
+        timestamp: new Date().toISOString(),
+      };
+
+      // Validate
+      if (!data.name || !data.email || !data.university || !data.department) {
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      // Email format check
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+        errorEl.classList.remove('hidden');
+        return;
+      }
+
+      errorEl.classList.add('hidden');
+      submitBtn.disabled = true;
+      submitText.textContent = submitBtn.dataset.loading || 'Gönderiliyor...';
+
+      try {
+        const res = await fetch('/api/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+
+        if (res.ok) {
+          formState.classList.add('hidden');
+          successState.classList.remove('hidden');
+        } else {
+          throw new Error('Failed');
+        }
+      } catch (err) {
+        errorEl.classList.remove('hidden');
+      } finally {
+        submitBtn.disabled = false;
+        submitText.textContent = submitBtn.dataset.label || 'Başvuruyu Gönder';
+      }
+    });
+  })();
+</script>

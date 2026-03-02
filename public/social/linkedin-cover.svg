@@ -1,0 +1,158 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1128 191" width="1128" height="191">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFD54F"/>
+      <stop offset="50%" stop-color="#D4A843"/>
+      <stop offset="100%" stop-color="#B8922E"/>
+    </linearGradient>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0E0E18"/>
+      <stop offset="50%" stop-color="#0A0A0F"/>
+      <stop offset="100%" stop-color="#0C0C14"/>
+    </linearGradient>
+    <radialGradient id="glowLeft" cx="25%" cy="50%" r="30%">
+      <stop offset="0%" stop-color="rgba(212,168,67,0.08)"/>
+      <stop offset="100%" stop-color="rgba(212,168,67,0)"/>
+    </radialGradient>
+    <radialGradient id="glowRight" cx="80%" cy="50%" r="25%">
+      <stop offset="0%" stop-color="rgba(212,168,67,0.05)"/>
+      <stop offset="100%" stop-color="rgba(212,168,67,0)"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="2"/>
+      <feColorMatrix values="0 0 0 0 0.83  0 0 0 0 0.66  0 0 0 0 0.26  0 0 0 0.4 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="softGlow">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4"/>
+      <feColorMatrix values="0 0 0 0 0.83  0 0 0 0 0.66  0 0 0 0 0.26  0 0 0 0.25 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1128" height="191" fill="url(#bgGrad)"/>
+  <rect width="1128" height="191" fill="url(#glowLeft)"/>
+  <rect width="1128" height="191" fill="url(#glowRight)"/>
+
+  <!-- Top and bottom accent lines -->
+  <line x1="0" y1="1" x2="1128" y2="1" stroke="url(#goldGrad)" stroke-width="1" opacity="0.15"/>
+  <line x1="0" y1="190" x2="1128" y2="190" stroke="url(#goldGrad)" stroke-width="1" opacity="0.15"/>
+
+  <!-- Constellation/particle network background -->
+  <!-- Particles -->
+  <circle cx="80" cy="40" r="1.2" fill="#D4A843" opacity="0.2"/>
+  <circle cx="150" cy="150" r="1" fill="#D4A843" opacity="0.15"/>
+  <circle cx="220" cy="30" r="0.8" fill="#D4A843" opacity="0.2"/>
+  <circle cx="300" cy="100" r="1.5" fill="#D4A843" opacity="0.12"/>
+  <circle cx="400" cy="160" r="1" fill="#D4A843" opacity="0.18"/>
+  <circle cx="500" cy="45" r="1.2" fill="#D4A843" opacity="0.15"/>
+  <circle cx="600" cy="130" r="0.8" fill="#D4A843" opacity="0.2"/>
+  <circle cx="700" cy="35" r="1" fill="#D4A843" opacity="0.15"/>
+  <circle cx="750" cy="155" r="1.3" fill="#D4A843" opacity="0.12"/>
+  <circle cx="850" cy="60" r="1" fill="#D4A843" opacity="0.18"/>
+  <circle cx="920" cy="140" r="0.8" fill="#D4A843" opacity="0.2"/>
+  <circle cx="1000" cy="50" r="1.2" fill="#D4A843" opacity="0.15"/>
+  <circle cx="1060" cy="120" r="1" fill="#D4A843" opacity="0.18"/>
+  <circle cx="160" cy="85" r="1" fill="#D4A843" opacity="0.1"/>
+  <circle cx="450" cy="95" r="0.7" fill="#D4A843" opacity="0.15"/>
+  <circle cx="550" cy="75" r="1.1" fill="#D4A843" opacity="0.12"/>
+
+  <!-- Connection lines -->
+  <line x1="80" y1="40" x2="220" y2="30" stroke="#D4A843" stroke-width="0.3" opacity="0.08"/>
+  <line x1="220" y1="30" x2="300" y2="100" stroke="#D4A843" stroke-width="0.3" opacity="0.06"/>
+  <line x1="150" y1="150" x2="300" y2="100" stroke="#D4A843" stroke-width="0.3" opacity="0.06"/>
+  <line x1="500" y1="45" x2="600" y2="130" stroke="#D4A843" stroke-width="0.3" opacity="0.08"/>
+  <line x1="700" y1="35" x2="850" y2="60" stroke="#D4A843" stroke-width="0.3" opacity="0.06"/>
+  <line x1="850" y1="60" x2="1000" y2="50" stroke="#D4A843" stroke-width="0.3" opacity="0.08"/>
+  <line x1="1000" y1="50" x2="1060" y2="120" stroke="#D4A843" stroke-width="0.3" opacity="0.06"/>
+  <line x1="750" y1="155" x2="920" y2="140" stroke="#D4A843" stroke-width="0.3" opacity="0.06"/>
+
+  <!-- OWL Logo (left side) -->
+  <g transform="translate(200, 95) scale(1.6)">
+    <!-- Hexagonal frame -->
+    <path d="M0 -28L24.25 -14V14L0 28L-24.25 14V-14Z"
+          stroke="url(#goldGrad)" stroke-width="0.8" fill="none" opacity="0.3"/>
+
+    <!-- Owl face -->
+    <path d="M0 -16C-10 -16 -16 -8 -16 0C-16 8 -10 16 0 20C10 16 16 8 16 0C16 -8 10 -16 0 -16Z"
+          fill="rgba(212,168,67,0.05)" stroke="url(#goldGrad)" stroke-width="0.7"/>
+
+    <!-- Left eye -->
+    <circle cx="-7" cy="-2" r="6" stroke="#D4A843" stroke-width="0.8" fill="rgba(10,10,15,0.85)"/>
+    <circle cx="-7" cy="-2" r="2.5" fill="#D4A843" filter="url(#glow)"/>
+    <circle cx="-6" cy="-3" r="1" fill="#FFF8E1" opacity="0.8"/>
+
+    <!-- Right eye -->
+    <circle cx="7" cy="-2" r="6" stroke="#D4A843" stroke-width="0.8" fill="rgba(10,10,15,0.85)"/>
+    <circle cx="7" cy="-2" r="2.5" fill="#D4A843" filter="url(#glow)"/>
+    <circle cx="8" cy="-3" r="1" fill="#FFF8E1" opacity="0.8"/>
+
+    <!-- Beak -->
+    <path d="M0 3L-3 7L0 6L3 7Z" fill="#D4A843" opacity="0.85"/>
+
+    <!-- Ear tufts -->
+    <path d="M-14 -10L-10 -14L-12 -8" stroke="#D4A843" stroke-width="0.6" fill="none" opacity="0.4"/>
+    <path d="M14 -10L10 -14L12 -8" stroke="#D4A843" stroke-width="0.6" fill="none" opacity="0.4"/>
+  </g>
+
+  <!-- OWL Text -->
+  <text x="310" y="82" font-family="'Space Grotesk', 'Segoe UI', system-ui, sans-serif" font-weight="700" font-size="40" letter-spacing="6" fill="url(#goldGrad)" filter="url(#softGlow)">OWL</text>
+
+  <!-- Full name -->
+  <text x="310" y="112" font-family="'Space Grotesk', 'Segoe UI', system-ui, sans-serif" font-weight="400" font-size="14" letter-spacing="4" fill="#A0A0B0" opacity="0.7">OPEN WORKSHOP LAB</text>
+
+  <!-- Separator -->
+  <line x1="310" y1="124" x2="480" y2="124" stroke="url(#goldGrad)" stroke-width="0.6" opacity="0.25"/>
+
+  <!-- Tagline -->
+  <text x="310" y="143" font-family="'Inter', 'Segoe UI', system-ui, sans-serif" font-weight="300" font-size="11" letter-spacing="1" fill="#A0A0B0" opacity="0.5">Legere — Okumak, Secmek, Bir Araya Getirmek</text>
+
+  <!-- Right side - Discipline tags -->
+  <g transform="translate(680, 55)">
+    <!-- Tag boxes -->
+    <rect x="0" y="0" width="90" height="24" rx="4" fill="rgba(212,168,67,0.08)" stroke="rgba(212,168,67,0.2)" stroke-width="0.5"/>
+    <text x="45" y="16" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8" letter-spacing="1" fill="#D4A843" opacity="0.7">CRIMINOLOGY</text>
+
+    <rect x="100" y="0" width="80" height="24" rx="4" fill="rgba(212,168,67,0.08)" stroke="rgba(212,168,67,0.2)" stroke-width="0.5"/>
+    <text x="140" y="16" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8" letter-spacing="1" fill="#D4A843" opacity="0.7">SOCIOLOGY</text>
+
+    <rect x="190" y="0" width="85" height="24" rx="4" fill="rgba(212,168,67,0.08)" stroke="rgba(212,168,67,0.2)" stroke-width="0.5"/>
+    <text x="232" y="16" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8" letter-spacing="1" fill="#D4A843" opacity="0.7">PHILOSOPHY</text>
+
+    <rect x="285" y="0" width="100" height="24" rx="4" fill="rgba(212,168,67,0.08)" stroke="rgba(212,168,67,0.2)" stroke-width="0.5"/>
+    <text x="335" y="16" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8" letter-spacing="1" fill="#D4A843" opacity="0.7">DATA SCIENCE</text>
+
+    <!-- Second row -->
+    <rect x="30" y="34" width="60" height="24" rx="4" fill="rgba(212,168,67,0.05)" stroke="rgba(212,168,67,0.12)" stroke-width="0.5"/>
+    <text x="60" y="50" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8" letter-spacing="1" fill="#D4A843" opacity="0.5">LAW</text>
+
+    <rect x="100" y="34" width="90" height="24" rx="4" fill="rgba(212,168,67,0.05)" stroke="rgba(212,168,67,0.12)" stroke-width="0.5"/>
+    <text x="145" y="50" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8" letter-spacing="1" fill="#D4A843" opacity="0.5">PSYCHOLOGY</text>
+
+    <rect x="200" y="34" width="110" height="24" rx="4" fill="rgba(212,168,67,0.05)" stroke="rgba(212,168,67,0.12)" stroke-width="0.5"/>
+    <text x="255" y="50" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8" letter-spacing="1" fill="#D4A843" opacity="0.5">ANTHROPOLOGY</text>
+
+    <rect x="320" y="34" width="60" height="24" rx="4" fill="rgba(212,168,67,0.05)" stroke="rgba(212,168,67,0.12)" stroke-width="0.5"/>
+    <text x="350" y="50" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8" letter-spacing="1" fill="#D4A843" opacity="0.5">AI</text>
+
+    <!-- Third row -->
+    <rect x="60" y="68" width="130" height="24" rx="4" fill="rgba(212,168,67,0.03)" stroke="rgba(212,168,67,0.08)" stroke-width="0.5"/>
+    <text x="125" y="84" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8" letter-spacing="1" fill="#D4A843" opacity="0.35">POLITICAL SCIENCE</text>
+
+    <rect x="200" y="68" width="90" height="24" rx="4" fill="rgba(212,168,67,0.03)" stroke="rgba(212,168,67,0.08)" stroke-width="0.5"/>
+    <text x="245" y="84" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8" letter-spacing="1" fill="#D4A843" opacity="0.35">ECONOMICS</text>
+
+    <rect x="300" y="68" width="90" height="24" rx="4" fill="rgba(212,168,67,0.03)" stroke="rgba(212,168,67,0.08)" stroke-width="0.5"/>
+    <text x="345" y="84" text-anchor="middle" font-family="'JetBrains Mono', monospace" font-size="8" letter-spacing="1" fill="#D4A843" opacity="0.35">INTL. REL.</text>
+  </g>
+
+  <!-- Website URL bottom right -->
+  <text x="1090" y="175" text-anchor="end" font-family="'JetBrains Mono', monospace" font-size="9" letter-spacing="1.5" fill="#D4A843" opacity="0.35">legereopenedu.com</text>
+</svg>

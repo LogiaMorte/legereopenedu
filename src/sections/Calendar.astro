@@ -27,5 +27,22 @@ const t = useTranslations(lang);
         <p class="text-text-secondary text-lg">{t('calendar.empty')}</p>
       </div>
     )}
+
+    <!-- Google Meet info note -->
+    <div class="mt-10 max-w-3xl mx-auto" data-animate>
+      <div class="glass-subtle p-5 flex items-start gap-4">
+        <div class="shrink-0 w-10 h-10 rounded-xl bg-[#00897B]/10 border border-[#00897B]/25 flex items-center justify-center mt-0.5">
+          <svg class="w-5 h-5 text-[#00897B]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+          </svg>
+        </div>
+        <div>
+          <h4 class="font-heading font-bold text-[#00897B] text-sm mb-1">Google Meet</h4>
+          <p class="text-text-secondary text-sm leading-relaxed">
+            {t('calendar.meetNote')}
+          </p>
+        </div>
+      </div>
+    </div>
   </div>
 </section>

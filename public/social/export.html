@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OWL Social Media Kit — PNG Export</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #1a1a2e;
+      color: #f0ede6;
+      font-family: 'Inter', sans-serif;
+      padding: 40px;
+    }
+    h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      color: #D4A843;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+    .subtitle {
+      color: #a0a0b0;
+      font-size: 14px;
+      margin-bottom: 40px;
+    }
+    .section-title {
+      font-family: 'Space Grotesk', sans-serif;
+      color: #D4A843;
+      font-size: 20px;
+      margin: 40px 0 16px;
+      padding-top: 20px;
+      border-top: 1px solid rgba(212,168,67,0.15);
+    }
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(212,168,67,0.12);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .card label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: #D4A843;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+    .card .size {
+      font-size: 11px;
+      color: #a0a0b0;
+    }
+    .card canvas {
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 4px;
+    }
+    .card img {
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 4px;
+      max-width: 400px;
+    }
+    button {
+      background: linear-gradient(135deg, #B8922E, #D4A843);
+      color: #0A0A0F;
+      border: none;
+      padding: 8px 20px;
+      border-radius: 6px;
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover {
+      box-shadow: 0 0 20px rgba(212,168,67,0.3);
+      transform: translateY(-1px);
+    }
+    .btn-all {
+      margin-bottom: 30px;
+      padding: 12px 32px;
+      font-size: 15px;
+    }
+    .info {
+      background: rgba(212,168,67,0.08);
+      border: 1px solid rgba(212,168,67,0.2);
+      border-radius: 8px;
+      padding: 16px 20px;
+      margin-bottom: 30px;
+      font-size: 13px;
+      color: #a0a0b0;
+      line-height: 1.6;
+    }
+    .info strong { color: #D4A843; }
+  </style>
+</head>
+<body>
+  <h1>OWL Social Media Kit — PNG Export</h1>
+  <p class="subtitle">Tum gorselleri tek tek veya toplu PNG olarak indir</p>
+
+  <div class="info">
+    <strong>Nasil kullanilir:</strong> Her gorsel icin "PNG Indir" butonuna tikla.
+    Gorsel otomatik olarak dogru boyutta PNG'ye donusturulur.
+    Fontlar Google Fonts uzerinden yuklenir — internet baglantisi gereklidir.
+    <br><strong>Not:</strong> Tum gorseller 2x cozunurlukde (Retina) export edilir — sosyal medyada keskin gorunur.
+  </div>
+
+  <button class="btn-all" onclick="exportAll()">Tumunu Indir (Tum PNG'ler)</button>
+
+  <!-- Profile Logos -->
+  <h2 class="section-title">Profil Fotograflari</h2>
+  <div class="grid">
+    <div class="card" id="card-logo-profile">
+      <label>Logo — Tam</label>
+      <span class="size">400x400 → 800x800px</span>
+      <img src="logo-profile.svg" width="200" height="200">
+      <button onclick="exportSVG('logo-profile.svg', 800, 800, 'owl-logo-profile.png')">PNG Indir</button>
+    </div>
+    <div class="card" id="card-logo-minimal">
+      <label>Logo — Minimal</label>
+      <span class="size">400x400 → 800x800px</span>
+      <img src="logo-profile-minimal.svg" width="200" height="200">
+      <button onclick="exportSVG('logo-profile-minimal.svg', 800, 800, 'owl-logo-minimal.png')">PNG Indir</button>
+    </div>
+  </div>
+
+  <!-- LinkedIn -->
+  <h2 class="section-title">LinkedIn</h2>
+  <div class="grid">
+    <div class="card">
+      <label>LinkedIn Kapak</label>
+      <span class="size">1128x191 → 2256x382px</span>
+      <img src="linkedin-cover.svg" width="400" style="height:auto">
+      <button onclick="exportSVG('linkedin-cover.svg', 2256, 382, 'owl-linkedin-cover.png')">PNG Indir</button>
+    </div>
+  </div>
+
+  <!-- Instagram Posts -->
+  <h2 class="section-title">Instagram Post (1080x1080)</h2>
+  <div class="grid">
+    <div class="card">
+      <label>Lansman Postu (Hazir)</label>
+      <span class="size">1080x1080 → 2160x2160px</span>
+      <img src="ig-post-launch.svg" width="300" height="300">
+      <button onclick="exportSVG('ig-post-launch.svg', 2160, 2160, 'owl-ig-launch.png')">PNG Indir</button>
+    </div>
+    <div class="card">
+      <label>Atolye Duyuru Sablonu</label>
+      <span class="size">1080x1080 → 2160x2160px</span>
+      <img src="ig-post-workshop-template.svg" width="300" height="300">
+      <button onclick="exportSVG('ig-post-workshop-template.svg', 2160, 2160, 'owl-ig-workshop.png')">PNG Indir</button>
+    </div>
+    <div class="card">
+      <label>Alinti Sablonu</label>
+      <span class="size">1080x1080 → 2160x2160px</span>
+      <img src="ig-post-quote-template.svg" width="300" height="300">
+      <button onclick="exportSVG('ig-post-quote-template.svg', 2160, 2160, 'owl-ig-quote.png')">PNG Indir</button>
+    </div>
+    <div class="card">
+      <label>Bilgi Karti Sablonu</label>
+      <span class="size">1080x1080 → 2160x2160px</span>
+      <img src="ig-post-info-template.svg" width="300" height="300">
+      <button onclick="exportSVG('ig-post-info-template.svg', 2160, 2160, 'owl-ig-info.png')">PNG Indir</button>
+    </div>
+  </div>
+
+  <!-- Instagram Story -->
+  <h2 class="section-title">Instagram Story (1080x1920)</h2>
+  <div class="grid">
+    <div class="card">
+      <label>Story Duyuru Sablonu</label>
+      <span class="size">1080x1920 → 2160x3840px</span>
+      <img src="ig-story-template.svg" width="180" style="height:auto">
+      <button onclick="exportSVG('ig-story-template.svg', 2160, 3840, 'owl-ig-story.png')">PNG Indir</button>
+    </div>
+  </div>
+
+  <!-- Instagram Highlights -->
+  <h2 class="section-title">Instagram Highlight Kapaklari (200x200)</h2>
+  <div class="grid">
+    <div class="card">
+      <label>Atolyeler</label>
+      <span class="size">200x200 → 400x400px</span>
+      <img src="ig-highlight-atolye.svg" width="100" height="100">
+      <button onclick="exportSVG('ig-highlight-atolye.svg', 400, 400, 'owl-highlight-atolye.png')">PNG Indir</button>
+    </div>
+    <div class="card">
+      <label>Hakkimizda</label>
+      <span class="size">200x200 → 400x400px</span>
+      <img src="ig-highlight-hakkimizda.svg" width="100" height="100">
+      <button onclick="exportSVG('ig-highlight-hakkimizda.svg', 400, 400, 'owl-highlight-hakkimizda.png')">PNG Indir</button>
+    </div>
+    <div class="card">
+      <label>Yayinlar</label>
+      <span class="size">200x200 → 400x400px</span>
+      <img src="ig-highlight-yayin.svg" width="100" height="100">
+      <button onclick="exportSVG('ig-highlight-yayin.svg', 400, 400, 'owl-highlight-yayin.png')">PNG Indir</button>
+    </div>
+    <div class="card">
+      <label>Etkinlikler</label>
+      <span class="size">200x200 → 400x400px</span>
+      <img src="ig-highlight-etkinlik.svg" width="100" height="100">
+      <button onclick="exportSVG('ig-highlight-etkinlik.svg', 400, 400, 'owl-highlight-etkinlik.png')">PNG Indir</button>
+    </div>
+    <div class="card">
+      <label>Topluluk</label>
+      <span class="size">200x200 → 400x400px</span>
+      <img src="ig-highlight-topluluk.svg" width="100" height="100">
+      <button onclick="exportSVG('ig-highlight-topluluk.svg', 400, 400, 'owl-highlight-topluluk.png')">PNG Indir</button>
+    </div>
+  </div>
+
+  <script>
+    async function exportSVG(svgFile, width, height, filename) {
+      try {
+        // Fetch SVG content
+        const response = await fetch(svgFile);
+        let svgText = await response.text();
+
+        // Embed Google Fonts directly into SVG
+        const fontCSS = await fetch('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap')
+          .then(r => r.text())
+          .catch(() => '');
+
+        // Fetch actual font files and convert to base64
+        const fontUrls = fontCSS.match(/url\((https:\/\/[^)]+)\)/g) || [];
+        let processedCSS = fontCSS;
+
+        for (const urlMatch of fontUrls) {
+          const url = urlMatch.replace('url(', '').replace(')', '');
+          try {
+            const fontResp = await fetch(url);
+            const fontBlob = await fontResp.blob();
+            const base64 = await blobToBase64(fontBlob);
+            processedCSS = processedCSS.replace(url, base64);
+          } catch(e) {
+            // Skip if font can't be loaded
+          }
+        }
+
+        // Inject font CSS into SVG
+        if (processedCSS) {
+          svgText = svgText.replace(
+            '<svg ',
+            `<svg `
+          );
+          // Add style element right after opening svg tag
+          const insertPos = svgText.indexOf('>') + 1;
+          svgText = svgText.slice(0, insertPos) +
+            `<style>${processedCSS}</style>` +
+            svgText.slice(insertPos);
+        }
+
+        // Create blob URL
+        const svgBlob = new Blob([svgText], { type: 'image/svg+xml;charset=utf-8' });
+        const svgUrl = URL.createObjectURL(svgBlob);
+
+        // Create image
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+
+        await new Promise((resolve, reject) => {
+          img.onload = resolve;
+          img.onerror = reject;
+          img.src = svgUrl;
+        });
+
+        // Draw on canvas at target size
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+
+        // Fill background (important for transparency)
+        ctx.fillStyle = '#0A0A0F';
+        ctx.fillRect(0, 0, width, height);
+
+        // Draw SVG
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Download
+        canvas.toBlob(blob => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = filename;
+          a.click();
+          URL.revokeObjectURL(a.href);
+        }, 'image/png', 1.0);
+
+        URL.revokeObjectURL(svgUrl);
+      } catch(err) {
+        console.error('Export error:', err);
+        alert('Export hatasi: ' + err.message);
+      }
+    }
+
+    function blobToBase64(blob) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
+    }
+
+    async function exportAll() {
+      const exports = [
+        ['logo-profile.svg', 800, 800, 'owl-logo-profile.png'],
+        ['logo-profile-minimal.svg', 800, 800, 'owl-logo-minimal.png'],
+        ['linkedin-cover.svg', 2256, 382, 'owl-linkedin-cover.png'],
+        ['ig-post-launch.svg', 2160, 2160, 'owl-ig-launch.png'],
+        ['ig-post-workshop-template.svg', 2160, 2160, 'owl-ig-workshop.png'],
+        ['ig-post-quote-template.svg', 2160, 2160, 'owl-ig-quote.png'],
+        ['ig-post-info-template.svg', 2160, 2160, 'owl-ig-info.png'],
+        ['ig-story-template.svg', 2160, 3840, 'owl-ig-story.png'],
+        ['ig-highlight-atolye.svg', 400, 400, 'owl-highlight-atolye.png'],
+        ['ig-highlight-hakkimizda.svg', 400, 400, 'owl-highlight-hakkimizda.png'],
+        ['ig-highlight-yayin.svg', 400, 400, 'owl-highlight-yayin.png'],
+        ['ig-highlight-etkinlik.svg', 400, 400, 'owl-highlight-etkinlik.png'],
+        ['ig-highlight-topluluk.svg', 400, 400, 'owl-highlight-topluluk.png'],
+      ];
+
+      for (const [file, w, h, name] of exports) {
+        await exportSVG(file, w, h, name);
+        // Small delay between downloads
+        await new Promise(r => setTimeout(r, 500));
+      }
+    }
+  </script>
+</body>
+</html>

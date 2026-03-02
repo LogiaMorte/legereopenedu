@@ -1,0 +1,130 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { useTranslations } from '../i18n/utils';
+
+const lang = 'tr' as const;
+const t = useTranslations(lang);
+
+const sections = [
+  {
+    id: 'manifesto',
+    icon: 'scroll',
+    title: t('ethics.manifesto.title'),
+    paragraphs: [t('ethics.manifesto.p1'), t('ethics.manifesto.p2'), t('ethics.manifesto.p3')],
+  },
+  {
+    id: 'ip',
+    icon: 'shield',
+    title: t('ethics.ip.title'),
+    paragraphs: [t('ethics.ip.p1'), t('ethics.ip.p2'), t('ethics.ip.p3')],
+  },
+  {
+    id: 'pub',
+    icon: 'book',
+    title: t('ethics.pub.title'),
+    paragraphs: [t('ethics.pub.p1'), t('ethics.pub.p2'), t('ethics.pub.p3'), t('ethics.pub.p4')],
+  },
+  {
+    id: 'transparency',
+    icon: 'eye',
+    title: t('ethics.transparency.title'),
+    paragraphs: [t('ethics.transparency.p1'), t('ethics.transparency.p2'), t('ethics.transparency.p3')],
+  },
+  {
+    id: 'conduct',
+    icon: 'users',
+    title: t('ethics.conduct.title'),
+    paragraphs: [t('ethics.conduct.p1'), t('ethics.conduct.p2'), t('ethics.conduct.p3'), t('ethics.conduct.p4')],
+  },
+  {
+    id: 'data',
+    icon: 'lock',
+    title: t('ethics.data.title'),
+    paragraphs: [t('ethics.data.p1'), t('ethics.data.p2')],
+  },
+];
+
+const icons: Record<string, string> = {
+  scroll: 'M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z',
+  shield: 'M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z',
+  book: 'M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25',
+  eye: 'M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z',
+  users: 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z',
+  lock: 'M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z',
+};
+---
+
+<Layout lang={lang} pageTitle={t('ethics.title')} pageDescription={t('ethics.subtitle')}>
+  <div class="relative min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+    <!-- Background pattern -->
+    <div class="absolute inset-0 pointer-events-none opacity-[0.02]" style="background-image: radial-gradient(circle at 1px 1px, #D4A843 1px, transparent 0); background-size: 48px 48px;"></div>
+
+    <div class="max-w-4xl mx-auto relative">
+      <!-- Back link -->
+      <a href="/" class="inline-flex items-center gap-2 text-gold-500 hover:text-gold-300 transition-colors font-heading text-sm mb-10 group">
+        <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+        {t('ethics.back')}
+      </a>
+
+      <!-- Page header -->
+      <div class="text-center mb-16" data-animate>
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-subtle text-gold-500 text-xs font-mono tracking-wider mb-6">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0 0 12 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 0 1-2.031.352 5.988 5.988 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971Zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 0 1-2.031.352 5.989 5.989 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971Z" />
+          </svg>
+          LEGERE OPEN EDU
+        </div>
+        <h1 class="text-3xl md:text-5xl font-heading font-bold text-text-primary mb-4">
+          {t('ethics.title')}
+        </h1>
+        <p class="text-text-secondary text-lg max-w-2xl mx-auto">
+          {t('ethics.subtitle')}
+        </p>
+      </div>
+
+      <!-- Sections -->
+      <div class="space-y-10">
+        {sections.map((section, idx) => (
+          <article id={section.id} class="glass p-6 md:p-8" data-animate>
+            <div class="flex items-start gap-4 mb-5">
+              <div class="shrink-0 w-11 h-11 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center">
+                <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  {icons[section.icon].includes('M15 12a3') ? (
+                    <Fragment>
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    </Fragment>
+                  ) : (
+                    <path stroke-linecap="round" stroke-linejoin="round" d={icons[section.icon]} />
+                  )}
+                </svg>
+              </div>
+              <div>
+                <span class="text-gold-500/60 text-xs font-mono tracking-wider">
+                  {String(idx + 1).padStart(2, '0')}
+                </span>
+                <h2 class="text-xl md:text-2xl font-heading font-bold text-text-primary">
+                  {section.title}
+                </h2>
+              </div>
+            </div>
+            <div class="space-y-3 pl-0 md:pl-15">
+              {section.paragraphs.map((p) => (
+                <p class="text-text-secondary text-sm leading-relaxed">
+                  {p}
+                </p>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <!-- Last updated -->
+      <div class="mt-12 text-center text-text-secondary/40 text-xs font-mono">
+        {t('ethics.lastUpdated')}: Mart 2026
+      </div>
+    </div>
+  </div>
+</Layout>

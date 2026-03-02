@@ -13,18 +13,23 @@ import { ClientRouter } from 'astro:transitions';
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import ScrollProgress from '../components/ScrollProgress.astro';
+import RegistrationModal from '../components/RegistrationModal.astro';
 
 interface Props {
   lang: 'tr' | 'en';
+  pageTitle?: string;
+  pageDescription?: string;
 }
 
-const { lang } = Astro.props;
+const { lang, pageTitle, pageDescription } = Astro.props;
 const isEn = lang === 'en';
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
-const description = isEn
+const defaultDescription = isEn
   ? 'OWL - Open Workshop Lab: An interdisciplinary academic research network at the intersection of criminology, sociology, philosophy, and data science.'
   : 'OWL - Open Workshop Lab: Kriminoloji, sosyoloji, felsefe ve veri bilimi kesişiminde disiplinlerarası akademik araştırma ağı.';
-const title = isEn ? 'OWL | Open Workshop Lab' : 'OWL | Açık Atölye Laboratuvarı';
+const description = pageDescription ?? defaultDescription;
+const defaultTitle = isEn ? 'OWL | Open Workshop Lab' : 'OWL | Açık Atölye Laboratuvarı';
+const title = pageTitle ? `${pageTitle} | OWL` : defaultTitle;
 ---
 
 <!doctype html>
@@ -82,6 +87,7 @@ const title = isEn ? 'OWL | Open Workshop Lab' : 'OWL | Açık Atölye Laboratuv
   </main>
 
   <Footer lang={lang} />
+  <RegistrationModal lang={lang} />
 
   <!-- Back to Top Button -->
   <button
