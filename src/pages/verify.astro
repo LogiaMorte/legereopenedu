@@ -1,0 +1,193 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { useTranslations } from '../i18n/utils';
+const lang = 'tr' as const;
+const t = useTranslations(lang);
+---
+
+<Layout lang={lang} pageTitle="Sertifika Doğrulama">
+  <div class="relative min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+    <div class="w-full max-w-lg">
+      <a href="/" class="inline-flex items-center gap-2 text-gold-500 hover:text-gold-300 transition-colors font-heading text-sm mb-10 group">
+        <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+        {t('login.back')}
+      </a>
+
+      <!-- Search Card (shown when no cert param or for manual search) -->
+      <div id="verify-search" class="glass gold-glow rounded-2xl p-8">
+        <div class="text-center mb-6">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold-500/10 border border-gold-500/20 mb-4">
+            <svg class="w-8 h-8 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+            </svg>
+          </div>
+          <h1 class="text-2xl font-heading font-bold text-text-primary mb-2">{t('verify.title')}</h1>
+        </div>
+        <form id="verify-form" class="space-y-4" novalidate>
+          <div>
+            <label for="cert-input" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
+              {t('verify.id')}
+            </label>
+            <input
+              type="text"
+              id="cert-input"
+              required
+              class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors uppercase"
+              placeholder="LEGERE-2026-001"
+            />
+          </div>
+          <button type="submit" id="verify-submit" class="w-full btn-gold justify-center text-sm py-3">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+            </svg>
+            <span id="verify-btn-text">{t('verify.checking')}</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Loading -->
+      <div id="verify-loading" class="hidden text-center py-20">
+        <div class="inline-flex items-center gap-3 text-text-secondary font-heading text-sm">
+          <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          {t('verify.checking')}
+        </div>
+      </div>
+
+      <!-- Valid Certificate -->
+      <div id="verify-valid" class="hidden">
+        <div class="glass gold-glow-strong rounded-2xl p-8" id="cert-card">
+          <div class="text-center mb-6">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-status-open/10 border border-status-open/25 mb-4">
+              <svg class="w-8 h-8 text-status-open" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </div>
+            <h2 class="text-xl font-heading font-bold text-status-open mb-1">{t('verify.valid')}</h2>
+          </div>
+
+          <div class="space-y-4 border-t border-white/10 pt-6">
+            <div class="flex justify-between items-start">
+              <span class="text-xs text-text-secondary font-heading">{t('verify.id')}</span>
+              <span id="cert-id" class="text-sm font-mono text-gold-500 font-semibold"></span>
+            </div>
+            <div class="flex justify-between items-start">
+              <span class="text-xs text-text-secondary font-heading">{t('verify.type')}</span>
+              <span id="cert-type" class="text-sm font-heading text-text-primary"></span>
+            </div>
+            <div class="flex justify-between items-start">
+              <span class="text-xs text-text-secondary font-heading">{t('verify.participant')}</span>
+              <span id="cert-participant" class="text-sm font-heading text-text-primary"></span>
+            </div>
+            <div class="flex justify-between items-start">
+              <span class="text-xs text-text-secondary font-heading">{t('verify.workshop')}</span>
+              <span id="cert-workshop" class="text-sm font-heading text-text-primary text-right max-w-[60%]"></span>
+            </div>
+            <div class="flex justify-between items-start">
+              <span class="text-xs text-text-secondary font-heading">{t('verify.issued')}</span>
+              <span id="cert-issued" class="text-sm font-heading text-text-primary"></span>
+            </div>
+          </div>
+
+          <div class="mt-6 pt-4 border-t border-white/10 text-center">
+            <p class="text-xs text-text-secondary font-mono">legereopenedu.com</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Invalid Certificate -->
+      <div id="verify-invalid" class="hidden">
+        <div class="glass rounded-2xl p-8 text-center">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-status-closed/10 border border-status-closed/25 mb-4">
+            <svg class="w-8 h-8 text-status-closed" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <h2 class="text-xl font-heading font-bold text-status-closed mb-2">{t('verify.invalid')}</h2>
+          <button onclick="location.search=''" class="btn-outline text-xs py-2 px-4 mt-4">Tekrar Ara</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script is:inline>
+(function() {
+  var CERT_TYPES = {
+    'participation': 'Katılım Sertifikası',
+    'achievement':   'Başarı Sertifikası',
+    'contribution':  'Katkı Sertifikası',
+  };
+
+  var searchEl = document.getElementById('verify-search');
+  var loadingEl = document.getElementById('verify-loading');
+  var validEl = document.getElementById('verify-valid');
+  var invalidEl = document.getElementById('verify-invalid');
+  var form = document.getElementById('verify-form');
+  var input = document.getElementById('cert-input');
+  var btnText = document.getElementById('verify-btn-text');
+
+  function showOnly(el) {
+    [searchEl, loadingEl, validEl, invalidEl].forEach(function(e) { e.classList.add('hidden'); });
+    el.classList.remove('hidden');
+  }
+
+  async function verifyCert(certId) {
+    showOnly(loadingEl);
+    try {
+      var res = await fetch('/api/certificates?cert=' + encodeURIComponent(certId));
+      if (!res.ok) {
+        showOnly(invalidEl);
+        return;
+      }
+      var data = await res.json();
+      document.getElementById('cert-id').textContent = data.id;
+      document.getElementById('cert-type').textContent = CERT_TYPES[data.type] || data.type;
+      document.getElementById('cert-participant').textContent = data.name || '-';
+      document.getElementById('cert-workshop').textContent = data.workshopTitle || data.workshopId || '-';
+      document.getElementById('cert-issued').textContent = data.issueDate ? new Date(data.issueDate).toLocaleDateString('tr-TR') : '-';
+      showOnly(validEl);
+
+      // Auto print if requested
+      if (new URLSearchParams(location.search).get('print') === '1') {
+        setTimeout(function() { window.print(); }, 500);
+      }
+    } catch (err) {
+      showOnly(invalidEl);
+    }
+  }
+
+  // Check URL param
+  var params = new URLSearchParams(location.search);
+  var certParam = params.get('cert');
+  if (certParam) {
+    input.value = certParam;
+    verifyCert(certParam);
+  } else {
+    btnText.textContent = 'Doğrula';
+  }
+
+  form.addEventListener('submit', function(e) {
+    e.preventDefault();
+    var val = input.value.trim().toUpperCase();
+    if (!val) return;
+    history.replaceState(null, '', '?cert=' + encodeURIComponent(val));
+    verifyCert(val);
+  });
+})();
+</script>
+
+<style>
+  @media print {
+    header, footer, #back-to-top, a[href="/"] { display: none !important; }
+    body { background: white !important; color: black !important; }
+    #cert-card { box-shadow: none !important; border: 2px solid #D4A843 !important; background: white !important; }
+    #cert-card * { color: #1a1a1a !important; }
+    #cert-card .text-status-open { color: #16a34a !important; }
+    #cert-card .text-gold-500 { color: #B8922E !important; }
+  }
+</style>

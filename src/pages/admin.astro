@@ -26,7 +26,7 @@ const lang = 'tr' as const;
       </div>
 
       <!-- Stats -->
-      <div id="stats-section" class="hidden grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+      <div id="stats-section" class="hidden grid grid-cols-3 md:grid-cols-6 gap-4 mb-8">
         <div class="glass p-4 text-center">
           <div id="stat-total" class="text-2xl font-heading font-bold text-gradient-gold">0</div>
           <div class="text-text-secondary text-xs">Toplam</div>
@@ -38,6 +38,10 @@ const lang = 'tr' as const;
         <div class="glass p-4 text-center">
           <div id="stat-accepted" class="text-2xl font-heading font-bold text-status-open">0</div>
           <div class="text-text-secondary text-xs">Kabul</div>
+        </div>
+        <div class="glass p-4 text-center">
+          <div id="stat-completed" class="text-2xl font-heading font-bold text-status-upcoming">0</div>
+          <div class="text-text-secondary text-xs">Tamamlanan</div>
         </div>
         <div class="glass p-4 text-center">
           <div id="stat-rejected" class="text-2xl font-heading font-bold text-status-closed">0</div>
@@ -54,6 +58,7 @@ const lang = 'tr' as const;
         <button class="filter-btn badge badge-discipline text-xs cursor-pointer" data-filter="all" onclick="filterRegs('all')">Tümü</button>
         <button class="filter-btn badge text-xs cursor-pointer bg-yellow-500/10 text-yellow-400 border-yellow-500/25" data-filter="pending" onclick="filterRegs('pending')">⏳ Bekleyen</button>
         <button class="filter-btn badge text-xs cursor-pointer bg-status-open/10 text-status-open border-status-open/25" data-filter="accepted" onclick="filterRegs('accepted')">✅ Kabul</button>
+        <button class="filter-btn badge text-xs cursor-pointer bg-status-upcoming/10 text-status-upcoming border-status-upcoming/25" data-filter="completed" onclick="filterRegs('completed')">🎓 Tamamlanan</button>
         <button class="filter-btn badge text-xs cursor-pointer bg-status-closed/10 text-status-closed border-status-closed/25" data-filter="rejected" onclick="filterRegs('rejected')">❌ Red</button>
       </div>
 
@@ -90,12 +95,57 @@ const lang = 'tr' as const;
       </div>
     </div>
   </div>
+
+  <!-- Certificate Modal -->
+  <div id="cert-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeCertModal()"></div>
+    <div class="relative w-full max-w-md glass gold-glow rounded-2xl p-6">
+      <h3 class="text-lg font-heading font-bold text-text-primary mb-4">🎓 Sertifika Ver</h3>
+      <p id="cert-modal-info" class="text-text-secondary text-sm mb-4"></p>
+      <div class="mb-4">
+        <label class="block text-text-secondary text-xs font-heading font-medium mb-1.5">Sertifika Türü</label>
+        <select id="cert-type-select" class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm focus:border-gold-500/50 focus:outline-none">
+          <option value="participation">Katılım Sertifikası</option>
+          <option value="achievement">Başarı Sertifikası</option>
+          <option value="contribution">Katkı Sertifikası</option>
+        </select>
+      </div>
+      <div class="flex gap-3">
+        <button class="btn-outline text-sm flex-1" onclick="closeCertModal()">İptal</button>
+        <button id="cert-confirm" class="btn-gold text-sm flex-1" onclick="confirmCert()">Sertifika Ver</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Badge Modal -->
+  <div id="badge-modal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/70 backdrop-blur-sm" onclick="closeBadgeModal()"></div>
+    <div class="relative w-full max-w-md glass gold-glow rounded-2xl p-6">
+      <h3 class="text-lg font-heading font-bold text-text-primary mb-4">🏅 Rozet Ver</h3>
+      <p id="badge-modal-info" class="text-text-secondary text-sm mb-4"></p>
+      <div class="mb-4">
+        <label class="block text-text-secondary text-xs font-heading font-medium mb-1.5">Rozet</label>
+        <select id="badge-select" class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm focus:border-gold-500/50 focus:outline-none">
+          <option value="pioneer">🚀 Öncü — Kurucu dönem katılımcısı</option>
+          <option value="mentor">🧭 Mentor — Mentorluk katkısı</option>
+          <option value="contributor">✍️ Katkıcı — Yayın sürecine katkı</option>
+          <option value="scholar">📖 Akademisyen — Akademik yayın üretti</option>
+        </select>
+      </div>
+      <div class="flex gap-3">
+        <button class="btn-outline text-sm flex-1" onclick="closeBadgeModal()">İptal</button>
+        <button id="badge-confirm" class="btn-gold text-sm flex-1" onclick="confirmBadge()">Rozet Ver</button>
+      </div>
+    </div>
+  </div>
 </Layout>
 
 <script is:inline>
   let allRegistrations = [];
   let currentFilter = 'all';
   let pendingAction = null; // { regId, action }
+  let pendingCertRegId = null;
+  let pendingBadgeRegId = null;
 
   async function fetchRegistrations() {
     const key = document.getElementById('admin-key').value.trim();
@@ -141,11 +191,13 @@ const lang = 'tr' as const;
   function updateStats() {
     const pending = allRegistrations.filter(r => !r.status || r.status === 'pending').length;
     const accepted = allRegistrations.filter(r => r.status === 'accepted').length;
+    const completed = allRegistrations.filter(r => r.status === 'completed').length;
     const rejected = allRegistrations.filter(r => r.status === 'rejected').length;
     const workshops = new Set(allRegistrations.map(r => r.workshop));
     document.getElementById('stat-total').textContent = allRegistrations.length;
     document.getElementById('stat-pending').textContent = pending;
     document.getElementById('stat-accepted').textContent = accepted;
+    document.getElementById('stat-completed').textContent = completed;
     document.getElementById('stat-rejected').textContent = rejected;
     document.getElementById('stat-workshops').textContent = workshops.size;
   }
@@ -180,11 +232,15 @@ const lang = 'tr' as const;
       const status = r.status || 'pending';
       const statusBadge = status === 'accepted'
         ? '<span class="badge text-xs bg-status-open/10 text-status-open border-status-open/25">✅ Kabul</span>'
+        : status === 'completed'
+        ? '<span class="badge text-xs bg-status-upcoming/10 text-status-upcoming border-status-upcoming/25">🎓 Tamamlandı</span>'
         : status === 'rejected'
         ? '<span class="badge text-xs bg-status-closed/10 text-status-closed border-status-closed/25">❌ Red</span>'
         : '<span class="badge text-xs bg-yellow-500/10 text-yellow-400 border-yellow-500/25">⏳ Bekleyen</span>';
 
-      const actions = status === 'pending' ? `
+      let actions = '';
+      if (status === 'pending') {
+        actions = `
         <div class="flex gap-2 mt-4 pt-4 border-t border-white/5">
           <button onclick="openAction('${r.id}', 'accept', '${esc(r.name)}')" class="flex-1 py-2 px-3 rounded-lg bg-status-open/10 border border-status-open/25 text-status-open text-xs font-heading font-medium hover:bg-status-open/20 transition-colors cursor-pointer">
             ✅ Kabul Et
@@ -192,8 +248,23 @@ const lang = 'tr' as const;
           <button onclick="openAction('${r.id}', 'reject', '${esc(r.name)}')" class="flex-1 py-2 px-3 rounded-lg bg-status-closed/10 border border-status-closed/25 text-status-closed text-xs font-heading font-medium hover:bg-status-closed/20 transition-colors cursor-pointer">
             ❌ Reddet
           </button>
-        </div>
-      ` : (r.reviewedAt ? `<p class="text-text-secondary/40 text-[10px] mt-3 font-mono">Değerlendirildi: ${formatTS(r.reviewedAt)}</p>` : '');
+        </div>`;
+      } else if (status === 'accepted' || status === 'completed') {
+        actions = `
+        <div class="flex gap-2 mt-4 pt-4 border-t border-white/5">
+          <button onclick="openCertModal('${r.id}', '${esc(r.name)}', '${esc(r.workshop)}')" class="flex-1 py-2 px-3 rounded-lg bg-gold-500/10 border border-gold-500/25 text-gold-500 text-xs font-heading font-medium hover:bg-gold-500/20 transition-colors cursor-pointer">
+            🎓 Sertifika Ver
+          </button>
+          <button onclick="openBadgeModal('${r.id}', '${esc(r.name)}')" class="flex-1 py-2 px-3 rounded-lg bg-purple-500/10 border border-purple-500/25 text-purple-400 text-xs font-heading font-medium hover:bg-purple-500/20 transition-colors cursor-pointer">
+            🏅 Rozet Ver
+          </button>
+        </div>`;
+        if (r.reviewedAt) {
+          actions += `<p class="text-text-secondary/40 text-[10px] mt-2 font-mono">Değerlendirildi: ${formatTS(r.reviewedAt)}</p>`;
+        }
+      } else if (r.reviewedAt) {
+        actions = `<p class="text-text-secondary/40 text-[10px] mt-3 font-mono">Değerlendirildi: ${formatTS(r.reviewedAt)}</p>`;
+      }
 
       return `
         <div class="glass p-5 hover:border-gold-500/15 transition-all">
@@ -320,6 +391,115 @@ const lang = 'tr' as const;
     a.href = URL.createObjectURL(blob);
     a.download = `legere-basvurular-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
+  }
+
+  // Certificate modal
+  function openCertModal(regId, name, workshop) {
+    pendingCertRegId = regId;
+    document.getElementById('cert-modal-info').textContent = `${name} — ${workshop}`;
+    document.getElementById('cert-type-select').value = 'participation';
+    const modal = document.getElementById('cert-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeCertModal() {
+    const modal = document.getElementById('cert-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    pendingCertRegId = null;
+  }
+
+  async function confirmCert() {
+    if (!pendingCertRegId) return;
+    const key = document.getElementById('admin-key').value.trim();
+    const certType = document.getElementById('cert-type-select').value;
+    const btn = document.getElementById('cert-confirm');
+    btn.textContent = 'İşleniyor...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/registrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key,
+          regId: pendingCertRegId,
+          action: 'issue-certificate',
+          certType,
+        }),
+      });
+
+      if (res.ok) {
+        const result = await res.json();
+        const reg = allRegistrations.find(r => r.id === pendingCertRegId);
+        if (reg) reg.status = 'completed';
+        closeCertModal();
+        updateStats();
+        renderCards();
+        alert('Sertifika verildi: ' + (result.certId || 'OK'));
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert('Hata: ' + (err.error || 'İşlem başarısız'));
+      }
+    } catch (err) {
+      alert('Bağlantı hatası.');
+    } finally {
+      btn.textContent = 'Sertifika Ver';
+      btn.disabled = false;
+    }
+  }
+
+  // Badge modal
+  function openBadgeModal(regId, name) {
+    pendingBadgeRegId = regId;
+    document.getElementById('badge-modal-info').textContent = name;
+    document.getElementById('badge-select').value = 'pioneer';
+    const modal = document.getElementById('badge-modal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+  }
+
+  function closeBadgeModal() {
+    const modal = document.getElementById('badge-modal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+    pendingBadgeRegId = null;
+  }
+
+  async function confirmBadge() {
+    if (!pendingBadgeRegId) return;
+    const key = document.getElementById('admin-key').value.trim();
+    const badgeId = document.getElementById('badge-select').value;
+    const btn = document.getElementById('badge-confirm');
+    btn.textContent = 'İşleniyor...';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/registrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          key,
+          regId: pendingBadgeRegId,
+          action: 'award-badge',
+          badgeId,
+        }),
+      });
+
+      if (res.ok) {
+        closeBadgeModal();
+        alert('Rozet verildi!');
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert('Hata: ' + (err.error || 'İşlem başarısız'));
+      }
+    } catch (err) {
+      alert('Bağlantı hatası.');
+    } finally {
+      btn.textContent = 'Rozet Ver';
+      btn.disabled = false;
+    }
   }
 
   // Init filter highlight

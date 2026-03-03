@@ -1,0 +1,62 @@
+[
+  {
+    "id": "first-workshop",
+    "icon": "🎓",
+    "name": { "tr": "İlk Adım", "en": "First Step" },
+    "description": { "tr": "İlk atölyeyi tamamladı", "en": "Completed first workshop" },
+    "type": "auto",
+    "criteria": { "completedWorkshops": 1 }
+  },
+  {
+    "id": "three-workshops",
+    "icon": "⭐",
+    "name": { "tr": "Araştırmacı", "en": "Researcher" },
+    "description": { "tr": "Üç atölye tamamladı", "en": "Completed three workshops" },
+    "type": "auto",
+    "criteria": { "completedWorkshops": 3 }
+  },
+  {
+    "id": "five-workshops",
+    "icon": "🏆",
+    "name": { "tr": "Uzman Araştırmacı", "en": "Expert Researcher" },
+    "description": { "tr": "Beş atölye tamamladı", "en": "Completed five workshops" },
+    "type": "auto",
+    "criteria": { "completedWorkshops": 5 }
+  },
+  {
+    "id": "multi-discipline",
+    "icon": "🔗",
+    "name": { "tr": "Disiplinlerarası", "en": "Interdisciplinary" },
+    "description": { "tr": "3+ farklı disiplinden atölyelere katıldı", "en": "Participated in 3+ different discipline workshops" },
+    "type": "auto",
+    "criteria": { "uniqueDisciplines": 3 }
+  },
+  {
+    "id": "pioneer",
+    "icon": "🚀",
+    "name": { "tr": "Öncü", "en": "Pioneer" },
+    "description": { "tr": "Legere'nin kurucu dönem katılımcısı", "en": "Founding cohort participant" },
+    "type": "admin"
+  },
+  {
+    "id": "mentor",
+    "icon": "🧭",
+    "name": { "tr": "Mentor", "en": "Mentor" },
+    "description": { "tr": "Mentorluk katkısında bulundu", "en": "Provided mentoring" },
+    "type": "admin"
+  },
+  {
+    "id": "contributor",
+    "icon": "✍️",
+    "name": { "tr": "Katkıcı", "en": "Contributor" },
+    "description": { "tr": "Yayın sürecine aktif katkı", "en": "Contributed to publications" },
+    "type": "admin"
+  },
+  {
+    "id": "scholar",
+    "icon": "📖",
+    "name": { "tr": "Akademisyen", "en": "Scholar" },
+    "description": { "tr": "Akademik yayın üretti", "en": "Published academic work" },
+    "type": "admin"
+  }
+]

@@ -166,6 +166,56 @@ export const ui = {
     'ethics.data.p2': 'Araştırma kapsamında toplanan veriler, etik standartlara uygun şekilde işlenir ve saklanır.',
     'ethics.lastUpdated': 'Son güncelleme',
 
+    // Login & Auth
+    'nav.login': 'Giriş',
+    'nav.profile': 'Profilim',
+    'login.title': 'Üye Girişi',
+    'login.desc': 'Kabul e-postanızdaki profil linki ile giriş yapabilirsiniz. Linkinizi kaybettiyseniz, aşağıdan yenisini talep edin.',
+    'login.email': 'E-posta Adresiniz',
+    'login.emailHint': 'Başvuruda kullandığınız e-posta',
+    'login.submit': 'Giriş Linki Gönder',
+    'login.sending': 'Gönderiliyor...',
+    'login.sent': 'Giriş linki gönderildi!',
+    'login.sentDesc': 'E-postanızı kontrol edin. Gelen kutunuzda yoksa spam klasörüne bakın.',
+    'login.error': 'Bir hata oluştu. Lütfen tekrar deneyin.',
+    'login.back': 'Ana Sayfaya Dön',
+
+    // Profile
+    'profile.title': 'Profilim',
+    'profile.workshops': 'Atölyelerim',
+    'profile.certificates': 'Sertifikalarım',
+    'profile.badges': 'Rozetlerim',
+    'profile.completed': 'Tamamlandı',
+    'profile.accepted': 'Kabul Edildi',
+    'profile.pending': 'Beklemede',
+    'profile.downloadCert': 'Sertifika İndir',
+    'profile.logout': 'Çıkış Yap',
+    'profile.noCerts': 'Henüz sertifikanız bulunmuyor.',
+    'profile.noBadges': 'Henüz rozetiniz bulunmuyor.',
+    'profile.noWorkshops': 'Henüz atölye kaydınız bulunmuyor.',
+    'profile.showFullName': 'Tam adımı göster',
+    'profile.showEmail': 'E-postamı göster',
+    'profile.notLoggedIn': 'Giriş yapmanız gerekiyor.',
+    'profile.goLogin': 'Giriş Yap',
+    'profile.joinDate': 'Katılım',
+
+    // Certificate types
+    'cert.participation': 'Katılım Sertifikası',
+    'cert.achievement': 'Başarı Sertifikası',
+    'cert.contribution': 'Katkı Sertifikası',
+
+    // Verify
+    'verify.title': 'Sertifika Doğrulama',
+    'verify.valid': 'Bu sertifika geçerlidir.',
+    'verify.invalid': 'Sertifika bulunamadı.',
+    'verify.checking': 'Doğrulanıyor...',
+    'verify.id': 'Sertifika No',
+    'verify.type': 'Tip',
+    'verify.participant': 'Katılımcı',
+    'verify.workshop': 'Atölye',
+    'verify.dates': 'Tarih',
+    'verify.issued': 'Düzenlenme',
+
     // Footer
     'footer.rights': 'Tüm hakları saklıdır.',
     'footer.tagline': 'Legere — Okumak, Seçmek, Bir Araya Getirmek',
@@ -338,6 +388,56 @@ export const ui = {
     'ethics.data.p1': 'Participants\' personal data is used solely for workshop organization purposes and is not shared with third parties.',
     'ethics.data.p2': 'Data collected within research is processed and stored in accordance with ethical standards.',
     'ethics.lastUpdated': 'Last updated',
+
+    // Login & Auth
+    'nav.login': 'Login',
+    'nav.profile': 'My Profile',
+    'login.title': 'Member Login',
+    'login.desc': 'You can login using the profile link in your acceptance email. If you lost your link, request a new one below.',
+    'login.email': 'Your Email Address',
+    'login.emailHint': 'The email you used in your application',
+    'login.submit': 'Send Login Link',
+    'login.sending': 'Sending...',
+    'login.sent': 'Login link sent!',
+    'login.sentDesc': 'Check your email. If not in your inbox, check the spam folder.',
+    'login.error': 'An error occurred. Please try again.',
+    'login.back': 'Back to Home',
+
+    // Profile
+    'profile.title': 'My Profile',
+    'profile.workshops': 'My Workshops',
+    'profile.certificates': 'My Certificates',
+    'profile.badges': 'My Badges',
+    'profile.completed': 'Completed',
+    'profile.accepted': 'Accepted',
+    'profile.pending': 'Pending',
+    'profile.downloadCert': 'Download Certificate',
+    'profile.logout': 'Log Out',
+    'profile.noCerts': 'No certificates yet.',
+    'profile.noBadges': 'No badges yet.',
+    'profile.noWorkshops': 'No workshop registrations yet.',
+    'profile.showFullName': 'Show my full name',
+    'profile.showEmail': 'Show my email',
+    'profile.notLoggedIn': 'You need to log in.',
+    'profile.goLogin': 'Log In',
+    'profile.joinDate': 'Joined',
+
+    // Certificate types
+    'cert.participation': 'Certificate of Participation',
+    'cert.achievement': 'Certificate of Achievement',
+    'cert.contribution': 'Certificate of Contribution',
+
+    // Verify
+    'verify.title': 'Certificate Verification',
+    'verify.valid': 'This certificate is valid.',
+    'verify.invalid': 'Certificate not found.',
+    'verify.checking': 'Verifying...',
+    'verify.id': 'Certificate No',
+    'verify.type': 'Type',
+    'verify.participant': 'Participant',
+    'verify.workshop': 'Workshop',
+    'verify.dates': 'Dates',
+    'verify.issued': 'Issued',
 
     // Footer
     'footer.rights': 'All rights reserved.',
