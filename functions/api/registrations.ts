@@ -12,54 +12,8 @@ interface Env {
   RESEND_API_KEY?: string;
 }
 
-// GET — List registrations
-export const onRequestGet: PagesFunction<Env> = async (context) => {
-  const { request, env } = context;
-  const url = new URL(request.url);
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-  };
-
-  const key = url.searchParams.get('key');
-  if (!env.ADMIN_KEY || key !== env.ADMIN_KEY) {
-    return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
-  }
-
-  if (!env.REGISTRATIONS) {
-    return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
-  }
-
-  try {
-    const workshopFilter = url.searchParams.get('workshop');
-    const list = await env.REGISTRATIONS.list({ prefix: 'reg_' });
-    const registrations = [];
-
-    for (const k of list.keys) {
-      const data = await env.REGISTRATIONS.get(k.name);
-      if (data) {
-        const reg = JSON.parse(data);
-        if (!workshopFilter || reg.workshop === workshopFilter) {
-          registrations.push(reg);
-        }
-      }
-    }
-
-    registrations.sort((a: any, b: any) =>
-      new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
-    );
-
-    const total = await env.REGISTRATIONS.get('count:total');
-
-    return new Response(
-      JSON.stringify({ total: parseInt(total || '0'), count: registrations.length, registrations }),
-      { status: 200, headers }
-    );
-  } catch (error) {
-    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
-  }
-};
+// GET removed — admin key must not be in URL query params (security)
+// Use POST with { key, listAction: 'list', workshop?: string } instead
 
 // POST — Update registration status (accept/reject) + send email
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -67,7 +21,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   const headers = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': 'https://legereopenedu.com',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
@@ -75,8 +29,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
     const body = await request.json() as {
       key: string;
-      regId: string;
-      action: 'accept' | 'reject' | 'issue-certificate' | 'award-badge';
+      action: 'list' | 'accept' | 'reject' | 'issue-certificate' | 'award-badge';
+      regId?: string;
+      workshop?: string;
       message?: string;
       certType?: 'participation' | 'achievement' | 'contribution';
       badgeId?: string;
@@ -86,8 +41,38 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
     }
 
-    if (!body.regId || !body.action) {
-      return new Response(JSON.stringify({ error: 'Missing regId or action' }), { status: 400, headers });
+    if (!body.action) {
+      return new Response(JSON.stringify({ error: 'Missing action' }), { status: 400, headers });
+    }
+
+    // ── LIST REGISTRATIONS ──
+    if (body.action === 'list') {
+      if (!env.REGISTRATIONS) {
+        return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
+      }
+      const list = await env.REGISTRATIONS.list({ prefix: 'reg_' });
+      const registrations = [];
+      for (const k of list.keys) {
+        const data = await env.REGISTRATIONS.get(k.name);
+        if (data) {
+          const reg = JSON.parse(data);
+          if (!body.workshop || reg.workshop === body.workshop) {
+            registrations.push(reg);
+          }
+        }
+      }
+      registrations.sort((a: any, b: any) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+      );
+      const total = await env.REGISTRATIONS.get('count:total');
+      return new Response(
+        JSON.stringify({ total: parseInt(total || '0'), count: registrations.length, registrations }),
+        { status: 200, headers }
+      );
+    }
+
+    if (!body.regId) {
+      return new Response(JSON.stringify({ error: 'Missing regId' }), { status: 400, headers });
     }
 
     // Get registration
@@ -98,19 +83,20 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     const reg = JSON.parse(regData);
 
-    // Helper: generate random session token (cookie value)
+    // Helper: generate random session token (cookie value) — crypto-safe
     function generateToken(): string {
-      const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-      let token = '';
-      for (let i = 0; i < 32; i++) token += chars[Math.floor(Math.random() * chars.length)];
-      return token;
+      const bytes = new Uint8Array(32);
+      crypto.getRandomValues(bytes);
+      return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
     }
 
-    // Helper: generate short memorable password (sent in email)
+    // Helper: generate short memorable password (sent in email) — crypto-safe
     function generatePassword(): string {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I/O/0/1 for clarity
+      const bytes = new Uint8Array(6);
+      crypto.getRandomValues(bytes);
       let code = '';
-      for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+      for (let i = 0; i < 6; i++) code += chars[bytes[i] % chars.length];
       return 'LGR-' + code; // e.g. LGR-A3X9BK
     }
 
@@ -330,7 +316,7 @@ export const onRequestOptions: PagesFunction = async () => {
   return new Response(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': 'https://legereopenedu.com',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },

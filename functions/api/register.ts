@@ -26,7 +26,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   const headers = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': 'https://legereopenedu.com',
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
@@ -51,9 +51,40 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       );
     }
 
+    // Check for duplicate registration (same email + same workshop)
+    if (env.REGISTRATIONS) {
+      const indexKey = `index:${data.workshop.trim()}`;
+      const existingIndex = await env.REGISTRATIONS.get(indexKey);
+      if (existingIndex) {
+        const ids: string[] = JSON.parse(existingIndex);
+        for (const rid of ids) {
+          const rd = await env.REGISTRATIONS.get(rid);
+          if (rd) {
+            const r = JSON.parse(rd);
+            if (r.email?.toLowerCase() === data.email.trim().toLowerCase()) {
+              return new Response(
+                JSON.stringify({ error: 'Bu atölyeye zaten kayıt yaptınız.' }),
+                { status: 409, headers }
+              );
+            }
+          }
+        }
+        // Workshop capacity check
+        if (ids.length >= 50) {
+          return new Response(
+            JSON.stringify({ error: 'Bu atölyenin kontenjanı dolmuştur.' }),
+            { status: 409, headers }
+          );
+        }
+      }
+    }
+
     // Sanitize & create registration
+    const idBytes = new Uint8Array(4);
+    crypto.getRandomValues(idBytes);
+    const idSuffix = Array.from(idBytes, b => b.toString(36)).join('').slice(0, 8);
     const registration = {
-      id: `reg_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      id: `reg_${Date.now()}_${idSuffix}`,
       name: data.name.trim().slice(0, 200),
       email: data.email.trim().toLowerCase().slice(0, 200),
       university: data.university.trim().slice(0, 200),
@@ -104,7 +135,7 @@ export const onRequestOptions: PagesFunction = async () => {
   return new Response(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': 'https://legereopenedu.com',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },

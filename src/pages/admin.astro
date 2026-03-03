@@ -155,7 +155,11 @@ const lang = 'tr' as const;
     btn.disabled = true;
 
     try {
-      const res = await fetch(`/api/registrations?key=${encodeURIComponent(key)}`);
+      const res = await fetch('/api/registrations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, action: 'list' }),
+      });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
         const errMsg = errData.error || `HTTP ${res.status}`;

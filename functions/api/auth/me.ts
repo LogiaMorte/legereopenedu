@@ -26,7 +26,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
   const headers = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': 'https://legereopenedu.com',
   };
 
   if (!env.REGISTRATIONS) {
@@ -78,12 +78,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       }
     }
 
-    // Calculate automatic badges based on certificate count
-    const completedCount = (member.certificates || []).length;
+    // Calculate automatic badges based on completed workshops + unique disciplines
+    const completedWorkshops = registrations.filter(r => r.status === 'completed').length;
+    const uniqueDisciplines = new Set(registrations.filter(r => r.status === 'completed').map(r => r.workshop)).size;
     const autoBadges: any[] = [];
 
     for (const badge of AUTO_BADGES) {
-      if (badge.criteria.completedWorkshops && completedCount >= badge.criteria.completedWorkshops) {
+      if (badge.criteria.completedWorkshops && completedWorkshops >= badge.criteria.completedWorkshops) {
+        autoBadges.push({ badgeId: badge.id, awardedAt: null, awardedBy: 'system' });
+      }
+      if (badge.criteria.uniqueDisciplines && uniqueDisciplines >= badge.criteria.uniqueDisciplines) {
         autoBadges.push({ badgeId: badge.id, awardedAt: null, awardedBy: 'system' });
       }
     }
@@ -120,7 +124,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   const headers = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': 'https://legereopenedu.com',
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
   };
@@ -166,7 +170,7 @@ export const onRequestOptions: PagesFunction = async () => {
   return new Response(null, {
     status: 204,
     headers: {
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': 'https://legereopenedu.com',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'Content-Type',
     },
