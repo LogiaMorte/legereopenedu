@@ -118,7 +118,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           ? `
             <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #0A0A0F; color: #F0EDE6; border-radius: 12px;">
               <div style="text-align: center; margin-bottom: 24px;">
-                <h1 style="color: #D4A843; font-size: 24px; margin: 0;">OWL — Open Workshop Lab</h1>
+                <h1 style="color: #D4A843; font-size: 24px; margin: 0;">Legere Open Edu</h1>
               </div>
               <h2 style="color: #4ADE80;">Tebrikler, ${reg.name}!</h2>
               <p style="color: #A0A0B0; line-height: 1.6;">
@@ -138,7 +138,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           : `
             <div style="font-family: 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; padding: 32px; background: #0A0A0F; color: #F0EDE6; border-radius: 12px;">
               <div style="text-align: center; margin-bottom: 24px;">
-                <h1 style="color: #D4A843; font-size: 24px; margin: 0;">OWL — Open Workshop Lab</h1>
+                <h1 style="color: #D4A843; font-size: 24px; margin: 0;">Legere Open Edu</h1>
               </div>
               <h2 style="color: #F0EDE6;">Sayın ${reg.name},</h2>
               <p style="color: #A0A0B0; line-height: 1.6;">
@@ -163,7 +163,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             'Authorization': `Bearer ${env.RESEND_API_KEY}`,
           },
           body: JSON.stringify({
-            from: 'OWL - Legere Open Edu <info@legereopenedu.com>',
+            from: 'Legere Open Edu <info@legereopenedu.com>',
             to: [reg.email],
             subject: subject,
             html: htmlBody,

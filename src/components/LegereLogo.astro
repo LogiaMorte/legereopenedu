@@ -1,0 +1,52 @@
+---
+interface Props {
+  size?: 'sm' | 'md';
+}
+
+const { size = 'md' } = Astro.props;
+
+const textSize = size === 'sm' ? 'text-lg' : 'text-xl';
+const subSize = size === 'sm' ? 'text-[9px]' : 'text-[10px]';
+---
+
+<div class="inline-flex items-center gap-2.5">
+  <!-- Minimal geometric mark -->
+  <div class={`${size === 'sm' ? 'w-7 h-7' : 'w-8 h-8'} relative flex items-center justify-center`}>
+    <svg viewBox="0 0 32 32" fill="none" class="w-full h-full" aria-hidden="true">
+      <!-- Hexagonal frame -->
+      <path
+        d="M16 2L28 9V23L16 30L4 23V9L16 2Z"
+        stroke="url(#legereGrad)"
+        stroke-width="1.2"
+        fill="none"
+        opacity="0.5"
+      />
+      <!-- L letterform -->
+      <path
+        d="M12 10V22H21"
+        stroke="#D4A843"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        fill="none"
+      />
+      <defs>
+        <linearGradient id="legereGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#FFD54F" />
+          <stop offset="50%" stop-color="#D4A843" />
+          <stop offset="100%" stop-color="#B8922E" />
+        </linearGradient>
+      </defs>
+    </svg>
+  </div>
+
+  <!-- Text -->
+  <div class="flex flex-col leading-none">
+    <span class={`${textSize} font-heading font-bold tracking-[0.12em] text-gradient-gold`}>
+      LEGERE
+    </span>
+    <span class={`${subSize} text-text-secondary/60 tracking-[0.2em] font-heading uppercase`}>
+      Open Edu
+    </span>
+  </div>
+</div>

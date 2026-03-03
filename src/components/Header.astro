@@ -1,7 +1,7 @@
 ---
 import { useTranslations, getLocalizedPath, getAlternateLang } from '../i18n/utils';
 import { languages, type Lang } from '../i18n/languages';
-import OWLLogo from './OWLLogo.astro';
+import LegereLogo from './LegereLogo.astro';
 
 interface Props {
   lang: Lang;
@@ -29,8 +29,8 @@ const navItems = [
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
     <div class="flex items-center justify-between h-16 md:h-20">
       <!-- Logo -->
-      <a href={getLocalizedPath(lang)} class="shrink-0" aria-label="OWL - Open Workshop Lab">
-        <OWLLogo size="sm" />
+      <a href={getLocalizedPath(lang)} class="shrink-0" aria-label="Legere Open Edu">
+        <LegereLogo size="sm" />
       </a>
 
       <!-- Desktop Nav -->

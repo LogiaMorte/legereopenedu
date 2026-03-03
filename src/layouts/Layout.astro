@@ -25,11 +25,11 @@ const { lang, pageTitle, pageDescription } = Astro.props;
 const isEn = lang === 'en';
 const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
 const defaultDescription = isEn
-  ? 'OWL - Open Workshop Lab: An interdisciplinary academic research network at the intersection of criminology, sociology, philosophy, and data science.'
-  : 'OWL - Open Workshop Lab: Kriminoloji, sosyoloji, felsefe ve veri bilimi kesişiminde disiplinlerarası akademik araştırma ağı.';
+  ? 'Legere Open Edu: An independent interdisciplinary academic research network at the intersection of criminology, sociology, philosophy, and data science.'
+  : 'Legere Open Edu: Kriminoloji, sosyoloji, felsefe ve veri bilimi kesişiminde bağımsız disiplinlerarası akademik araştırma ağı.';
 const description = pageDescription ?? defaultDescription;
-const defaultTitle = isEn ? 'OWL | Open Workshop Lab' : 'OWL | Açık Atölye Laboratuvarı';
-const title = pageTitle ? `${pageTitle} | OWL` : defaultTitle;
+const defaultTitle = isEn ? 'Legere | Interdisciplinary Academic Research Network' : 'Legere | Disiplinlerarası Akademik Araştırma Ağı';
+const title = pageTitle ? `${pageTitle} | Legere` : defaultTitle;
 ---
 
 <!doctype html>
@@ -62,13 +62,13 @@ const title = pageTitle ? `${pageTitle} | OWL` : defaultTitle;
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
-    "name": "OWL - Open Workshop Lab",
-    "alternateName": "Legere Open Edu",
+    "name": "Legere Open Edu",
+    "alternateName": "OWL - Open Workshop Lab",
     "url": "https://legereopenedu.com",
     "email": "info@legereopenedu.com",
-    "description": "Independent interdisciplinary academic research network",
+    "description": "Independent interdisciplinary academic research network at the intersection of criminology, sociology, philosophy, and data science.",
     "areaServed": "Global",
-    "knowsAbout": ["Criminology", "Sociology", "Philosophy", "Data Science"]
+    "knowsAbout": ["Criminology", "Sociology", "Philosophy", "Data Science", "Law", "Psychology", "Anthropology"]
   })} />
 
   <title>{title}</title>

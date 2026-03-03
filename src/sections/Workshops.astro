@@ -2,6 +2,7 @@
 import { useTranslations } from '../i18n/utils';
 import type { Lang } from '../i18n/languages';
 import SectionHeading from '../components/SectionHeading.astro';
+import OWLLogo from '../components/OWLLogo.astro';
 import WorkshopCard from '../components/WorkshopCard.astro';
 import workshopsData from '../data/workshops.json';
 
@@ -15,6 +16,16 @@ const t = useTranslations(lang);
 
 <section id="workshops" class="relative section-padding">
   <div class="max-w-7xl mx-auto">
+    <!-- OWL Module branding -->
+    <div class="flex justify-center mb-8" data-animate>
+      <div class="flex flex-col items-center gap-3">
+        <OWLLogo size="lg" />
+        <span class="text-[11px] font-mono text-text-secondary/50 tracking-[0.25em] uppercase">
+          Legere Atölye Modülü
+        </span>
+      </div>
+    </div>
+
     <SectionHeading
       title={t('workshops.title')}
       subtitle={t('workshops.subtitle')}

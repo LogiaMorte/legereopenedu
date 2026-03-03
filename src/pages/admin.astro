@@ -106,7 +106,11 @@ const lang = 'tr' as const;
 
     try {
       const res = await fetch(`/api/registrations?key=${encodeURIComponent(key)}`);
-      if (!res.ok) throw new Error('Unauthorized');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        const errMsg = errData.error || `HTTP ${res.status}`;
+        throw new Error(errMsg);
+      }
       const data = await res.json();
       allRegistrations = data.registrations || [];
       updateStats();
@@ -116,7 +120,16 @@ const lang = 'tr' as const;
       document.getElementById('export-section').classList.remove('hidden');
       document.getElementById('error-state').classList.add('hidden');
     } catch (err) {
-      document.getElementById('error-state').classList.remove('hidden');
+      const errorEl = document.getElementById('error-state');
+      const errorMsg = err.message === 'Failed to fetch'
+        ? 'API endpoint\'e ulaşılamıyor. Cloudflare Pages Functions deploy edilmiş mi kontrol edin.'
+        : err.message === 'Unauthorized'
+        ? 'Yanlış anahtar. Cloudflare Dashboard → Pages → Settings → Environment variables → ADMIN_KEY değerini kontrol edin.'
+        : err.message === 'KV not configured'
+        ? 'KV namespace bağlı değil. Cloudflare Dashboard → Pages → Settings → Functions → KV namespace bindings → REGISTRATIONS ekleyin.'
+        : `Hata: ${err.message}`;
+      errorEl.querySelector('p').textContent = errorMsg;
+      errorEl.classList.remove('hidden');
       document.getElementById('stats-section').classList.add('hidden');
       document.getElementById('filter-section').classList.add('hidden');
     } finally {
@@ -305,7 +318,7 @@ const lang = 'tr' as const;
     const blob = new Blob(['\uFEFF'+csv], { type: 'text/csv;charset=utf-8;' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = `owl-basvurular-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `legere-basvurular-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
   }
 
