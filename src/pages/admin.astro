@@ -242,20 +242,20 @@ const lang = 'tr' as const;
       if (status === 'pending') {
         actions = `
         <div class="flex gap-2 mt-4 pt-4 border-t border-white/5">
-          <button onclick="openAction('${r.id}', 'accept', '${esc(r.name)}')" class="flex-1 py-2 px-3 rounded-lg bg-status-open/10 border border-status-open/25 text-status-open text-xs font-heading font-medium hover:bg-status-open/20 transition-colors cursor-pointer">
+          <button data-action="accept" data-reg-id="${escAttr(r.id)}" data-name="${escAttr(r.name)}" class="action-btn flex-1 py-2 px-3 rounded-lg bg-status-open/10 border border-status-open/25 text-status-open text-xs font-heading font-medium hover:bg-status-open/20 transition-colors cursor-pointer">
             ✅ Kabul Et
           </button>
-          <button onclick="openAction('${r.id}', 'reject', '${esc(r.name)}')" class="flex-1 py-2 px-3 rounded-lg bg-status-closed/10 border border-status-closed/25 text-status-closed text-xs font-heading font-medium hover:bg-status-closed/20 transition-colors cursor-pointer">
+          <button data-action="reject" data-reg-id="${escAttr(r.id)}" data-name="${escAttr(r.name)}" class="action-btn flex-1 py-2 px-3 rounded-lg bg-status-closed/10 border border-status-closed/25 text-status-closed text-xs font-heading font-medium hover:bg-status-closed/20 transition-colors cursor-pointer">
             ❌ Reddet
           </button>
         </div>`;
       } else if (status === 'accepted' || status === 'completed') {
         actions = `
         <div class="flex gap-2 mt-4 pt-4 border-t border-white/5">
-          <button onclick="openCertModal('${r.id}', '${esc(r.name)}', '${esc(r.workshop)}')" class="flex-1 py-2 px-3 rounded-lg bg-gold-500/10 border border-gold-500/25 text-gold-500 text-xs font-heading font-medium hover:bg-gold-500/20 transition-colors cursor-pointer">
+          <button data-action="cert" data-reg-id="${escAttr(r.id)}" data-name="${escAttr(r.name)}" data-workshop="${escAttr(r.workshop)}" class="action-btn flex-1 py-2 px-3 rounded-lg bg-gold-500/10 border border-gold-500/25 text-gold-500 text-xs font-heading font-medium hover:bg-gold-500/20 transition-colors cursor-pointer">
             🎓 Sertifika Ver
           </button>
-          <button onclick="openBadgeModal('${r.id}', '${esc(r.name)}')" class="flex-1 py-2 px-3 rounded-lg bg-purple-500/10 border border-purple-500/25 text-purple-400 text-xs font-heading font-medium hover:bg-purple-500/20 transition-colors cursor-pointer">
+          <button data-action="badge" data-reg-id="${escAttr(r.id)}" data-name="${escAttr(r.name)}" class="action-btn flex-1 py-2 px-3 rounded-lg bg-purple-500/10 border border-purple-500/25 text-purple-400 text-xs font-heading font-medium hover:bg-purple-500/20 transition-colors cursor-pointer">
             🏅 Rozet Ver
           </button>
         </div>`;
@@ -287,6 +287,19 @@ const lang = 'tr' as const;
       `;
     }).join('');
   }
+
+  // Event delegation for action buttons (prevents XSS from inline onclick)
+  document.getElementById('cards-section').addEventListener('click', function(e) {
+    var btn = e.target.closest('.action-btn');
+    if (!btn) return;
+    var action = btn.dataset.action;
+    var regId = btn.dataset.regId;
+    var name = btn.dataset.name;
+    var workshop = btn.dataset.workshop;
+    if (action === 'accept' || action === 'reject') openAction(regId, action, name);
+    else if (action === 'cert') openCertModal(regId, name, workshop);
+    else if (action === 'badge') openBadgeModal(regId, name);
+  });
 
   function openAction(regId, action, name) {
     pendingAction = { regId, action };
@@ -370,6 +383,10 @@ const lang = 'tr' as const;
     const d = document.createElement('div');
     d.textContent = str || '';
     return d.innerHTML;
+  }
+
+  function escAttr(str) {
+    return (str || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/'/g, '&#39;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   }
 
   function formatTS(ts) {

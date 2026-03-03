@@ -98,12 +98,20 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     const reg = JSON.parse(regData);
 
-    // Helper: generate random token
+    // Helper: generate random session token (cookie value)
     function generateToken(): string {
       const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
       let token = '';
       for (let i = 0; i < 32; i++) token += chars[Math.floor(Math.random() * chars.length)];
       return token;
+    }
+
+    // Helper: generate short memorable password (sent in email)
+    function generatePassword(): string {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no I/O/0/1 for clarity
+      let code = '';
+      for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+      return 'LGR-' + code; // e.g. LGR-A3X9BK
     }
 
     // Helper: send email via Resend
@@ -212,19 +220,22 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       expirationTtl: 60 * 60 * 24 * 365,
     });
 
-    // Create member profile on accept (with auth token)
-    let memberToken = '';
+    // Create member profile on accept (with password + session token)
+    let memberPassword = '';
+    let isNewMember = false;
     if (body.action === 'accept') {
-      memberToken = generateToken();
       const memberKey = `member:${reg.email.toLowerCase()}`;
       const existingMember = await env.REGISTRATIONS.get(memberKey);
 
       if (!existingMember) {
         // New member
+        isNewMember = true;
+        memberPassword = generatePassword();
         await env.REGISTRATIONS.put(memberKey, JSON.stringify({
           email: reg.email.toLowerCase(),
           name: reg.name,
-          token: memberToken,
+          password: memberPassword,
+          token: generateToken(),
           university: reg.university,
           department: reg.department,
           joinDate: new Date().toISOString().split('T')[0],
@@ -232,19 +243,22 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           showEmail: false,
           certificates: [],
           adminBadges: [],
+          regIds: [body.regId],
         }), { expirationTtl: 60 * 60 * 24 * 365 });
       } else {
-        // Existing member — keep their token
+        // Existing member — add regId, keep existing password
         const member = JSON.parse(existingMember);
-        memberToken = member.token;
+        memberPassword = member.password;
+        if (!member.regIds) member.regIds = [];
+        if (!member.regIds.includes(body.regId)) member.regIds.push(body.regId);
+        await env.REGISTRATIONS.put(memberKey, JSON.stringify(member), { expirationTtl: 60 * 60 * 24 * 365 });
       }
     }
 
     // Send email
     let emailSent = false;
     if (env.RESEND_API_KEY && reg.email) {
-      const isAccepted = reg.action !== 'reject' && body.action === 'accept';
-      const profileUrl = memberToken ? `https://legereopenedu.com/api/auth/verify?token=${memberToken}` : '';
+      const isAccepted = body.action === 'accept';
 
       const subject = isAccepted
         ? `✅ Atölye Başvurunuz Kabul Edildi — ${reg.workshop}`
@@ -267,10 +281,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             <div style="text-align: center; margin: 24px 0;">
               <a href="https://teams.live.com/l/community/FEApfJqwPQhu1UpbAI" style="display: inline-block; background: linear-gradient(135deg, #B8922E, #D4A843); color: #0A0A0F; padding: 10px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Teams Topluluğuna Katıl</a>
             </div>
-            ${profileUrl ? `
+            ${memberPassword ? `
             <div style="background: rgba(212,168,67,0.05); border: 1px solid rgba(212,168,67,0.2); border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
-              <p style="color: #A0A0B0; font-size: 13px; margin: 0 0 12px 0;">🔑 Kişisel Profil Linkiniz (bu linki saklayın):</p>
-              <a href="${profileUrl}" style="display: inline-block; background: rgba(212,168,67,0.15); color: #D4A843; padding: 8px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px;">Profilime Git</a>
+              <p style="color: #A0A0B0; font-size: 13px; margin: 0 0 8px 0;">🔑 Giriş Bilgileriniz:</p>
+              <p style="color: #A0A0B0; font-size: 13px; margin: 0 0 4px 0;">E-posta: <strong style="color: #F0EDE6;">${reg.email}</strong></p>
+              <p style="color: #A0A0B0; font-size: 13px; margin: 0 0 12px 0;">Şifre: <strong style="color: #D4A843; font-family: monospace; font-size: 16px; letter-spacing: 2px;">${memberPassword}</strong></p>
+              <a href="https://legereopenedu.com/login" style="display: inline-block; background: rgba(212,168,67,0.15); color: #D4A843; padding: 8px 20px; border-radius: 6px; text-decoration: none; font-weight: 600; font-size: 14px;">Giriş Yap</a>
             </div>` : ''}
             <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.1); margin: 24px 0;">
             <p style="color: #666; font-size: 12px; text-align: center;">Legere Open Edu — legereopenedu.com</p>

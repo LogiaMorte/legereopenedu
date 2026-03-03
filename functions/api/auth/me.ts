@@ -4,7 +4,7 @@
  * GET /api/auth/me
  *   → Cookie'den email:token çöz
  *   → member:{email} KV'den profil getir
- *   → Kayıtları da topla (reg_ prefix)
+ *   → member.regIds ile kayıtları doğrudan oku (O(1) per reg)
  *   → Otomatik badge hesapla
  *   → JSON response
  */
@@ -61,22 +61,20 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers });
     }
 
-    // Get user's registrations (KV list + reads)
-    const regList = await env.REGISTRATIONS.list({ prefix: 'reg_' });
+    // Get user's registrations via regIds (O(1) per reg, NOT O(n) scan)
     const registrations: any[] = [];
+    const regIds = member.regIds || [];
 
-    for (const k of regList.keys) {
-      const regData = await env.REGISTRATIONS.get(k.name);
+    for (const regId of regIds) {
+      const regData = await env.REGISTRATIONS.get(regId);
       if (regData) {
         const reg = JSON.parse(regData);
-        if (reg.email?.toLowerCase() === email.toLowerCase()) {
-          registrations.push({
-            id: reg.id,
-            workshop: reg.workshop,
-            status: reg.status || 'pending',
-            timestamp: reg.timestamp,
-          });
-        }
+        registrations.push({
+          id: reg.id,
+          workshop: reg.workshop,
+          status: reg.status || 'pending',
+          timestamp: reg.timestamp,
+        });
       }
     }
 
