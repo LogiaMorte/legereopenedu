@@ -1,9 +1,11 @@
 /**
  * Cloudflare Pages Function — Admin: View & Manage Registrations
  *
- * GET  /api/registrations?key=ADMIN_KEY           → list all
- * GET  /api/registrations?key=ADMIN_KEY&workshop=X → filter by workshop
- * POST /api/registrations                         → update status (accept/reject)
+ * POST /api/registrations  { key, action: 'list' }               → list all
+ * POST /api/registrations  { key, action: 'list', workshop: 'X' } → filter by workshop
+ * POST /api/registrations  { key, action: 'accept'|'reject', regId, message? }
+ * POST /api/registrations  { key, action: 'issue-certificate', regId, certType }
+ * POST /api/registrations  { key, action: 'award-badge', regId, badgeId }
  */
 
 interface Env {
