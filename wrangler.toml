@@ -1,0 +1,13 @@
+# Cloudflare Pages Functions configuration
+name = "legereopenedu"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+pages_build_output_dir = "./dist"
+
+# KV namespace binding — ID must be set in Cloudflare Dashboard:
+# Pages → Settings → Functions → KV namespace bindings
+# Binding name: REGISTRATIONS
+#
+# Environment variables (set via Dashboard → Settings → Environment variables):
+# - ADMIN_KEY (secret) — Admin panel authentication
+# - RESEND_API_KEY (secret, optional) — Email notifications via Resend
