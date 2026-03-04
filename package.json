@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "deploy": "echo 'Cloudflare Pages handles deployment automatically'",
     "preview": "astro preview",
     "astro": "astro"
   },
