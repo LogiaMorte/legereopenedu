@@ -2,12 +2,15 @@
 import Layout from '../../layouts/Layout.astro';
 import Hero from '../../sections/Hero.astro';
 import About from '../../sections/About.astro';
-import Community from '../../sections/Community.astro';
+import HowItWorks from '../../sections/HowItWorks.astro';
+import Programs from '../../sections/Programs.astro';
 import Universities from '../../sections/Universities.astro';
 import Disciplines from '../../sections/Disciplines.astro';
 import Workshops from '../../sections/Workshops.astro';
+import Community from '../../sections/Community.astro';
 import Calendar from '../../sections/Calendar.astro';
 import Publications from '../../sections/Publications.astro';
+import Toward2027 from '../../sections/Toward2027.astro';
 import Contact from '../../sections/Contact.astro';
 
 const lang = 'en' as const;
@@ -16,11 +19,14 @@ const lang = 'en' as const;
 <Layout lang={lang}>
   <Hero lang={lang} />
   <About lang={lang} />
+  <HowItWorks lang={lang} />
+  <Programs lang={lang} />
   <Universities lang={lang} />
   <Disciplines lang={lang} />
   <Workshops lang={lang} />
   <Community lang={lang} />
   <Calendar lang={lang} />
   <Publications lang={lang} />
+  <Toward2027 lang={lang} />
   <Contact lang={lang} />
 </Layout>
