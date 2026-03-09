@@ -1,0 +1,126 @@
+---
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/languages';
+import SectionHeading from '../components/SectionHeading.astro';
+import OWLLogo from '../components/OWLLogo.astro';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+---
+
+<section id="programs" class="relative section-padding">
+  <div class="max-w-6xl mx-auto">
+    <SectionHeading
+      title={t('programs.title')}
+      subtitle={t('programs.subtitle')}
+    />
+
+    <div class="grid md:grid-cols-2 gap-6" data-animate-stagger>
+      <!-- OWL Card (featured) -->
+      <div class="md:col-span-2 glass gold-glow p-8 md:p-10 relative overflow-hidden group hover:border-gold-500/30 transition-all duration-300">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-gold-500/[0.03] rounded-full blur-[80px] -translate-y-1/2 translate-x-1/2"></div>
+        <div class="relative z-[1]">
+          <div class="flex flex-col sm:flex-row sm:items-center gap-4 mb-6">
+            <OWLLogo size="md" />
+            <div>
+              <h3 class="text-xl font-heading font-bold text-gradient-gold">
+                {t('programs.owl.title')}
+              </h3>
+              <span class="text-[11px] font-mono text-text-secondary/50 tracking-[0.25em] uppercase">
+                {t('programs.owl.subtitle')}
+              </span>
+            </div>
+          </div>
+          <p class="text-text-secondary leading-relaxed mb-4">
+            {t('programs.owl.desc')}
+          </p>
+          <p class="text-text-secondary/60 text-sm leading-relaxed">
+            {t('programs.owl.outputs')}
+          </p>
+          <!-- Google Classroom badge -->
+          <div class="flex items-center gap-3 mt-5">
+            <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1e8e3e]/10 border border-[#1e8e3e]/25">
+              <svg class="w-4 h-4 text-[#1e8e3e]" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M21.6 6H2.4C1.08 6 0 7.08 0 8.4v7.2C0 16.92 1.08 18 2.4 18h19.2c1.32 0 2.4-1.08 2.4-2.4V8.4C24 7.08 22.92 6 21.6 6zM12 8.4c1.32 0 2.4 1.08 2.4 2.4s-1.08 2.4-2.4 2.4-2.4-1.08-2.4-2.4 1.08-2.4 2.4-2.4zm4.8 8.4H7.2v-.6c0-1.6 3.2-2.48 4.8-2.48s4.8.88 4.8 2.48v.6z"/>
+              </svg>
+              <span class="text-xs font-mono text-[#1e8e3e] tracking-wide">Google Classroom</span>
+            </div>
+            <a href="#workshops" class="text-gold-500 text-sm font-heading font-medium hover:text-gold-300 transition-colors inline-flex items-center gap-1">
+              {t('workshops.register')}
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Public Seminars -->
+      <div class="glass p-6 md:p-8 group hover:gold-glow transition-all duration-300">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00897B]/20 to-[#00897B]/5 border border-[#00897B]/25 flex items-center justify-center mb-5">
+          <svg class="w-6 h-6 text-[#00897B]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+          </svg>
+        </div>
+        <h3 class="font-heading font-bold text-text-primary text-lg mb-3">
+          {t('programs.seminars.title')}
+        </h3>
+        <p class="text-text-secondary text-sm leading-relaxed">
+          {t('programs.seminars.desc')}
+        </p>
+        <div class="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#00897B]/10 border border-[#00897B]/25">
+          <svg class="w-4 h-4 text-[#00897B]" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+          </svg>
+          <span class="text-xs font-mono text-[#00897B] tracking-wide">Google Meet</span>
+        </div>
+      </div>
+
+      <!-- Colloquia -->
+      <div class="glass p-6 md:p-8 group hover:gold-glow transition-all duration-300">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-[#5B5FC7]/20 to-[#5B5FC7]/5 border border-[#5B5FC7]/25 flex items-center justify-center mb-5">
+          <svg class="w-6 h-6 text-[#7B83EB]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
+          </svg>
+        </div>
+        <h3 class="font-heading font-bold text-text-primary text-lg mb-3">
+          {t('programs.colloquia.title')}
+        </h3>
+        <p class="text-text-secondary text-sm leading-relaxed">
+          {t('programs.colloquia.desc')}
+        </p>
+        <div class="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#5B5FC7]/10 border border-[#5B5FC7]/25">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none">
+            <path d="M19.2 6.4C19.2 7.72548 18.1255 8.8 16.8 8.8C15.4745 8.8 14.4 7.72548 14.4 6.4C14.4 5.07452 15.4745 4 16.8 4C18.1255 4 19.2 5.07452 19.2 6.4Z" fill="#7B83EB"/>
+            <path d="M16 9.6H8C6.89543 9.6 6 10.4954 6 11.6V17.6C6 18.7046 6.89543 19.6 8 19.6H16C17.1046 19.6 18 18.7046 18 17.6V11.6C18 10.4954 17.1046 9.6 16 9.6Z" fill="#7B83EB"/>
+            <path d="M13.6 6.4C13.6 8.16731 12.1673 9.6 10.4 9.6C8.63269 9.6 7.2 8.16731 7.2 6.4C7.2 4.63269 8.63269 3.2 10.4 3.2C12.1673 3.2 13.6 4.63269 13.6 6.4Z" fill="#7B83EB"/>
+          </svg>
+          <span class="text-xs font-mono text-[#7B83EB] tracking-wide">Microsoft Teams</span>
+        </div>
+      </div>
+
+      <!-- Publication Pipeline -->
+      <div class="md:col-span-2 glass p-6 md:p-8 group hover:gold-glow transition-all duration-300">
+        <div class="flex flex-col sm:flex-row sm:items-start gap-4">
+          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-gold-500/15 to-gold-500/5 flex items-center justify-center flex-shrink-0">
+            <svg class="w-6 h-6 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-heading font-bold text-text-primary text-lg mb-3">
+              {t('programs.publications.title')}
+            </h3>
+            <p class="text-text-secondary text-sm leading-relaxed">
+              {t('programs.publications.desc')}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

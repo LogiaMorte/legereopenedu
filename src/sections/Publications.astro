@@ -34,6 +34,42 @@ const disciplineLabels: Record<string, Record<string, string>> = {
       subtitle={t('publications.subtitle')}
     />
 
+    <!-- Publication Pipeline -->
+    <div class="mb-12" data-animate>
+      <h3 class="font-heading font-bold text-gold-500 text-base mb-6 text-center">
+        {t('publications.pipeline.title')}
+      </h3>
+      <div class="grid sm:grid-cols-3 gap-4">
+        <div class="glass-subtle p-5 text-center group hover:border-gold-500/25 transition-all duration-300">
+          <div class="text-2xl font-heading font-bold text-gold-500/30 mb-2">01</div>
+          <h4 class="font-heading font-bold text-text-primary text-sm mb-2">
+            {t('publications.pipeline.layer1')}
+          </h4>
+          <p class="text-text-secondary text-xs leading-relaxed">
+            {t('publications.pipeline.layer1.desc')}
+          </p>
+        </div>
+        <div class="glass-subtle p-5 text-center group hover:border-gold-500/25 transition-all duration-300">
+          <div class="text-2xl font-heading font-bold text-gold-500/30 mb-2">02</div>
+          <h4 class="font-heading font-bold text-text-primary text-sm mb-2">
+            {t('publications.pipeline.layer2')}
+          </h4>
+          <p class="text-text-secondary text-xs leading-relaxed">
+            {t('publications.pipeline.layer2.desc')}
+          </p>
+        </div>
+        <div class="glass-subtle p-5 text-center group hover:border-gold-500/25 transition-all duration-300">
+          <div class="text-2xl font-heading font-bold text-gold-500/30 mb-2">03</div>
+          <h4 class="font-heading font-bold text-text-primary text-sm mb-2">
+            {t('publications.pipeline.layer3')}
+          </h4>
+          <p class="text-text-secondary text-xs leading-relaxed">
+            {t('publications.pipeline.layer3.desc')}
+          </p>
+        </div>
+      </div>
+    </div>
+
     {publicationsData.length > 0 ? (
       <div class="space-y-4" data-animate-stagger>
         {publicationsData.map((pub: any) => (
