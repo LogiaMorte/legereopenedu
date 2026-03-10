@@ -2,11 +2,21 @@
  * Auth Signup — Self-service member registration
  *
  * POST /api/auth/signup
- *   → Creates member:{email} in KV
+ *   → Creates member:{email} in KV (password hashed)
  *   → Generates password + session token
  *   → Sends welcome email with credentials
  *   → JSON { success: true }
  */
+
+import {
+  corsHeaders,
+  optionsResponse,
+  escapeHtml,
+  hashPassword,
+  generateToken,
+  generatePassword,
+  sendEmail,
+} from '../../_shared';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
@@ -24,42 +34,9 @@ interface SignupData {
   ideas?: string;
 }
 
-function generateToken(): string {
-  const bytes = new Uint8Array(32);
-  crypto.getRandomValues(bytes);
-  return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
-}
-
-function generatePassword(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const bytes = new Uint8Array(6);
-  crypto.getRandomValues(bytes);
-  let code = '';
-  for (let i = 0; i < 6; i++) code += chars[bytes[i] % chars.length];
-  return 'LGR-' + code;
-}
-
-async function sendEmail(env: Env, to: string, subject: string, html: string): Promise<boolean> {
-  if (!env.RESEND_API_KEY) return false;
-  try {
-    const res = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${env.RESEND_API_KEY}` },
-      body: JSON.stringify({ from: 'Legere Open Edu <info@legereopenedu.com>', to: [to], subject, html }),
-    });
-    return res.ok;
-  } catch { return false; }
-}
-
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
-
-  const origin = request.headers.get('Origin') || '';
-  const allowedOrigin = origin.endsWith('legereopenedu.com') ? origin : 'https://legereopenedu.com';
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': allowedOrigin,
-  };
+  const headers = corsHeaders(request);
 
   if (!env.REGISTRATIONS) {
     return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
@@ -68,20 +45,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
     const data: SignupData = await request.json();
 
-    // Validate required fields
     if (!data.name?.trim() || !data.personalEmail?.trim() || !data.university?.trim() || !data.department?.trim()) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers });
     }
 
     const email = data.personalEmail.trim().toLowerCase();
-
-    // Validate email format
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       return new Response(JSON.stringify({ error: 'Invalid email format' }), { status: 400, headers });
     }
 
-    // Validate school email if provided
     const schoolEmail = data.schoolEmail?.trim().toLowerCase() || '';
     if (schoolEmail && !emailRegex.test(schoolEmail)) {
       return new Response(JSON.stringify({ error: 'Invalid school email format' }), { status: 400, headers });
@@ -93,7 +66,6 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       return new Response(JSON.stringify({ error: 'Member already exists' }), { status: 409, headers });
     }
 
-    // Also check school email if provided
     if (schoolEmail) {
       const existingSchool = await env.REGISTRATIONS.get(`member:${schoolEmail}`);
       if (existingSchool) {
@@ -107,8 +79,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       linkedin = 'https://' + linkedin;
     }
 
-    // Create member
-    const password = generatePassword();
+    // Create member with hashed password
+    const plainPassword = generatePassword();
     const token = generateToken();
     const now = new Date().toISOString().split('T')[0];
 
@@ -116,7 +88,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       email,
       schoolEmail: schoolEmail || undefined,
       name: data.name.trim().slice(0, 200),
-      password,
+      password: await hashPassword(plainPassword),
       token,
       university: data.university.trim().slice(0, 200),
       department: data.department.trim().slice(0, 200),
@@ -138,7 +110,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       expirationTtl: 60 * 60 * 24 * 365,
     });
 
-    // If school email provided, create an alias entry pointing to primary
+    // Alias for school email
     if (schoolEmail && schoolEmail !== email) {
       await env.REGISTRATIONS.put(`member-alias:${schoolEmail}`, email, {
         expirationTtl: 60 * 60 * 24 * 365,
@@ -147,93 +119,104 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     // Update signup count
     const countKey = 'count:members';
-    const currentCount = parseInt(await env.REGISTRATIONS.get(countKey) || '0');
+    const currentCount = parseInt((await env.REGISTRATIONS.get(countKey)) || '0');
     await env.REGISTRATIONS.put(countKey, String(currentCount + 1));
 
-    // Build interest labels for email
+    // Build interest labels for email (escaped)
     const interestLabels: Record<string, string> = {
-      'projects': 'Mevcut projelerde yer almak',
-      'workshops': 'Atölye içeriği üretmek',
-      'seminars': 'Seminer / kolokyum önermek',
-      'content': 'İçerik üretmek',
-      'mentorship': 'Mentorluk yapmak',
-      'other': 'Diğer',
+      projects: 'Mevcut projelerde yer almak',
+      workshops: 'Atölye içeriği üretmek',
+      seminars: 'Seminer / kolokyum önermek',
+      content: 'İçerik üretmek',
+      mentorship: 'Mentorluk yapmak',
+      other: 'Diğer',
     };
 
-    const interestList = (member.interests || [])
-      .map(i => interestLabels[i] || i)
-      .join(', ');
+    const interestList = (member.interests || []).map(i => escapeHtml(interestLabels[i] || i)).join(', ');
+
+    // Escaped values for email templates
+    const safeName = escapeHtml(member.name);
+    const safeEmail = escapeHtml(email);
+    const safeIdeas = escapeHtml((member.ideas || '').slice(0, 500));
+    const safeUniversity = escapeHtml(member.university);
+    const safeDepartment = escapeHtml(member.department);
+    const safeSchoolEmail = escapeHtml(schoolEmail);
+    const safeLinkedin = escapeHtml(linkedin);
 
     // Send welcome email
-    const emailSent = await sendEmail(env, email,
-      '🎓 Legere Open Edu — Hoş Geldiniz!',
+    const emailSent = await sendEmail(
+      env.RESEND_API_KEY,
+      email,
+      `Legere Open Edu — Hos Geldiniz!`,
       `<div style="font-family:'Segoe UI',sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#0A0A0F;color:#F0EDE6;border-radius:12px;">
         <div style="text-align:center;margin-bottom:24px;">
           <h1 style="color:#D4A843;font-size:24px;margin:0;">Legere Open Edu</h1>
         </div>
-        <h2 style="color:#4ADE80;">Hoş geldiniz, ${member.name}!</h2>
+        <h2 style="color:#4ADE80;">Hos geldiniz, ${safeName}!</h2>
         <p style="color:#A0A0B0;line-height:1.6;">
-          Legere Open Edu topluluğuna kaydınız başarıyla tamamlanmıştır. Artık atölyelere başvurabilir, projelerde yer alabilir ve içerik üretebilirsiniz.
+          Legere Open Edu topluluguna kaydiniz basariyla tamamlanmistir. Artik atolyelere basvurabilir, projelerde yer alabilir ve icerik uretebilirsiniz.
         </p>
 
         <div style="background:rgba(212,168,67,0.05);border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:16px;margin:16px 0;text-align:center;">
-          <p style="color:#A0A0B0;font-size:13px;margin:0 0 8px 0;">🔑 Giriş Bilgileriniz:</p>
-          <p style="color:#A0A0B0;font-size:13px;margin:0 0 4px 0;">E-posta: <strong style="color:#F0EDE6;">${email}</strong></p>
-          <p style="color:#A0A0B0;font-size:13px;margin:0 0 12px 0;">Şifre: <strong style="color:#D4A843;font-family:monospace;font-size:16px;letter-spacing:2px;">${password}</strong></p>
-          <a href="https://legereopenedu.com/login" style="display:inline-block;background:rgba(212,168,67,0.15);color:#D4A843;padding:8px 20px;border-radius:6px;text-decoration:none;font-weight:600;font-size:14px;">Giriş Yap</a>
+          <p style="color:#A0A0B0;font-size:13px;margin:0 0 8px 0;">Giris Bilgileriniz:</p>
+          <p style="color:#A0A0B0;font-size:13px;margin:0 0 4px 0;">E-posta: <strong style="color:#F0EDE6;">${safeEmail}</strong></p>
+          <p style="color:#A0A0B0;font-size:13px;margin:0 0 12px 0;">Sifre: <strong style="color:#D4A843;font-family:monospace;font-size:16px;letter-spacing:2px;">${escapeHtml(plainPassword)}</strong></p>
+          <a href="https://legereopenedu.com/login" style="display:inline-block;background:rgba(212,168,67,0.15);color:#D4A843;padding:8px 20px;border-radius:6px;text-decoration:none;font-weight:600;font-size:14px;">Giris Yap</a>
         </div>
 
         ${interestList ? `
         <div style="background:rgba(212,168,67,0.05);border-left:3px solid #D4A843;padding:12px 16px;margin:16px 0;border-radius:4px;">
-          <p style="color:#D4A843;font-size:13px;margin:0 0 4px 0;font-weight:600;">Katkı Alanlarınız:</p>
+          <p style="color:#D4A843;font-size:13px;margin:0 0 4px 0;font-weight:600;">Katki Alanlariniz:</p>
           <p style="color:#A0A0B0;font-size:13px;margin:0;">${interestList}</p>
         </div>` : ''}
 
-        ${member.ideas ? `
+        ${safeIdeas ? `
         <div style="background:rgba(212,168,67,0.05);border-left:3px solid #D4A843;padding:12px 16px;margin:16px 0;border-radius:4px;">
           <p style="color:#D4A843;font-size:13px;margin:0 0 4px 0;font-weight:600;">Fikirleriniz:</p>
-          <p style="color:#A0A0B0;font-size:13px;margin:0;">${member.ideas.slice(0, 500)}</p>
+          <p style="color:#A0A0B0;font-size:13px;margin:0;">${safeIdeas}</p>
         </div>` : ''}
 
         <div style="background:rgba(74,222,128,0.05);border:1px solid rgba(74,222,128,0.2);border-radius:8px;padding:16px;margin:16px 0;">
-          <p style="color:#4ADE80;font-size:13px;margin:0 0 8px 0;font-weight:600;">📬 Bir sonraki adım:</p>
+          <p style="color:#4ADE80;font-size:13px;margin:0 0 8px 0;font-weight:600;">Bir sonraki adim:</p>
           <p style="color:#A0A0B0;font-size:13px;margin:0;line-height:1.6;">
-            Katılmak istediğiniz programlar ve fikirleriniz hakkında bize
+            Katilmak istediginiz programlar ve fikirleriniz hakkinda bize
             <a href="mailto:info@legereopenedu.com" style="color:#D4A843;text-decoration:none;">info@legereopenedu.com</a>
-            adresinden de yazabilirsiniz. LinkedIn üzerinden de bize ulaşabilirsiniz. Detaylı bilgi paylaşmanız, size uygun projeleri belirlememize yardımcı olacaktır.
+            adresinden de yazabilirsiniz.
           </p>
         </div>
 
         <div style="text-align:center;margin:24px 0;">
-          <a href="https://teams.live.com/l/community/FEApfJqwPQhu1UpbAI" style="display:inline-block;background:linear-gradient(135deg,#B8922E,#D4A843);color:#0A0A0F;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Teams Topluluğuna Katıl</a>
+          <a href="https://teams.live.com/l/community/FEApfJqwPQhu1UpbAI" style="display:inline-block;background:linear-gradient(135deg,#B8922E,#D4A843);color:#0A0A0F;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Teams Topluluguna Katil</a>
         </div>
 
         <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:24px 0;">
         <p style="color:#666;font-size:12px;text-align:center;">Legere Open Edu — legereopenedu.com</p>
-      </div>`
+      </div>`,
     );
 
-    // Send notification to admin (info email)
+    // Send notification to admin
     if (env.RESEND_API_KEY) {
-      await sendEmail(env, 'info@legereopenedu.com',
-        `🆕 Yeni Üye Kaydı: ${member.name}`,
+      await sendEmail(
+        env.RESEND_API_KEY,
+        'info@legereopenedu.com',
+        `Yeni Uye Kaydi: ${safeName}`,
         `<div style="font-family:'Segoe UI',sans-serif;max-width:600px;padding:24px;background:#0A0A0F;color:#F0EDE6;border-radius:12px;">
-          <h2 style="color:#D4A843;">Yeni Üye Kaydı</h2>
-          <p style="color:#A0A0B0;"><strong>Ad:</strong> ${member.name}</p>
-          <p style="color:#A0A0B0;"><strong>E-posta:</strong> ${email}</p>
-          ${schoolEmail ? `<p style="color:#A0A0B0;"><strong>Okul E-posta:</strong> ${schoolEmail}</p>` : ''}
-          <p style="color:#A0A0B0;"><strong>Üniversite:</strong> ${member.university}</p>
-          <p style="color:#A0A0B0;"><strong>Bölüm:</strong> ${member.department}</p>
-          ${linkedin ? `<p style="color:#A0A0B0;"><strong>LinkedIn:</strong> <a href="${linkedin}" style="color:#D4A843;">${linkedin}</a></p>` : ''}
-          ${interestList ? `<p style="color:#A0A0B0;"><strong>İlgi Alanları:</strong> ${interestList}</p>` : ''}
-          ${member.ideas ? `<p style="color:#A0A0B0;"><strong>Fikirleri:</strong> ${member.ideas.slice(0, 1000)}</p>` : ''}
-          <p style="color:#A0A0B0;"><strong>Ülke:</strong> ${member.signupCountry}</p>
+          <h2 style="color:#D4A843;">Yeni Uye Kaydi</h2>
+          <p style="color:#A0A0B0;"><strong>Ad:</strong> ${safeName}</p>
+          <p style="color:#A0A0B0;"><strong>E-posta:</strong> ${safeEmail}</p>
+          ${safeSchoolEmail ? `<p style="color:#A0A0B0;"><strong>Okul E-posta:</strong> ${safeSchoolEmail}</p>` : ''}
+          <p style="color:#A0A0B0;"><strong>Universite:</strong> ${safeUniversity}</p>
+          <p style="color:#A0A0B0;"><strong>Bolum:</strong> ${safeDepartment}</p>
+          ${safeLinkedin ? `<p style="color:#A0A0B0;"><strong>LinkedIn:</strong> ${safeLinkedin}</p>` : ''}
+          ${interestList ? `<p style="color:#A0A0B0;"><strong>Ilgi Alanlari:</strong> ${interestList}</p>` : ''}
+          ${safeIdeas ? `<p style="color:#A0A0B0;"><strong>Fikirleri:</strong> ${safeIdeas}</p>` : ''}
+          <p style="color:#A0A0B0;"><strong>Ulke:</strong> ${escapeHtml(member.signupCountry)}</p>
           <p style="color:#A0A0B0;"><strong>Tarih:</strong> ${new Date().toISOString()}</p>
-        </div>`
+        </div>`,
       );
     }
 
-    // Set session cookie so user is logged in immediately
+    // Set session cookie
     const cookieValue = `${encodeURIComponent(email)}:${token}`;
     const maxAge = 30 * 24 * 60 * 60;
 
@@ -244,21 +227,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         'Set-Cookie': `legere_token=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,
       },
     });
-
-  } catch (error) {
+  } catch {
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
   }
 };
 
 export const onRequestOptions: PagesFunction = async (context) => {
-  const origin = context.request.headers.get('Origin') || '';
-  const allowedOrigin = origin.endsWith('legereopenedu.com') ? origin : 'https://legereopenedu.com';
-  return new Response(null, {
-    status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': allowedOrigin,
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-    },
-  });
+  return optionsResponse(context.request);
 };
