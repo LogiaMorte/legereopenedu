@@ -101,9 +101,13 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     return new Response(JSON.stringify({
       user: {
         email: member.email,
+        schoolEmail: member.schoolEmail || '',
         name: member.name,
         university: member.university,
         department: member.department,
+        linkedin: member.linkedin || '',
+        interests: member.interests || [],
+        ideas: member.ideas || '',
         joinDate: member.joinDate,
         showFullName: member.showFullName ?? true,
         showEmail: member.showEmail ?? false,
