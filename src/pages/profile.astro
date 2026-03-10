@@ -377,19 +377,23 @@ const t = useTranslations(lang);
 
   async function updatePrivacy(settings) {
     try {
-      await fetch('/api/auth/me', {
+      var res = await fetch('/api/auth/me', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
         body: JSON.stringify(settings),
       });
+      if (!res.ok) console.warn('Gizlilik ayarları kaydedilemedi.');
     } catch (err) {
-      // Silent fail — toggle will revert on next load
+      console.warn('Gizlilik ayarları kaydedilemedi:', err);
     }
   }
 
-  // Logout
-  document.getElementById('logout-btn')?.addEventListener('click', () => {
+  // Logout (server-side token invalidation)
+  document.getElementById('logout-btn')?.addEventListener('click', async () => {
+    try {
+      await fetch('/api/auth/me', { method: 'DELETE', credentials: 'same-origin' });
+    } catch (err) {}
     document.cookie = 'legere_token=; Path=/; Max-Age=0; SameSite=Lax';
     window.location.href = '/';
   });

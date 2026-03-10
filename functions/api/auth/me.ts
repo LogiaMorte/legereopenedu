@@ -1,19 +1,22 @@
 /**
- * Auth Me — Session kontrolü + profil verisi getir
+ * Auth Me — Session kontrolü + profil verisi getir + güncelle + logout
  *
- * GET /api/auth/me
- *   → Cookie'den email:token çöz
- *   → member:{email} KV'den profil getir
- *   → member.regIds ile kayıtları doğrudan oku (O(1) per reg)
- *   → Otomatik badge hesapla
- *   → JSON response
+ * GET  /api/auth/me       → Profil getir
+ * POST /api/auth/me       → Profil güncelle (showFullName, showEmail)
+ * DELETE /api/auth/me     → Logout (token invalidate + cookie sil)
  */
+
+import {
+  corsHeaders,
+  optionsResponse,
+  parseSessionCookie,
+  generateToken,
+} from '../../_shared';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
 }
 
-// Auto badge criteria (mirrored from src/data/badges.json — keep in sync)
 const AUTO_BADGES = [
   { id: 'first-workshop', criteria: { completedWorkshops: 1 } },
   { id: 'three-workshops', criteria: { completedWorkshops: 3 } },
@@ -21,50 +24,37 @@ const AUTO_BADGES = [
   { id: 'multi-discipline', criteria: { uniqueDisciplines: 3 } },
 ];
 
+function getMethods() {
+  return 'GET, POST, DELETE, OPTIONS';
+}
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
-
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': 'https://legereopenedu.com',
-  };
+  const headers = corsHeaders(request, getMethods());
 
   if (!env.REGISTRATIONS) {
     return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
   }
 
-  // Parse cookie
-  const cookieHeader = request.headers.get('Cookie') || '';
-  const tokenCookie = cookieHeader.split(';').find(c => c.trim().startsWith('legere_token='));
-  if (!tokenCookie) {
+  const session = parseSessionCookie(request);
+  if (!session) {
     return new Response(JSON.stringify({ error: 'Not authenticated' }), { status: 401, headers });
   }
 
-  const cookieValue = tokenCookie.split('=').slice(1).join('=').trim();
-  const separatorIndex = cookieValue.lastIndexOf(':');
-  if (separatorIndex === -1) {
-    return new Response(JSON.stringify({ error: 'Invalid session' }), { status: 401, headers });
-  }
-
-  const email = decodeURIComponent(cookieValue.substring(0, separatorIndex));
-  const token = cookieValue.substring(separatorIndex + 1);
-
   try {
-    // Get member data (1 KV read)
-    const memberData = await env.REGISTRATIONS.get(`member:${email}`);
+    const memberData = await env.REGISTRATIONS.get(`member:${session.email}`);
     if (!memberData) {
       return new Response(JSON.stringify({ error: 'Member not found' }), { status: 404, headers });
     }
 
     const member = JSON.parse(memberData);
-    if (member.token !== token) {
+    if (member.token !== session.token) {
       return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers });
     }
 
-    // Get user's registrations via regIds (O(1) per reg, NOT O(n) scan)
+    // Get registrations via regIds
     const registrations: any[] = [];
     const regIds = member.regIds || [];
-
     for (const regId of regIds) {
       const regData = await env.REGISTRATIONS.get(regId);
       if (regData) {
@@ -78,7 +68,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       }
     }
 
-    // Calculate automatic badges based on completed workshops + unique disciplines
+    // Calculate auto badges
     const completedWorkshops = registrations.filter(r => r.status === 'completed').length;
     const uniqueDisciplines = new Set(registrations.filter(r => r.status === 'completed').map(r => r.workshop)).size;
     const autoBadges: any[] = [];
@@ -92,91 +82,108 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       }
     }
 
-    // Combine auto + admin badges
-    const allBadges = [
-      ...autoBadges,
-      ...(member.adminBadges || []),
-    ];
+    const allBadges = [...autoBadges, ...(member.adminBadges || [])];
 
-    return new Response(JSON.stringify({
-      user: {
-        email: member.email,
-        schoolEmail: member.schoolEmail || '',
-        name: member.name,
-        university: member.university,
-        department: member.department,
-        linkedin: member.linkedin || '',
-        interests: member.interests || [],
-        ideas: member.ideas || '',
-        joinDate: member.joinDate,
-        showFullName: member.showFullName ?? true,
-        showEmail: member.showEmail ?? false,
-      },
-      registrations,
-      certificates: member.certificates || [],
-      badges: allBadges,
-    }), { status: 200, headers });
-
-  } catch (error) {
+    return new Response(
+      JSON.stringify({
+        user: {
+          email: member.email,
+          schoolEmail: member.schoolEmail || '',
+          name: member.name,
+          university: member.university,
+          department: member.department,
+          linkedin: member.linkedin || '',
+          interests: member.interests || [],
+          ideas: member.ideas || '',
+          joinDate: member.joinDate,
+          showFullName: member.showFullName ?? true,
+          showEmail: member.showEmail ?? false,
+        },
+        registrations,
+        certificates: member.certificates || [],
+        badges: allBadges,
+      }),
+      { status: 200, headers },
+    );
+  } catch {
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
   }
 };
 
-// Update profile settings (showFullName, showEmail)
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
+  const headers = corsHeaders(request, getMethods());
 
-  const headers = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': 'https://legereopenedu.com',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
-
-  // Parse cookie
-  const cookieHeader = request.headers.get('Cookie') || '';
-  const tokenCookie = cookieHeader.split(';').find(c => c.trim().startsWith('legere_token='));
-  if (!tokenCookie) {
+  const session = parseSessionCookie(request);
+  if (!session) {
     return new Response(JSON.stringify({ error: 'Not authenticated' }), { status: 401, headers });
   }
 
-  const cookieValue = tokenCookie.split('=').slice(1).join('=').trim();
-  const separatorIndex = cookieValue.lastIndexOf(':');
-  const email = decodeURIComponent(cookieValue.substring(0, separatorIndex));
-  const token = cookieValue.substring(separatorIndex + 1);
-
   try {
-    const memberData = await env.REGISTRATIONS.get(`member:${email}`);
+    const memberData = await env.REGISTRATIONS.get(`member:${session.email}`);
     if (!memberData) {
       return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers });
     }
 
     const member = JSON.parse(memberData);
-    if (member.token !== token) {
+    if (member.token !== session.token) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
     }
 
-    const body = await request.json() as { showFullName?: boolean; showEmail?: boolean };
+    const body = (await request.json()) as { showFullName?: boolean; showEmail?: boolean };
     if (typeof body.showFullName === 'boolean') member.showFullName = body.showFullName;
     if (typeof body.showEmail === 'boolean') member.showEmail = body.showEmail;
 
-    await env.REGISTRATIONS.put(`member:${email}`, JSON.stringify(member), {
+    await env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member), {
       expirationTtl: 60 * 60 * 24 * 365,
     });
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-  } catch (error) {
+  } catch {
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
   }
 };
 
-export const onRequestOptions: PagesFunction = async () => {
-  return new Response(null, {
-    status: 204,
+// Server-side logout: invalidate token + clear cookie
+export const onRequestDelete: PagesFunction<Env> = async (context) => {
+  const { request, env } = context;
+  const headers = corsHeaders(request, getMethods());
+
+  const session = parseSessionCookie(request);
+  if (!session) {
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: {
+        ...headers,
+        'Set-Cookie': 'legere_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+      },
+    });
+  }
+
+  try {
+    const memberData = await env.REGISTRATIONS.get(`member:${session.email}`);
+    if (memberData) {
+      const member = JSON.parse(memberData);
+      if (member.token === session.token) {
+        member.token = generateToken();
+        await env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member), {
+          expirationTtl: 60 * 60 * 24 * 365,
+        });
+      }
+    }
+  } catch {
+    // Best effort — still clear cookie
+  }
+
+  return new Response(JSON.stringify({ success: true }), {
+    status: 200,
     headers: {
-      'Access-Control-Allow-Origin': 'https://legereopenedu.com',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      ...headers,
+      'Set-Cookie': 'legere_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
     },
   });
+};
+
+export const onRequestOptions: PagesFunction = async (context) => {
+  return optionsResponse(context.request, getMethods());
 };

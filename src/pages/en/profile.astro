@@ -107,6 +107,31 @@ const t = useTranslations(lang);
           </div>
         </div>
 
+        <!-- Contribution Preferences Section -->
+        <div id="contribution-section" class="hidden glass rounded-2xl p-6 sm:p-8">
+          <h2 class="text-lg font-heading font-bold text-text-primary mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+            </svg>
+            Contribution Preferences
+          </h2>
+          <div id="contribution-interests" class="flex flex-wrap gap-2 mb-4"></div>
+          <div id="contribution-ideas" class="hidden">
+            <p class="text-xs text-text-secondary font-heading font-medium mb-1.5">Ideas & Notes:</p>
+            <p id="contribution-ideas-text" class="text-sm text-text-secondary/80 leading-relaxed"></p>
+          </div>
+          <div id="contribution-linkedin" class="hidden mt-3">
+            <a id="contribution-linkedin-link" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs text-gold-500 hover:text-gold-300 transition-colors font-heading">
+              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+              LinkedIn Profile
+            </a>
+          </div>
+          <div class="mt-4 px-4 py-3 rounded-lg bg-gold-500/5 border border-gold-500/15 text-xs text-text-secondary leading-relaxed">
+            <span class="text-gold-500 font-heading font-medium">📬</span>
+            You can also write to us at <a href="mailto:info@legereopenedu.com" class="text-gold-500 hover:text-gold-300 transition-colors">info@legereopenedu.com</a> about programs and your ideas.
+          </div>
+        </div>
+
         <!-- Certificates Section -->
         <div class="glass rounded-2xl p-6 sm:p-8">
           <h2 class="text-lg font-heading font-bold text-text-primary mb-4 flex items-center gap-2">
@@ -226,6 +251,56 @@ const t = useTranslations(lang);
     toggleFullName.addEventListener('change', function() { updatePrivacy({ showFullName: toggleFullName.checked }); });
     toggleEmail.addEventListener('change', function() { updatePrivacy({ showEmail: toggleEmail.checked }); });
 
+    // School email
+    if (user.schoolEmail) {
+      var schoolEl = document.getElementById('profile-school-email');
+      if (schoolEl) {
+        schoolEl.classList.remove('hidden');
+        document.getElementById('profile-school-email-text').textContent = user.schoolEmail;
+      }
+    }
+
+    // Contribution preferences
+    var INTEREST_LABELS = {
+      'projects': 'Participate in Projects',
+      'workshops': 'Produce Workshop Content',
+      'seminars': 'Propose Seminars / Colloquia',
+      'content': 'Create Content',
+      'mentorship': 'Provide Mentorship',
+      'other': 'Other',
+    };
+
+    if ((user.interests && user.interests.length > 0) || user.ideas || user.linkedin) {
+      var contSection = document.getElementById('contribution-section');
+      if (contSection) contSection.classList.remove('hidden');
+
+      if (user.interests && user.interests.length > 0) {
+        var contInterests = document.getElementById('contribution-interests');
+        if (contInterests) {
+          contInterests.innerHTML = user.interests.map(function(i) {
+            var label = INTEREST_LABELS[i] || i;
+            return '<span class="badge badge-discipline">' + label + '</span>';
+          }).join('');
+        }
+      }
+
+      if (user.ideas) {
+        var ideasEl = document.getElementById('contribution-ideas');
+        if (ideasEl) {
+          ideasEl.classList.remove('hidden');
+          document.getElementById('contribution-ideas-text').textContent = user.ideas;
+        }
+      }
+
+      if (user.linkedin) {
+        var linkedinEl = document.getElementById('contribution-linkedin');
+        if (linkedinEl) {
+          linkedinEl.classList.remove('hidden');
+          document.getElementById('contribution-linkedin-link').href = user.linkedin;
+        }
+      }
+    }
+
     document.getElementById('stat-workshops').textContent = registrations.length;
     document.getElementById('stat-certificates').textContent = certificates.length;
     document.getElementById('stat-badges').textContent = badges.length;
@@ -288,16 +363,22 @@ const t = useTranslations(lang);
 
   async function updatePrivacy(settings) {
     try {
-      await fetch('/api/auth/me', {
+      var res = await fetch('/api/auth/me', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
         body: JSON.stringify(settings),
       });
-    } catch (err) {}
+      if (!res.ok) console.warn('Privacy settings could not be saved.');
+    } catch (err) {
+      console.warn('Privacy settings could not be saved:', err);
+    }
   }
 
-  document.getElementById('logout-btn').addEventListener('click', function() {
+  document.getElementById('logout-btn').addEventListener('click', async function() {
+    try {
+      await fetch('/api/auth/me', { method: 'DELETE', credentials: 'same-origin' });
+    } catch (err) {}
     document.cookie = 'legere_token=; Path=/; Max-Age=0; SameSite=Lax';
     window.location.href = '/en/';
   });
