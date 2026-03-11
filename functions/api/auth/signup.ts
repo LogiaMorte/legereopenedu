@@ -45,7 +45,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
     const data: SignupData = await request.json();
 
-    if (!data.name?.trim() || !data.personalEmail?.trim() || !data.university?.trim() || !data.department?.trim()) {
+    if (!data.name?.trim() || !data.personalEmail?.trim()) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers });
     }
 

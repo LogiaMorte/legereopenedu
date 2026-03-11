@@ -29,6 +29,30 @@ const t = useTranslations(lang);
             <p class="text-text-secondary text-sm leading-relaxed">{t('signup.desc')}</p>
           </div>
 
+          <!-- Google Sign-In -->
+          <div id="google-signin-section" class="mb-6">
+            <div id="g_id_onload"
+              data-client_id=""
+              data-callback="handleGoogleSignIn"
+              data-auto_prompt="false">
+            </div>
+            <div class="flex justify-center">
+              <div class="g_id_signin"
+                data-type="standard"
+                data-size="large"
+                data-theme="filled_black"
+                data-text="signup_with"
+                data-shape="rectangular"
+                data-logo_alignment="left"
+                data-width="320">
+              </div>
+            </div>
+            <div class="relative my-5">
+              <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+              <div class="relative flex justify-center text-xs"><span class="bg-[#12121A] px-3 text-text-secondary">or with email</span></div>
+            </div>
+          </div>
+
           <form id="signup-form" class="space-y-4" novalidate>
             <!-- Name -->
             <div>
@@ -75,12 +99,12 @@ const t = useTranslations(lang);
             <!-- University -->
             <div>
               <label for="signup-university" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
-                {t('signup.university')} <span class="text-red-400">*</span>
+                {t('signup.university')}
+                <span class="text-text-secondary/50 ml-1">(can add from profile)</span>
               </label>
               <input
                 type="text"
                 id="signup-university"
-                required
                 class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
               />
             </div>
@@ -88,12 +112,12 @@ const t = useTranslations(lang);
             <!-- Department -->
             <div>
               <label for="signup-department" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
-                {t('signup.department')} <span class="text-red-400">*</span>
+                {t('signup.department')}
+                <span class="text-text-secondary/50 ml-1">(can add from profile)</span>
               </label>
               <input
                 type="text"
                 id="signup-department"
-                required
                 class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
               />
             </div>
@@ -206,6 +230,42 @@ const t = useTranslations(lang);
   </div>
 </Layout>
 
+<script is:inline src="https://accounts.google.com/gsi/client" async></script>
+<script is:inline>
+function handleGoogleSignIn(response) {
+  var formState = document.getElementById('signup-form-state');
+  var successState = document.getElementById('signup-success-state');
+  var errorEl = document.getElementById('signup-error');
+
+  fetch('/api/auth/google', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ credential: response.credential }),
+  }).then(function(res) {
+    if (res.ok) {
+      return res.json().then(function(data) {
+        if (data.isNewMember) {
+          formState.classList.add('hidden');
+          successState.classList.remove('hidden');
+        } else {
+          window.location.href = '/en/profile';
+        }
+      });
+    } else {
+      return res.json().catch(function() { return {}; }).then(function(data) {
+        errorEl.textContent = data.error === 'Google sign-in not configured'
+          ? 'Google sign-in is not configured yet.'
+          : 'Google sign-in failed. Please sign up with email.';
+        errorEl.classList.remove('hidden');
+      });
+    }
+  }).catch(function() {
+    errorEl.textContent = 'Connection error. Please try again.';
+    errorEl.classList.remove('hidden');
+  });
+}
+</script>
 <script is:inline>
 (function() {
   var form = document.getElementById('signup-form');
@@ -236,8 +296,8 @@ const t = useTranslations(lang);
       interests.push(cb.value);
     });
 
-    if (!name || !personalEmail || !university || !department) {
-      showError('Please fill in all required fields.');
+    if (!name || !personalEmail) {
+      showError('Please enter your name and email.');
       return;
     }
 
