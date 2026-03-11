@@ -278,14 +278,24 @@ const t = useTranslations(lang);
         successState.classList.remove('hidden');
       } else {
         var result = await res.json().catch(function() { return {}; });
+        console.error('[signup] Server error:', res.status, result);
         if (result.error === 'Member already exists') {
           showError('Bu e-posta adresi ile zaten kayıt yapılmış.');
+        } else if (result.error === 'Missing required fields') {
+          showError('Lütfen zorunlu alanları doldurun.');
+        } else if (result.error === 'Invalid email format') {
+          showError('Geçerli bir e-posta adresi girin.');
+        } else if (result.error === 'Invalid school email format') {
+          showError('Okul e-posta adresi geçerli değil.');
+        } else if (result.error === 'KV not configured') {
+          showError('Sunucu yapılandırma hatası. Lütfen yöneticiyle iletişime geçin.');
         } else {
-          showError('Bir hata oluştu. Lütfen tekrar deneyin.');
+          showError('Bir hata oluştu (' + res.status + '). Lütfen tekrar deneyin.' + (result.detail ? ' Detay: ' + result.detail : ''));
         }
       }
     } catch (err) {
-      showError('Bir hata oluştu. Lütfen tekrar deneyin.');
+      console.error('[signup] Network error:', err);
+      showError('Bağlantı hatası. İnternet bağlantınızı kontrol edip tekrar deneyin.');
     } finally {
       submitBtn.disabled = false;
       submitText.textContent = 'Kayıt Ol';
