@@ -60,15 +60,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       return new Response(JSON.stringify({ error: 'Invalid school email format' }), { status: 400, headers });
     }
 
-    // Check if member already exists
+    // Check if member already exists (primary email or alias)
     const existingMember = await env.REGISTRATIONS.get(`member:${email}`);
     if (existingMember) {
+      return new Response(JSON.stringify({ error: 'Member already exists' }), { status: 409, headers });
+    }
+
+    const existingAlias = await env.REGISTRATIONS.get(`member-alias:${email}`);
+    if (existingAlias) {
       return new Response(JSON.stringify({ error: 'Member already exists' }), { status: 409, headers });
     }
 
     if (schoolEmail) {
       const existingSchool = await env.REGISTRATIONS.get(`member:${schoolEmail}`);
       if (existingSchool) {
+        return new Response(JSON.stringify({ error: 'Member already exists' }), { status: 409, headers });
+      }
+      const existingSchoolAlias = await env.REGISTRATIONS.get(`member-alias:${schoolEmail}`);
+      if (existingSchoolAlias) {
         return new Response(JSON.stringify({ error: 'Member already exists' }), { status: 409, headers });
       }
     }
@@ -227,8 +236,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         'Set-Cookie': `legere_token=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,
       },
     });
-  } catch {
-    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    console.error('[signup] Error:', message, err instanceof Error ? err.stack : '');
+    return new Response(JSON.stringify({ error: 'Internal server error', detail: message }), { status: 500, headers });
   }
 };
 

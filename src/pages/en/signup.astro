@@ -277,14 +277,24 @@ const t = useTranslations(lang);
         successState.classList.remove('hidden');
       } else {
         var result = await res.json().catch(function() { return {}; });
+        console.error('[signup] Server error:', res.status, result);
         if (result.error === 'Member already exists') {
           showError('An account with this email already exists.');
+        } else if (result.error === 'Missing required fields') {
+          showError('Please fill in all required fields.');
+        } else if (result.error === 'Invalid email format') {
+          showError('Please enter a valid email address.');
+        } else if (result.error === 'Invalid school email format') {
+          showError('School email address is not valid.');
+        } else if (result.error === 'KV not configured') {
+          showError('Server configuration error. Please contact admin.');
         } else {
-          showError('An error occurred. Please try again.');
+          showError('An error occurred (' + res.status + '). Please try again.' + (result.detail ? ' Detail: ' + result.detail : ''));
         }
       }
     } catch (err) {
-      showError('An error occurred. Please try again.');
+      console.error('[signup] Network error:', err);
+      showError('Connection error. Please check your internet and try again.');
     } finally {
       submitBtn.disabled = false;
       submitText.textContent = 'Sign Up';
