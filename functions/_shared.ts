@@ -91,18 +91,24 @@ export function generatePassword(): string {
 // ── Cookie Parsing ──
 
 export function parseSessionCookie(request: Request): { email: string; token: string } | null {
-  const cookieHeader = request.headers.get('Cookie') || '';
-  const tokenCookie = cookieHeader.split(';').find(c => c.trim().startsWith('legere_token='));
-  if (!tokenCookie) return null;
+  try {
+    const cookieHeader = request.headers.get('Cookie') || '';
+    const tokenCookie = cookieHeader.split(';').find(c => c.trim().startsWith('legere_token='));
+    if (!tokenCookie) return null;
 
-  const cookieValue = tokenCookie.split('=').slice(1).join('=').trim();
-  const separatorIndex = cookieValue.lastIndexOf(':');
-  if (separatorIndex === -1) return null;
+    const cookieValue = tokenCookie.split('=').slice(1).join('=').trim();
+    const separatorIndex = cookieValue.lastIndexOf(':');
+    if (separatorIndex === -1) return null;
 
-  return {
-    email: decodeURIComponent(cookieValue.substring(0, separatorIndex)),
-    token: cookieValue.substring(separatorIndex + 1),
-  };
+    const email = decodeURIComponent(cookieValue.substring(0, separatorIndex));
+    const token = cookieValue.substring(separatorIndex + 1);
+
+    if (!email || !token || !/^[0-9a-f]{64}$/.test(token)) return null;
+
+    return { email, token };
+  } catch {
+    return null;
+  }
 }
 
 // ── Email ──

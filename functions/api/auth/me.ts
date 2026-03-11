@@ -105,7 +105,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       }),
       { status: 200, headers },
     );
-  } catch {
+  } catch (err) {
+    console.error('[me:get] Error:', err instanceof Error ? err.message : err);
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
   }
 };
@@ -139,7 +140,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     });
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-  } catch {
+  } catch (err) {
+    console.error('[me:post] Error:', err instanceof Error ? err.message : err);
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
   }
 };
@@ -171,8 +173,8 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
         });
       }
     }
-  } catch {
-    // Best effort — still clear cookie
+  } catch (err) {
+    console.error('[me:delete] Error:', err instanceof Error ? err.message : err);
   }
 
   return new Response(JSON.stringify({ success: true }), {

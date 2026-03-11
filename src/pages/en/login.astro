@@ -115,9 +115,20 @@ const t = useTranslations(lang);
       if (res.ok) {
         window.location.href = '/en/profile';
       } else {
+        var result = await res.json().catch(function() { return {}; });
+        console.error('[login] Server error:', res.status, result);
+        if (result.error === 'Invalid credentials') {
+          errorEl.textContent = 'Invalid email or password.';
+        } else if (result.error === 'Email and password required') {
+          errorEl.textContent = 'Please enter your email and password.';
+        } else {
+          errorEl.textContent = 'An error occurred (' + res.status + '). Please try again.';
+        }
         errorEl.classList.remove('hidden');
       }
     } catch (err) {
+      console.error('[login] Network error:', err);
+      errorEl.textContent = 'Connection error. Please check your internet.';
       errorEl.classList.remove('hidden');
     } finally {
       submitBtn.disabled = false;

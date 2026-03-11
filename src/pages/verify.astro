@@ -145,11 +145,12 @@ const t = useTranslations(lang);
         return;
       }
       var data = await res.json();
-      document.getElementById('cert-id').textContent = data.id;
-      document.getElementById('cert-type').textContent = CERT_TYPES[data.type] || data.type;
-      document.getElementById('cert-participant').textContent = data.name || '-';
-      document.getElementById('cert-workshop').textContent = data.workshopTitle || data.workshopId || '-';
-      document.getElementById('cert-issued').textContent = data.issueDate ? new Date(data.issueDate).toLocaleDateString('tr-TR') : '-';
+      var cert = data.certificate || data;
+      document.getElementById('cert-id').textContent = cert.id;
+      document.getElementById('cert-type').textContent = CERT_TYPES[cert.type] || cert.type;
+      document.getElementById('cert-participant').textContent = cert.participantName || cert.name || '-';
+      document.getElementById('cert-workshop').textContent = (cert.workshopTitle && (cert.workshopTitle.tr || cert.workshopTitle)) || cert.workshopId || '-';
+      document.getElementById('cert-issued').textContent = cert.issueDate ? new Date(cert.issueDate).toLocaleDateString('tr-TR') : '-';
       showOnly(validEl);
 
       // Auto print if requested

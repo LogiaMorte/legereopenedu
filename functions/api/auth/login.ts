@@ -66,7 +66,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         'Set-Cookie': `legere_token=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,
       },
     });
-  } catch {
+  } catch (err) {
+    console.error('[login] Error:', err instanceof Error ? err.message : err);
     return new Response(JSON.stringify({ error: 'Invalid request' }), { status: 400, headers });
   }
 };

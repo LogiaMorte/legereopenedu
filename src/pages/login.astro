@@ -115,9 +115,20 @@ const t = useTranslations(lang);
       if (res.ok) {
         window.location.href = '/profile';
       } else {
+        var result = await res.json().catch(function() { return {}; });
+        console.error('[login] Server error:', res.status, result);
+        if (result.error === 'Invalid credentials') {
+          errorEl.textContent = 'E-posta veya şifre hatalı.';
+        } else if (result.error === 'Email and password required') {
+          errorEl.textContent = 'Lütfen e-posta ve şifrenizi girin.';
+        } else {
+          errorEl.textContent = 'Bir hata oluştu (' + res.status + '). Lütfen tekrar deneyin.';
+        }
         errorEl.classList.remove('hidden');
       }
     } catch (err) {
+      console.error('[login] Network error:', err);
+      errorEl.textContent = 'Bağlantı hatası. İnternet bağlantınızı kontrol edin.';
       errorEl.classList.remove('hidden');
     } finally {
       submitBtn.disabled = false;

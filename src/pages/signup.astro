@@ -290,7 +290,7 @@ const t = useTranslations(lang);
         } else if (result.error === 'KV not configured') {
           showError('Sunucu yapılandırma hatası. Lütfen yöneticiyle iletişime geçin.');
         } else {
-          showError('Bir hata oluştu (' + res.status + '). Lütfen tekrar deneyin.' + (result.detail ? ' Detay: ' + result.detail : ''));
+          showError('Bir hata oluştu (' + res.status + '). Lütfen tekrar deneyin.');
         }
       }
     } catch (err) {

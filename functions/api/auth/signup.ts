@@ -82,10 +82,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       }
     }
 
-    // Sanitize linkedin URL
+    // Sanitize linkedin URL — block javascript: and data: schemes
     let linkedin = (data.linkedin || '').trim().slice(0, 300);
-    if (linkedin && !linkedin.startsWith('http')) {
-      linkedin = 'https://' + linkedin;
+    if (linkedin) {
+      if (/^(javascript|data|vbscript):/i.test(linkedin)) {
+        linkedin = '';
+      } else if (!linkedin.startsWith('http')) {
+        linkedin = 'https://' + linkedin;
+      }
     }
 
     // Create member with hashed password
@@ -239,7 +243,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error('[signup] Error:', message, err instanceof Error ? err.stack : '');
-    return new Response(JSON.stringify({ error: 'Internal server error', detail: message }), { status: 500, headers });
+    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
   }
 };
 

@@ -289,7 +289,7 @@ const t = useTranslations(lang);
         } else if (result.error === 'KV not configured') {
           showError('Server configuration error. Please contact admin.');
         } else {
-          showError('An error occurred (' + res.status + '). Please try again.' + (result.detail ? ' Detail: ' + result.detail : ''));
+          showError('An error occurred (' + res.status + '). Please try again.');
         }
       }
     } catch (err) {

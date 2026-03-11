@@ -77,7 +77,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     );
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-  } catch {
+  } catch (err) {
+    console.error('[recover] Error:', err instanceof Error ? err.message : err);
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
   }
 };
