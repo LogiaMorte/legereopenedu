@@ -105,7 +105,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       }),
       { status: 200, headers },
     );
-  } catch {
+  } catch (err) {
+    console.error('[me:get] Error:', err instanceof Error ? err.message : err);
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
   }
 };
@@ -130,16 +131,73 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
     }
 
-    const body = (await request.json()) as { showFullName?: boolean; showEmail?: boolean };
+    const body = (await request.json()) as {
+      showFullName?: boolean;
+      showEmail?: boolean;
+      university?: string;
+      department?: string;
+      schoolEmail?: string;
+      linkedin?: string;
+      interests?: string[];
+      ideas?: string;
+    };
+
+    // Privacy toggles
     if (typeof body.showFullName === 'boolean') member.showFullName = body.showFullName;
     if (typeof body.showEmail === 'boolean') member.showEmail = body.showEmail;
+
+    // Profile fields
+    if (typeof body.university === 'string') member.university = body.university.trim().slice(0, 200);
+    if (typeof body.department === 'string') member.department = body.department.trim().slice(0, 200);
+    if (typeof body.ideas === 'string') member.ideas = body.ideas.trim().slice(0, 2000);
+
+    if (typeof body.linkedin === 'string') {
+      let linkedin = body.linkedin.trim().slice(0, 300);
+      if (linkedin && /^(javascript|data|vbscript):/i.test(linkedin)) linkedin = '';
+      else if (linkedin && !linkedin.startsWith('http')) linkedin = 'https://' + linkedin;
+      member.linkedin = linkedin || undefined;
+    }
+
+    if (Array.isArray(body.interests)) {
+      member.interests = body.interests.slice(0, 10).map(i => String(i).slice(0, 100));
+    }
+
+    // School email update (with alias management)
+    if (typeof body.schoolEmail === 'string') {
+      const newSchoolEmail = body.schoolEmail.trim().toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (newSchoolEmail && !emailRegex.test(newSchoolEmail)) {
+        return new Response(JSON.stringify({ error: 'Invalid school email format' }), { status: 400, headers });
+      }
+
+      const oldSchoolEmail = member.schoolEmail || '';
+      if (newSchoolEmail !== oldSchoolEmail) {
+        // Remove old alias
+        if (oldSchoolEmail && oldSchoolEmail !== member.email) {
+          await env.REGISTRATIONS.delete(`member-alias:${oldSchoolEmail}`);
+        }
+        // Set new alias
+        if (newSchoolEmail && newSchoolEmail !== member.email) {
+          const existing = await env.REGISTRATIONS.get(`member:${newSchoolEmail}`);
+          const existingAlias = await env.REGISTRATIONS.get(`member-alias:${newSchoolEmail}`);
+          if (existing || existingAlias) {
+            return new Response(JSON.stringify({ error: 'School email already in use' }), { status: 409, headers });
+          }
+          await env.REGISTRATIONS.put(`member-alias:${newSchoolEmail}`, member.email, {
+            expirationTtl: 60 * 60 * 24 * 365,
+          });
+        }
+        member.schoolEmail = newSchoolEmail || undefined;
+      }
+    }
 
     await env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member), {
       expirationTtl: 60 * 60 * 24 * 365,
     });
 
     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-  } catch {
+  } catch (err) {
+    console.error('[me:post] Error:', err instanceof Error ? err.message : err);
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
   }
 };
@@ -171,8 +229,8 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
         });
       }
     }
-  } catch {
-    // Best effort — still clear cookie
+  } catch (err) {
+    console.error('[me:delete] Error:', err instanceof Error ? err.message : err);
   }
 
   return new Response(JSON.stringify({ success: true }), {

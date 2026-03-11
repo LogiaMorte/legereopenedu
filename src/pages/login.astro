@@ -27,6 +27,30 @@ const t = useTranslations(lang);
           <p class="text-text-secondary text-sm leading-relaxed">{t('login.desc')}</p>
         </div>
 
+        <!-- Google Sign-In -->
+        <div id="google-signin-section" class="mb-6">
+          <div id="g_id_onload"
+            data-client_id=""
+            data-callback="handleGoogleLogin"
+            data-auto_prompt="false">
+          </div>
+          <div class="flex justify-center">
+            <div class="g_id_signin"
+              data-type="standard"
+              data-size="large"
+              data-theme="filled_black"
+              data-text="signin_with"
+              data-shape="rectangular"
+              data-logo_alignment="left"
+              data-width="320">
+            </div>
+          </div>
+          <div class="relative my-5">
+            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+            <div class="relative flex justify-center text-xs"><span class="bg-[#12121A] px-3 text-text-secondary">veya e-posta ile</span></div>
+          </div>
+        </div>
+
         <form id="login-form" class="space-y-4" novalidate>
           <div>
             <label for="login-email" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
@@ -82,6 +106,32 @@ const t = useTranslations(lang);
   </div>
 </Layout>
 
+<script is:inline src="https://accounts.google.com/gsi/client" async></script>
+<script is:inline>
+function handleGoogleLogin(response) {
+  var errorEl = document.getElementById('login-error');
+  fetch('/api/auth/google', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'same-origin',
+    body: JSON.stringify({ credential: response.credential }),
+  }).then(function(res) {
+    if (res.ok) {
+      window.location.href = '/profile';
+    } else {
+      return res.json().catch(function() { return {}; }).then(function(data) {
+        errorEl.textContent = data.error === 'Google sign-in not configured'
+          ? 'Google ile giriş henüz yapılandırılmamış.'
+          : 'Google ile giriş başarısız.';
+        errorEl.classList.remove('hidden');
+      });
+    }
+  }).catch(function() {
+    errorEl.textContent = 'Bağlantı hatası.';
+    errorEl.classList.remove('hidden');
+  });
+}
+</script>
 <script is:inline>
 (function() {
   var form = document.getElementById('login-form');
@@ -115,9 +165,20 @@ const t = useTranslations(lang);
       if (res.ok) {
         window.location.href = '/profile';
       } else {
+        var result = await res.json().catch(function() { return {}; });
+        console.error('[login] Server error:', res.status, result);
+        if (result.error === 'Invalid credentials') {
+          errorEl.textContent = 'E-posta veya şifre hatalı.';
+        } else if (result.error === 'Email and password required') {
+          errorEl.textContent = 'Lütfen e-posta ve şifrenizi girin.';
+        } else {
+          errorEl.textContent = 'Bir hata oluştu (' + res.status + '). Lütfen tekrar deneyin.';
+        }
         errorEl.classList.remove('hidden');
       }
     } catch (err) {
+      console.error('[login] Network error:', err);
+      errorEl.textContent = 'Bağlantı hatası. İnternet bağlantınızı kontrol edin.';
       errorEl.classList.remove('hidden');
     } finally {
       submitBtn.disabled = false;

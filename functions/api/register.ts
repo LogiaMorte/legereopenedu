@@ -30,7 +30,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   try {
     const data: RegistrationData = await request.json();
 
-    if (!data.name || !data.email || !data.university || !data.department || !data.workshop) {
+    if (!data.name?.trim() || !data.email?.trim() || !data.university?.trim() || !data.department?.trim() || !data.workshop?.trim()) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers });
     }
 
@@ -79,7 +79,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       workshop: data.workshop.trim().slice(0, 200),
       motivation: (data.motivation || '').trim().slice(0, 1000),
       status: 'pending',
-      timestamp: data.timestamp || new Date().toISOString(),
+      timestamp: new Date().toISOString(),
       ip: request.headers.get('CF-Connecting-IP') || 'unknown',
       country: request.headers.get('CF-IPCountry') || 'unknown',
     };
@@ -101,7 +101,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     return new Response(JSON.stringify({ success: true, id: registration.id }), { status: 200, headers });
-  } catch {
+  } catch (err) {
+    console.error('[register] Error:', err instanceof Error ? err.message : err);
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
   }
 };

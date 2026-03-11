@@ -292,7 +292,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       status: 200,
       headers,
     });
-  } catch {
+  } catch (err) {
+    console.error('[registrations] Error:', err instanceof Error ? err.message : err);
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
   }
 };
