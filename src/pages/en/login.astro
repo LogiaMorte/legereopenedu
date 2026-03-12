@@ -28,23 +28,8 @@ const t = useTranslations(lang);
         </div>
 
         <!-- Google Sign-In -->
-        <div id="google-signin-section" class="mb-6">
-          <div id="g_id_onload"
-            data-client_id=""
-            data-callback="handleGoogleLogin"
-            data-auto_prompt="false">
-          </div>
-          <div class="flex justify-center">
-            <div class="g_id_signin"
-              data-type="standard"
-              data-size="large"
-              data-theme="filled_black"
-              data-text="signin_with"
-              data-shape="rectangular"
-              data-logo_alignment="left"
-              data-width="320">
-            </div>
-          </div>
+        <div id="google-signin-section" class="hidden mb-6">
+          <div id="google-btn" class="flex justify-center"></div>
           <div class="relative my-5">
             <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
             <div class="relative flex justify-center text-xs"><span class="bg-[#12121A] px-3 text-text-secondary">or with email</span></div>
@@ -106,31 +91,43 @@ const t = useTranslations(lang);
   </div>
 </Layout>
 
-<script is:inline src="https://accounts.google.com/gsi/client" async></script>
 <script is:inline>
-function handleGoogleLogin(response) {
-  var errorEl = document.getElementById('login-error');
-  fetch('/api/auth/google', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'same-origin',
-    body: JSON.stringify({ credential: response.credential }),
-  }).then(function(res) {
-    if (res.ok) {
-      window.location.href = '/en/profile';
-    } else {
-      return res.json().catch(function() { return {}; }).then(function(data) {
-        errorEl.textContent = data.error === 'Google sign-in not configured'
-          ? 'Google sign-in is not configured yet.'
-          : 'Google sign-in failed.';
-        errorEl.classList.remove('hidden');
+(function() {
+  fetch('/api/config').then(function(r) { return r.json(); }).then(function(cfg) {
+    if (!cfg.googleClientId) return;
+    var s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.onload = function() {
+      google.accounts.id.initialize({
+        client_id: cfg.googleClientId,
+        callback: function(response) {
+          var errorEl = document.getElementById('login-error');
+          fetch('/api/auth/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ credential: response.credential }),
+          }).then(function(res) {
+            if (res.ok) {
+              window.location.href = '/en/profile';
+            } else {
+              errorEl.textContent = 'Google sign-in failed.';
+              errorEl.classList.remove('hidden');
+            }
+          }).catch(function() {
+            errorEl.textContent = 'Connection error.';
+            errorEl.classList.remove('hidden');
+          });
+        }
       });
-    }
-  }).catch(function() {
-    errorEl.textContent = 'Connection error.';
-    errorEl.classList.remove('hidden');
-  });
-}
+      google.accounts.id.renderButton(document.getElementById('google-btn'), {
+        theme: 'filled_black', size: 'large', text: 'signin_with', shape: 'rectangular', width: 320
+      });
+      document.getElementById('google-signin-section').classList.remove('hidden');
+    };
+    document.head.appendChild(s);
+  }).catch(function() {});
+})();
 </script>
 <script is:inline>
 (function() {
