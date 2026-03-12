@@ -30,23 +30,8 @@ const t = useTranslations(lang);
           </div>
 
           <!-- Google Sign-In -->
-          <div id="google-signin-section" class="mb-6">
-            <div id="g_id_onload"
-              data-client_id=""
-              data-callback="handleGoogleSignIn"
-              data-auto_prompt="false">
-            </div>
-            <div class="flex justify-center">
-              <div class="g_id_signin"
-                data-type="standard"
-                data-size="large"
-                data-theme="filled_black"
-                data-text="signup_with"
-                data-shape="rectangular"
-                data-logo_alignment="left"
-                data-width="320">
-              </div>
-            </div>
+          <div id="google-signin-section" class="hidden mb-6">
+            <div id="google-btn" class="flex justify-center"></div>
             <div class="relative my-5">
               <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
               <div class="relative flex justify-center text-xs"><span class="bg-[#12121A] px-3 text-text-secondary">veya e-posta ile</span></div>
@@ -230,41 +215,55 @@ const t = useTranslations(lang);
   </div>
 </Layout>
 
-<script is:inline src="https://accounts.google.com/gsi/client" async></script>
 <script is:inline>
-function handleGoogleSignIn(response) {
-  var formState = document.getElementById('signup-form-state');
-  var successState = document.getElementById('signup-success-state');
-  var errorEl = document.getElementById('signup-error');
-
-  fetch('/api/auth/google', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    credentials: 'same-origin',
-    body: JSON.stringify({ credential: response.credential }),
-  }).then(function(res) {
-    if (res.ok) {
-      return res.json().then(function(data) {
-        if (data.isNewMember) {
-          formState.classList.add('hidden');
-          successState.classList.remove('hidden');
-        } else {
-          window.location.href = '/profile';
+(function() {
+  // Google Sign-In: fetch config, load script, init programmatically
+  fetch('/api/config').then(function(r) { return r.json(); }).then(function(cfg) {
+    if (!cfg.googleClientId) return;
+    var s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.onload = function() {
+      google.accounts.id.initialize({
+        client_id: cfg.googleClientId,
+        callback: function(response) {
+          var formState = document.getElementById('signup-form-state');
+          var successState = document.getElementById('signup-success-state');
+          var errorEl = document.getElementById('signup-error');
+          fetch('/api/auth/google', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ credential: response.credential }),
+          }).then(function(res) {
+            if (res.ok) {
+              return res.json().then(function(data) {
+                if (data.isNewMember) {
+                  formState.classList.add('hidden');
+                  successState.classList.remove('hidden');
+                } else {
+                  window.location.href = '/profile';
+                }
+              });
+            } else {
+              return res.json().catch(function() { return {}; }).then(function(data) {
+                errorEl.textContent = 'Google ile giriş başarısız. Lütfen e-posta ile kayıt olun.';
+                errorEl.classList.remove('hidden');
+              });
+            }
+          }).catch(function() {
+            errorEl.textContent = 'Bağlantı hatası. Lütfen tekrar deneyin.';
+            errorEl.classList.remove('hidden');
+          });
         }
       });
-    } else {
-      return res.json().catch(function() { return {}; }).then(function(data) {
-        errorEl.textContent = data.error === 'Google sign-in not configured'
-          ? 'Google ile giriş henüz yapılandırılmamış.'
-          : 'Google ile giriş başarısız. Lütfen e-posta ile kayıt olun.';
-        errorEl.classList.remove('hidden');
+      google.accounts.id.renderButton(document.getElementById('google-btn'), {
+        theme: 'filled_black', size: 'large', text: 'signup_with', shape: 'rectangular', width: 320
       });
-    }
-  }).catch(function() {
-    errorEl.textContent = 'Bağlantı hatası. Lütfen tekrar deneyin.';
-    errorEl.classList.remove('hidden');
-  });
-}
+      document.getElementById('google-signin-section').classList.remove('hidden');
+    };
+    document.head.appendChild(s);
+  }).catch(function() {});
+})();
 </script>
 <script is:inline>
 (function() {
