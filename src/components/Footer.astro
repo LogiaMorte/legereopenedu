@@ -11,6 +11,10 @@ const { lang } = Astro.props;
 const t = useTranslations(lang);
 const year = new Date().getFullYear();
 const ethicsPath = lang === 'en' ? '/en/ethics/' : '/ethics/';
+const privacyPath = lang === 'en' ? '/en/privacy/' : '/privacy/';
+const termsPath = lang === 'en' ? '/en/terms/' : '/terms/';
+const kvkkPath = lang === 'en' ? '/en/kvkk/' : '/kvkk/';
+const cookiesPath = lang === 'en' ? '/en/cookies/' : '/cookies/';
 ---
 
 <footer class="relative border-t border-white/5">
@@ -48,11 +52,29 @@ const ethicsPath = lang === 'en' ? '/en/ethics/' : '/ethics/';
       </div>
     </div>
 
-    <!-- Ethics link -->
+    <!-- Legal links -->
     <div class="border-t border-white/5 mt-8 pt-6 text-center">
-      <a href={ethicsPath} class="text-text-secondary/50 hover:text-gold-500 transition-colors text-xs font-heading">
-        {t('footer.ethics')}
-      </a>
+      <div class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+        <a href={ethicsPath} class="text-text-secondary/50 hover:text-gold-500 transition-colors text-xs font-heading">
+          {t('footer.ethics')}
+        </a>
+        <span class="text-text-secondary/20">|</span>
+        <a href={privacyPath} class="text-text-secondary/50 hover:text-gold-500 transition-colors text-xs font-heading">
+          {t('footer.privacy')}
+        </a>
+        <span class="text-text-secondary/20">|</span>
+        <a href={termsPath} class="text-text-secondary/50 hover:text-gold-500 transition-colors text-xs font-heading">
+          {t('footer.terms')}
+        </a>
+        <span class="text-text-secondary/20">|</span>
+        <a href={kvkkPath} class="text-text-secondary/50 hover:text-gold-500 transition-colors text-xs font-heading">
+          {t('footer.kvkk')}
+        </a>
+        <span class="text-text-secondary/20">|</span>
+        <a href={cookiesPath} class="text-text-secondary/50 hover:text-gold-500 transition-colors text-xs font-heading">
+          {t('footer.cookies')}
+        </a>
+      </div>
     </div>
 
     <!-- Designer credit -->

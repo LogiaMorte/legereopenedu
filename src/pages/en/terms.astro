@@ -1,0 +1,139 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { useTranslations } from '../../i18n/utils';
+
+const lang = 'en' as const;
+const t = useTranslations(lang);
+
+const sections = [
+  {
+    id: 'acceptance',
+    icon: 'check',
+    title: t('terms.acceptance.title'),
+    paragraphs: [t('terms.acceptance.p1'), t('terms.acceptance.p2')],
+  },
+  {
+    id: 'eligibility',
+    icon: 'academic',
+    title: t('terms.eligibility.title'),
+    paragraphs: [t('terms.eligibility.p1'), t('terms.eligibility.p2')],
+  },
+  {
+    id: 'accounts',
+    icon: 'user',
+    title: t('terms.accounts.title'),
+    paragraphs: [t('terms.accounts.p1'), t('terms.accounts.p2')],
+  },
+  {
+    id: 'ip',
+    icon: 'lightbulb',
+    title: t('terms.ip.title'),
+    paragraphs: [t('terms.ip.p1'), t('terms.ip.p2')],
+  },
+  {
+    id: 'conduct',
+    icon: 'users',
+    title: t('terms.conduct.title'),
+    paragraphs: [t('terms.conduct.p1'), t('terms.conduct.p2'), t('terms.conduct.p3')],
+  },
+  {
+    id: 'termination',
+    icon: 'xmark',
+    title: t('terms.termination.title'),
+    paragraphs: [t('terms.termination.p1'), t('terms.termination.p2')],
+  },
+  {
+    id: 'liability',
+    icon: 'scale',
+    title: t('terms.liability.title'),
+    paragraphs: [t('terms.liability.p1'), t('terms.liability.p2')],
+  },
+  {
+    id: 'changes',
+    icon: 'pencil',
+    title: t('terms.changes.title'),
+    paragraphs: [t('terms.changes.p1')],
+  },
+  {
+    id: 'contact',
+    icon: 'mail',
+    title: t('terms.contact.title'),
+    paragraphs: [t('terms.contact.p1')],
+  },
+];
+
+const icons: Record<string, string> = {
+  check: 'M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+  academic: 'M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5',
+  user: 'M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z',
+  lightbulb: 'M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18',
+  users: 'M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z',
+  xmark: 'M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+  scale: 'M12 3v17.25m0 0c-1.472 0-2.882.265-4.185.75M12 20.25c1.472 0 2.882.265 4.185.75M18.75 4.97A48.416 48.416 0 0 0 12 4.5c-2.291 0-4.545.16-6.75.47m13.5 0c1.01.143 2.01.317 3 .52m-3-.52 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.988 5.988 0 0 1-2.031.352 5.988 5.988 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L18.75 4.971Zm-16.5.52c.99-.203 1.99-.377 3-.52m0 0 2.62 10.726c.122.499-.106 1.028-.589 1.202a5.989 5.989 0 0 1-2.031.352 5.989 5.989 0 0 1-2.031-.352c-.483-.174-.711-.703-.59-1.202L5.25 4.971Z',
+  pencil: 'M16.862 4.487l1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10',
+  mail: 'M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75',
+};
+---
+
+<Layout lang={lang} pageTitle={t('terms.title')} pageDescription={t('terms.subtitle')}>
+  <div class="relative min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+    <div class="absolute inset-0 pointer-events-none opacity-[0.02]" style="background-image: radial-gradient(circle at 1px 1px, #D4A843 1px, transparent 0); background-size: 48px 48px;"></div>
+
+    <div class="max-w-4xl mx-auto relative">
+      <a href="/en/" class="inline-flex items-center gap-2 text-gold-500 hover:text-gold-300 transition-colors font-heading text-sm mb-10 group">
+        <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+        {t('terms.back')}
+      </a>
+
+      <div class="text-center mb-16" data-animate>
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-subtle text-gold-500 text-xs font-mono tracking-wider mb-6">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+          </svg>
+          LEGERE OPEN EDU
+        </div>
+        <h1 class="text-3xl md:text-5xl font-heading font-bold text-text-primary mb-4">
+          {t('terms.title')}
+        </h1>
+        <p class="text-text-secondary text-lg max-w-2xl mx-auto">
+          {t('terms.subtitle')}
+        </p>
+      </div>
+
+      <div class="space-y-10">
+        {sections.map((section, idx) => (
+          <article id={section.id} class="glass p-6 md:p-8" data-animate>
+            <div class="flex items-start gap-4 mb-5">
+              <div class="shrink-0 w-11 h-11 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center">
+                <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d={icons[section.icon]} />
+                </svg>
+              </div>
+              <div>
+                <span class="text-gold-500/60 text-xs font-mono tracking-wider">
+                  {String(idx + 1).padStart(2, '0')}
+                </span>
+                <h2 class="text-xl md:text-2xl font-heading font-bold text-text-primary">
+                  {section.title}
+                </h2>
+              </div>
+            </div>
+            <div class="space-y-3 pl-0 md:pl-15">
+              {section.paragraphs.map((p) => (
+                <p class="text-text-secondary text-sm leading-relaxed">
+                  {p}
+                </p>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div class="mt-12 text-center text-text-secondary/40 text-xs font-mono">
+        {t('terms.lastUpdated')}: March 2026
+      </div>
+    </div>
+  </div>
+</Layout>

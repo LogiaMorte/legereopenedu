@@ -1,0 +1,125 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { useTranslations } from '../i18n/utils';
+
+const lang = 'tr' as const;
+const t = useTranslations(lang);
+
+const sections = [
+  {
+    id: 'controller',
+    icon: 'building',
+    title: t('kvkk.controller.title'),
+    paragraphs: [t('kvkk.controller.p1'), t('kvkk.controller.p2')],
+  },
+  {
+    id: 'processed',
+    icon: 'database',
+    title: t('kvkk.processed.title'),
+    paragraphs: [t('kvkk.processed.p1'), t('kvkk.processed.p2')],
+  },
+  {
+    id: 'purposes',
+    icon: 'clipboard',
+    title: t('kvkk.purposes.title'),
+    paragraphs: [t('kvkk.purposes.p1'), t('kvkk.purposes.p2')],
+  },
+  {
+    id: 'transfer',
+    icon: 'arrows',
+    title: t('kvkk.transfer.title'),
+    paragraphs: [t('kvkk.transfer.p1'), t('kvkk.transfer.p2')],
+  },
+  {
+    id: 'retention',
+    icon: 'clock',
+    title: t('kvkk.retention.title'),
+    paragraphs: [t('kvkk.retention.p1')],
+  },
+  {
+    id: 'rights',
+    icon: 'shield',
+    title: t('kvkk.rights.title'),
+    paragraphs: [t('kvkk.rights.p1'), t('kvkk.rights.p2')],
+  },
+  {
+    id: 'contact',
+    icon: 'mail',
+    title: t('kvkk.contact.title'),
+    paragraphs: [t('kvkk.contact.p1')],
+  },
+];
+
+const icons: Record<string, string> = {
+  building: 'M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21',
+  database: 'M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125',
+  clipboard: 'M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z',
+  arrows: 'M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5',
+  clock: 'M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z',
+  shield: 'M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z',
+  mail: 'M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75',
+};
+---
+
+<Layout lang={lang} pageTitle={t('kvkk.title')} pageDescription={t('kvkk.subtitle')}>
+  <div class="relative min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+    <div class="absolute inset-0 pointer-events-none opacity-[0.02]" style="background-image: radial-gradient(circle at 1px 1px, #D4A843 1px, transparent 0); background-size: 48px 48px;"></div>
+
+    <div class="max-w-4xl mx-auto relative">
+      <a href="/" class="inline-flex items-center gap-2 text-gold-500 hover:text-gold-300 transition-colors font-heading text-sm mb-10 group">
+        <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+        {t('kvkk.back')}
+      </a>
+
+      <div class="text-center mb-16" data-animate>
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full glass-subtle text-gold-500 text-xs font-mono tracking-wider mb-6">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+          </svg>
+          LEGERE OPEN EDU
+        </div>
+        <h1 class="text-3xl md:text-5xl font-heading font-bold text-text-primary mb-4">
+          {t('kvkk.title')}
+        </h1>
+        <p class="text-text-secondary text-lg max-w-2xl mx-auto">
+          {t('kvkk.subtitle')}
+        </p>
+      </div>
+
+      <div class="space-y-10">
+        {sections.map((section, idx) => (
+          <article id={section.id} class="glass p-6 md:p-8" data-animate>
+            <div class="flex items-start gap-4 mb-5">
+              <div class="shrink-0 w-11 h-11 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center">
+                <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d={icons[section.icon]} />
+                </svg>
+              </div>
+              <div>
+                <span class="text-gold-500/60 text-xs font-mono tracking-wider">
+                  {String(idx + 1).padStart(2, '0')}
+                </span>
+                <h2 class="text-xl md:text-2xl font-heading font-bold text-text-primary">
+                  {section.title}
+                </h2>
+              </div>
+            </div>
+            <div class="space-y-3 pl-0 md:pl-15">
+              {section.paragraphs.map((p) => (
+                <p class="text-text-secondary text-sm leading-relaxed">
+                  {p}
+                </p>
+              ))}
+            </div>
+          </article>
+        ))}
+      </div>
+
+      <div class="mt-12 text-center text-text-secondary/40 text-xs font-mono">
+        {t('kvkk.lastUpdated')}: Mart 2026
+      </div>
+    </div>
+  </div>
+</Layout>
