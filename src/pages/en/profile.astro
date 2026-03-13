@@ -306,7 +306,7 @@ const t = useTranslations(lang);
     }
     document.getElementById('profile-name').textContent = user.name || 'Member';
     document.getElementById('profile-uni-text').textContent = user.university || '-';
-    document.getElementById('profile-dept-text').textContent = user.department || '-';
+    document.getElementById('profile-dept-text').textContent = user.department || user.linkedinHeadline || '-';
     document.getElementById('profile-join-text').textContent = user.joinDate ? new Date(user.joinDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : '-';
 
     // Verification badges

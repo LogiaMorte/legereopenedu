@@ -33,6 +33,38 @@ interface LinkedInUserInfo {
   picture?: string;
 }
 
+interface LinkedInBasicProfile {
+  headline?: string;
+  vanityName?: string;
+  profileUrl?: string;
+}
+
+/**
+ * Fetch LinkedIn basic profile info (headline, vanityName).
+ * Requires r_profile_basicinfo scope.
+ */
+async function fetchLinkedInBasicProfile(accessToken: string): Promise<LinkedInBasicProfile> {
+  try {
+    const res = await fetch(
+      'https://api.linkedin.com/v2/me?projection=(localizedHeadline,vanityName)',
+      { headers: { Authorization: `Bearer ${accessToken}` } },
+    );
+    if (!res.ok) {
+      console.log('[linkedin] Basic profile API status:', res.status);
+      return {};
+    }
+    const data = await res.json() as any;
+    return {
+      headline: data.localizedHeadline || '',
+      vanityName: data.vanityName || '',
+      profileUrl: data.vanityName ? `https://www.linkedin.com/in/${data.vanityName}` : '',
+    };
+  } catch (err) {
+    console.error('[linkedin] Basic profile fetch failed:', err);
+    return {};
+  }
+}
+
 /**
  * Fetch LinkedIn verification categories for the member.
  * Returns array of verified category strings, e.g. ['IDENTITY', 'EMPLOYMENT', 'EDUCATION']
@@ -136,11 +168,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     const tokenData = (await tokenRes.json()) as { access_token: string };
     const accessToken = tokenData.access_token;
 
-    // Fetch user profile and verification status in parallel
-    const [userInfoRes, verifications] = await Promise.all([
+    // Fetch user profile, basic profile, and verification status in parallel
+    const [userInfoRes, basicProfile, verifications] = await Promise.all([
       fetch('https://api.linkedin.com/v2/userinfo', {
         headers: { Authorization: `Bearer ${accessToken}` },
       }),
+      fetchLinkedInBasicProfile(accessToken),
       fetchLinkedInVerifications(accessToken),
     ]);
 
@@ -169,7 +202,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     let member: any;
 
     if (memberData) {
-      // Existing member — update token and verification data
+      // Existing member — update token, verification, and LinkedIn profile data
       member = JSON.parse(memberData);
       member.token = generateToken();
       if (!member.linkedinSub) {
@@ -182,6 +215,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       if (userInfo.picture) {
         member.picture = userInfo.picture;
       }
+      // Update LinkedIn profile data
+      if (basicProfile.headline) member.linkedinHeadline = basicProfile.headline;
+      if (basicProfile.profileUrl && !member.linkedin) member.linkedin = basicProfile.profileUrl;
       await env.REGISTRATIONS.put(`member:${email}`, JSON.stringify(member), {
         expirationTtl: 60 * 60 * 24 * 365,
       });
@@ -197,6 +233,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           member.linkedinVerified = true;
           member.linkedinVerifications = verifications;
           if (userInfo.picture) member.picture = userInfo.picture;
+          if (basicProfile.headline) member.linkedinHeadline = basicProfile.headline;
+          if (basicProfile.profileUrl && !member.linkedin) member.linkedin = basicProfile.profileUrl;
           await env.REGISTRATIONS.put(`member:${alias}`, JSON.stringify(member), {
             expirationTtl: 60 * 60 * 24 * 365,
           });
@@ -224,7 +262,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         password: await hashPassword(plainPassword),
         token,
         university: '',
-        department: '',
+        department: basicProfile.headline || '',
+        linkedin: basicProfile.profileUrl || '',
+        linkedinHeadline: basicProfile.headline || '',
         picture: userInfo.picture || '',
         joinDate: new Date().toISOString().split('T')[0],
         showFullName: true,

@@ -38,7 +38,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   authUrl.searchParams.set('client_id', env.LINKEDIN_CLIENT_ID);
   authUrl.searchParams.set('redirect_uri', redirectUri);
   authUrl.searchParams.set('state', state);
-  authUrl.searchParams.set('scope', 'openid profile email r_verify');
+  authUrl.searchParams.set('scope', 'openid profile email r_verify r_profile_basicinfo');
 
   return Response.redirect(authUrl.toString(), 302);
 };

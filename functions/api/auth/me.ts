@@ -99,6 +99,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           showFullName: member.showFullName ?? true,
           showEmail: member.showEmail ?? false,
           picture: member.picture || '',
+          linkedinHeadline: member.linkedinHeadline || '',
           signupSource: member.signupSource || 'email',
           linkedinVerified: member.linkedinVerified || false,
           linkedinVerifications: member.linkedinVerifications || [],
