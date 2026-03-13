@@ -278,6 +278,10 @@ export const ui = {
     'login.error': 'E-posta veya şifre hatalı.',
     'login.back': 'Ana Sayfaya Dön',
     'login.forgotPassword': 'Şifremi Unuttum',
+    'login.dataNotice': 'Giriş yaparak adınız ve e-posta adresinizin üyelik yönetimi amacıyla işleneceğini kabul etmiş olursunuz. Verileriniz üçüncü taraflarla paylaşılmaz.',
+    'login.dataLinks': '{privacy} ve {terms} sayfalarımızı inceleyebilirsiniz.',
+    'login.privacyLink': 'Gizlilik Politikası',
+    'login.termsLink': 'Kullanım Koşulları',
 
     // Profile
     'profile.title': 'Profilim',
@@ -714,6 +718,10 @@ export const ui = {
     'login.error': 'Invalid email or password.',
     'login.back': 'Back to Home',
     'login.forgotPassword': 'Forgot Password',
+    'login.dataNotice': 'By logging in, you agree that your name and email address will be processed for membership management. Your data is not shared with third parties.',
+    'login.dataLinks': 'Please review our {privacy} and {terms}.',
+    'login.privacyLink': 'Privacy Policy',
+    'login.termsLink': 'Terms of Service',
 
     // Profile
     'profile.title': 'My Profile',
