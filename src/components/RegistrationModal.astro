@@ -39,8 +39,46 @@ const openWorkshops = workshopsData.filter((ws: any) => ws.status === 'open' || 
 
     <!-- Form states container -->
     <div class="p-6 md:p-8">
-      <!-- Form state: default -->
-      <div id="reg-form-state">
+
+      <!-- Loading state -->
+      <div id="reg-loading-state" class="hidden text-center py-8">
+        <div class="inline-flex items-center gap-3 text-text-secondary font-heading text-sm">
+          <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          {lang === 'tr' ? 'Kontrol ediliyor...' : 'Checking...'}
+        </div>
+      </div>
+
+      <!-- Not logged in state -->
+      <div id="reg-not-logged-in" class="hidden text-center py-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold-500/10 border border-gold-500/20 mb-4">
+          <svg class="w-8 h-8 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+          </svg>
+        </div>
+        <h3 class="text-lg font-heading font-bold text-text-primary mb-2">
+          {lang === 'tr' ? 'Giriş Yapmanız Gerekiyor' : 'Login Required'}
+        </h3>
+        <p class="text-text-secondary text-sm mb-6">
+          {lang === 'tr' ? 'Etkinliklere kayıt olmak için önce hesabınızla giriş yapmalısınız.' : 'You need to sign in to register for events.'}
+        </p>
+        <div class="flex gap-3 justify-center">
+          <a href={lang === 'tr' ? '/login' : '/en/login'} class="btn-gold text-sm py-2.5 px-6">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
+            </svg>
+            {lang === 'tr' ? 'Giriş Yap' : 'Log In'}
+          </a>
+          <a href={lang === 'tr' ? '/signup' : '/en/signup'} class="btn-outline text-sm py-2.5 px-6">
+            {lang === 'tr' ? 'Kayıt Ol' : 'Sign Up'}
+          </a>
+        </div>
+      </div>
+
+      <!-- Form state: default (logged in) -->
+      <div id="reg-form-state" class="hidden">
         <h2 id="reg-modal-title" class="text-xl font-heading font-bold text-text-primary mb-1">
           {t('reg.title')}
         </h2>
@@ -49,62 +87,37 @@ const openWorkshops = workshopsData.filter((ws: any) => ws.status === 'open' || 
         <form id="reg-form" class="space-y-4" novalidate>
           <input type="hidden" id="reg-workshop-value" name="workshop" />
 
-          <!-- Name -->
-          <div>
-            <label for="reg-name" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
-              {t('reg.name')} <span class="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              id="reg-name"
-              name="name"
-              required
-              class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
-              placeholder={t('reg.namePlaceholder')}
-            />
-          </div>
-
-          <!-- Email -->
-          <div>
-            <label for="reg-email" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
-              {t('reg.email')} <span class="text-red-400">*</span>
-            </label>
-            <input
-              type="email"
-              id="reg-email"
-              name="email"
-              required
-              class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
-              placeholder={t('reg.emailPlaceholder')}
-            />
-          </div>
-
-          <!-- University -->
-          <div>
-            <label for="reg-university" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
-              {t('reg.university')} <span class="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              id="reg-university"
-              name="university"
-              required
-              class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
-            />
-          </div>
-
-          <!-- Department -->
-          <div>
-            <label for="reg-department" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
-              {t('reg.department')} <span class="text-red-400">*</span>
-            </label>
-            <input
-              type="text"
-              id="reg-department"
-              name="department"
-              required
-              class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
-            />
+          <!-- User info (readonly, auto-filled from profile) -->
+          <div class="glass-subtle rounded-lg p-4 space-y-2">
+            <div class="flex items-center gap-2 mb-2">
+              <svg class="w-4 h-4 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+              </svg>
+              <span class="text-xs font-heading font-medium text-text-secondary">
+                {lang === 'tr' ? 'Hesap Bilgileriniz' : 'Your Account Info'}
+              </span>
+            </div>
+            <div class="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+              <div>
+                <span class="text-text-secondary/50">{t('reg.name')}:</span>
+                <p id="reg-user-name" class="text-text-primary font-medium"></p>
+              </div>
+              <div>
+                <span class="text-text-secondary/50">{t('reg.email')}:</span>
+                <p id="reg-user-email" class="text-text-primary font-medium truncate"></p>
+              </div>
+              <div>
+                <span class="text-text-secondary/50">{t('reg.university')}:</span>
+                <p id="reg-user-university" class="text-text-primary font-medium"></p>
+              </div>
+              <div>
+                <span class="text-text-secondary/50">{t('reg.department')}:</span>
+                <p id="reg-user-department" class="text-text-primary font-medium"></p>
+              </div>
+            </div>
+            <p class="text-[10px] text-text-secondary/40 mt-1">
+              {lang === 'tr' ? 'Bu bilgiler profilinizden alınmaktadır.' : 'This info is pulled from your profile.'}
+            </p>
           </div>
 
           <!-- Workshop (readonly, auto-filled) -->
@@ -185,19 +198,30 @@ const openWorkshops = workshopsData.filter((ws: any) => ws.status === 'open' || 
 <script is:inline>
   // Registration Modal Controller
   (function() {
-    const modal = document.getElementById('reg-modal');
-    const backdrop = document.getElementById('reg-backdrop');
-    const closeBtn = document.getElementById('reg-close-btn');
-    const form = document.getElementById('reg-form');
-    const formState = document.getElementById('reg-form-state');
-    const successState = document.getElementById('reg-success-state');
-    const successClose = document.getElementById('reg-success-close');
-    const submitBtn = document.getElementById('reg-submit-btn');
-    const submitText = document.getElementById('reg-submit-text');
-    const errorEl = document.getElementById('reg-error');
-    const workshopValue = document.getElementById('reg-workshop-value');
-    const workshopDisplay = document.getElementById('reg-workshop-display');
-    const workshopLabel = document.getElementById('reg-workshop-label');
+    var modal = document.getElementById('reg-modal');
+    var backdrop = document.getElementById('reg-backdrop');
+    var closeBtn = document.getElementById('reg-close-btn');
+    var form = document.getElementById('reg-form');
+    var formState = document.getElementById('reg-form-state');
+    var loadingState = document.getElementById('reg-loading-state');
+    var notLoggedIn = document.getElementById('reg-not-logged-in');
+    var successState = document.getElementById('reg-success-state');
+    var successClose = document.getElementById('reg-success-close');
+    var submitBtn = document.getElementById('reg-submit-btn');
+    var submitText = document.getElementById('reg-submit-text');
+    var errorEl = document.getElementById('reg-error');
+    var workshopValue = document.getElementById('reg-workshop-value');
+    var workshopDisplay = document.getElementById('reg-workshop-display');
+    var workshopLabel = document.getElementById('reg-workshop-label');
+
+    var cachedUser = null;
+
+    function hideAllStates() {
+      loadingState.classList.add('hidden');
+      formState.classList.add('hidden');
+      notLoggedIn.classList.add('hidden');
+      successState.classList.add('hidden');
+    }
 
     // Open modal
     window.openRegistration = function(workshopTitle, workshopId) {
@@ -206,20 +230,47 @@ const openWorkshops = workshopsData.filter((ws: any) => ws.status === 'open' || 
       workshopDisplay.textContent = workshopTitle;
       workshopLabel.textContent = workshopTitle;
 
-      // Reset state
-      formState.classList.remove('hidden');
-      successState.classList.add('hidden');
+      // Reset
+      hideAllStates();
       errorEl.classList.add('hidden');
-      form.reset();
-      workshopValue.value = workshopId;
+      document.getElementById('reg-motivation').value = '';
 
       modal.classList.remove('hidden');
       modal.classList.add('flex');
       document.body.style.overflow = 'hidden';
 
-      // Focus first input
-      setTimeout(() => document.getElementById('reg-name')?.focus(), 100);
+      // Check login status
+      loadingState.classList.remove('hidden');
+
+      if (cachedUser) {
+        showFormWithUser(cachedUser);
+        return;
+      }
+
+      fetch('/api/auth/me', { credentials: 'same-origin' })
+        .then(function(res) {
+          if (!res.ok) throw new Error('Not authenticated');
+          return res.json();
+        })
+        .then(function(data) {
+          cachedUser = data.user;
+          showFormWithUser(data.user);
+        })
+        .catch(function() {
+          hideAllStates();
+          notLoggedIn.classList.remove('hidden');
+        });
     };
+
+    function showFormWithUser(user) {
+      hideAllStates();
+      document.getElementById('reg-user-name').textContent = user.name || '-';
+      document.getElementById('reg-user-email').textContent = user.email || '-';
+      document.getElementById('reg-user-university').textContent = user.university || '-';
+      document.getElementById('reg-user-department').textContent = user.department || '-';
+      formState.classList.remove('hidden');
+      setTimeout(function() { document.getElementById('reg-motivation')?.focus(); }, 100);
+    }
 
     // Close modal
     function closeModal() {
@@ -234,25 +285,19 @@ const openWorkshops = workshopsData.filter((ws: any) => ws.status === 'open' || 
     successClose?.addEventListener('click', closeModal);
 
     // ESC key
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', function(e) {
       if (e.key === 'Escape' && !modal?.classList.contains('hidden')) {
         closeModal();
       }
     });
 
     // Form submit
-    form?.addEventListener('submit', async (e) => {
+    form?.addEventListener('submit', async function(e) {
       e.preventDefault();
 
-      const formData = new FormData(form);
-      const data = {
-        name: formData.get('name')?.toString().trim(),
-        email: formData.get('email')?.toString().trim(),
-        university: formData.get('university')?.toString().trim(),
-        department: formData.get('department')?.toString().trim(),
-        workshop: formData.get('workshop')?.toString().trim(),
-        motivation: formData.get('motivation')?.toString().trim() || '',
-        timestamp: new Date().toISOString(),
+      var data = {
+        workshop: workshopValue.value.trim(),
+        motivation: document.getElementById('reg-motivation').value.trim() || '',
       };
 
       function showError(msg) {
@@ -260,15 +305,8 @@ const openWorkshops = workshopsData.filter((ws: any) => ws.status === 'open' || 
         errorEl.classList.remove('hidden');
       }
 
-      // Validate
-      if (!data.name || !data.email || !data.university || !data.department) {
-        showError(errorEl.dataset.validationError || 'Please fill all required fields.');
-        return;
-      }
-
-      // Email format check
-      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-        showError(errorEl.dataset.validationError || 'Please fill all required fields.');
+      if (!data.workshop) {
+        showError(errorEl.dataset.validationError || 'Missing workshop.');
         return;
       }
 
@@ -277,23 +315,28 @@ const openWorkshops = workshopsData.filter((ws: any) => ws.status === 'open' || 
       submitText.textContent = submitBtn.dataset.loading || 'Submitting...';
 
       try {
-        const res = await fetch('/api/register', {
+        var res = await fetch('/api/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
           body: JSON.stringify(data),
         });
 
         if (res.ok) {
-          formState.classList.add('hidden');
+          cachedUser = null; // invalidate cache to refresh registrations
+          hideAllStates();
           successState.classList.remove('hidden');
         } else {
-          const result = await res.json().catch(() => ({}));
-          if (result.error === 'Duplicate registration') {
-            showError(errorEl.dataset.duplicateError || 'You already applied.');
-          } else if (result.error === 'Workshop full') {
+          var result = await res.json().catch(function() { return {}; });
+          if (result.error && result.error.indexOf('zaten') > -1) {
+            showError(errorEl.dataset.duplicateError || 'Already registered.');
+          } else if (result.error && result.error.indexOf('kontenjan') > -1) {
             showError(errorEl.dataset.capacityError || 'Workshop is full.');
+          } else if (result.error === 'Not authenticated') {
+            hideAllStates();
+            notLoggedIn.classList.remove('hidden');
           } else {
-            showError(errorEl.dataset.defaultError || 'An error occurred.');
+            showError(result.error || errorEl.dataset.defaultError || 'An error occurred.');
           }
         }
       } catch (err) {

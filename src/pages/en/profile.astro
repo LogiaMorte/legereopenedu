@@ -79,7 +79,12 @@ const t = useTranslations(lang);
                   <span id="profile-join-text"></span>
                 </span>
               </div>
-              <!-- Privacy Toggles -->
+              <span id="profile-school-email" class="hidden flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-gold-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 0 1-2.25 2.25h-15a2.25 2.25 0 0 1-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0 0 19.5 4.5h-15a2.25 2.25 0 0 0-2.25 2.25m19.5 0v.243a2.25 2.25 0 0 1-1.07 1.916l-7.5 4.615a2.25 2.25 0 0 1-2.36 0L3.32 8.91a2.25 2.25 0 0 1-1.07-1.916V6.75" />
+                </svg>
+                <span id="profile-school-email-text"></span>
+              </span>
               <div class="flex flex-wrap gap-4">
                 <label class="flex items-center gap-2 text-xs text-text-secondary cursor-pointer group">
                   <input type="checkbox" id="toggle-fullname" class="w-4 h-4 rounded bg-white/5 border-white/20 text-gold-500 focus:ring-gold-500/25 focus:ring-offset-0 accent-[#D4A843]" />
@@ -94,146 +99,193 @@ const t = useTranslations(lang);
           </div>
         </div>
 
-        <!-- Stats Row -->
-        <div class="grid grid-cols-3 gap-4">
-          <div class="glass rounded-xl p-4 text-center">
-            <div id="stat-workshops" class="text-2xl font-heading font-bold text-gold-500">0</div>
-            <div class="text-xs text-text-secondary font-heading mt-1">{t('profile.workshops')}</div>
+        <!-- Tab Navigation -->
+        <div class="flex gap-1 bg-white/[0.02] rounded-xl p-1 border border-white/5">
+          <button id="tab-overview" class="profile-tab flex-1 px-4 py-2.5 rounded-lg text-sm font-heading font-medium transition-all" data-tab="overview">
+            <svg class="w-4 h-4 inline-block mr-1.5 -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25a2.25 2.25 0 0 1-2.25-2.25v-2.25Z" />
+            </svg>
+            Overview
+          </button>
+          <button id="tab-events" class="profile-tab flex-1 px-4 py-2.5 rounded-lg text-sm font-heading font-medium transition-all" data-tab="events">
+            <svg class="w-4 h-4 inline-block mr-1.5 -mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+            </svg>
+            My Events
+            <span id="tab-events-count" class="hidden ml-1.5 px-1.5 py-0.5 rounded-full bg-gold-500/20 text-gold-500 text-[10px] font-mono"></span>
+          </button>
+        </div>
+
+        <!-- Tab: Overview -->
+        <div id="panel-overview" class="space-y-6">
+          <div class="grid grid-cols-3 gap-4">
+            <div class="glass rounded-xl p-4 text-center">
+              <div id="stat-workshops" class="text-2xl font-heading font-bold text-gold-500">0</div>
+              <div class="text-xs text-text-secondary font-heading mt-1">{t('profile.workshops')}</div>
+            </div>
+            <div class="glass rounded-xl p-4 text-center">
+              <div id="stat-certificates" class="text-2xl font-heading font-bold text-gold-500">0</div>
+              <div class="text-xs text-text-secondary font-heading mt-1">{t('profile.certificates')}</div>
+            </div>
+            <div class="glass rounded-xl p-4 text-center">
+              <div id="stat-badges" class="text-2xl font-heading font-bold text-gold-500">0</div>
+              <div class="text-xs text-text-secondary font-heading mt-1">{t('profile.badges')}</div>
+            </div>
           </div>
-          <div class="glass rounded-xl p-4 text-center">
-            <div id="stat-certificates" class="text-2xl font-heading font-bold text-gold-500">0</div>
-            <div class="text-xs text-text-secondary font-heading mt-1">{t('profile.certificates')}</div>
+
+          <div class="glass rounded-2xl p-6 sm:p-8">
+            <button id="edit-toggle" class="w-full flex items-center justify-between text-lg font-heading font-bold text-text-primary">
+              <span class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                </svg>
+                Edit Profile
+              </span>
+              <svg id="edit-chevron" class="w-5 h-5 text-text-secondary transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+            <div id="edit-form-container" class="hidden mt-6 space-y-4">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label class="block text-text-secondary text-xs font-heading font-medium mb-1.5">University</label>
+                  <input type="text" id="edit-university" class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors" />
+                </div>
+                <div>
+                  <label class="block text-text-secondary text-xs font-heading font-medium mb-1.5">Department</label>
+                  <input type="text" id="edit-department" class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors" />
+                </div>
+              </div>
+              <div>
+                <label class="block text-text-secondary text-xs font-heading font-medium mb-1.5">School Email</label>
+                <input type="email" id="edit-school-email" class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors" placeholder="school@university.edu" />
+              </div>
+              <div>
+                <label class="block text-text-secondary text-xs font-heading font-medium mb-1.5">LinkedIn</label>
+                <input type="url" id="edit-linkedin" class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors" placeholder="linkedin.com/in/..." />
+              </div>
+              <div>
+                <label class="block text-text-secondary text-xs font-heading font-medium mb-1.5">Ideas & Notes</label>
+                <textarea id="edit-ideas" rows="2" class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors resize-none"></textarea>
+              </div>
+              <div>
+                <label class="block text-text-secondary text-xs font-heading font-medium mb-2">Contribution Areas</label>
+                <div class="flex flex-wrap gap-2">
+                  <label class="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" name="edit-interests" value="projects" class="accent-[#D4A843]" /> Join Projects</label>
+                  <label class="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" name="edit-interests" value="workshops" class="accent-[#D4A843]" /> Workshop Content</label>
+                  <label class="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" name="edit-interests" value="seminars" class="accent-[#D4A843]" /> Propose Seminars</label>
+                  <label class="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" name="edit-interests" value="content" class="accent-[#D4A843]" /> Create Content</label>
+                  <label class="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" name="edit-interests" value="mentorship" class="accent-[#D4A843]" /> Mentorship</label>
+                </div>
+              </div>
+              <div id="edit-error" class="hidden px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/25 text-red-400 text-sm"></div>
+              <div id="edit-success" class="hidden px-4 py-3 rounded-lg bg-green-500/10 border border-green-500/25 text-green-400 text-sm">Profile updated!</div>
+              <button id="edit-save" class="btn-gold justify-center text-sm py-2.5 px-6">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+                Save
+              </button>
+            </div>
           </div>
-          <div class="glass rounded-xl p-4 text-center">
-            <div id="stat-badges" class="text-2xl font-heading font-bold text-gold-500">0</div>
-            <div class="text-xs text-text-secondary font-heading mt-1">{t('profile.badges')}</div>
+
+          <div id="contribution-section" class="hidden glass rounded-2xl p-6 sm:p-8">
+            <h2 class="text-lg font-heading font-bold text-text-primary mb-4 flex items-center gap-2">
+              <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+              </svg>
+              Contribution Preferences
+            </h2>
+            <div id="contribution-interests" class="flex flex-wrap gap-2 mb-4"></div>
+            <div id="contribution-ideas" class="hidden">
+              <p class="text-xs text-text-secondary font-heading font-medium mb-1.5">Ideas & Notes:</p>
+              <p id="contribution-ideas-text" class="text-sm text-text-secondary/80 leading-relaxed"></p>
+            </div>
+            <div id="contribution-linkedin" class="hidden mt-3">
+              <a id="contribution-linkedin-link" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs text-gold-500 hover:text-gold-300 transition-colors font-heading">
+                <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                LinkedIn Profile
+              </a>
+            </div>
+            <div class="mt-4 px-4 py-3 rounded-lg bg-gold-500/5 border border-gold-500/15 text-xs text-text-secondary leading-relaxed">
+              <span class="text-gold-500 font-heading font-medium">📬</span>
+              Write to us at <a href="mailto:info@legereopenedu.com" class="text-gold-500 hover:text-gold-300 transition-colors">info@legereopenedu.com</a> about programs and ideas you'd like to participate in.
+            </div>
+          </div>
+
+          <div class="glass rounded-2xl p-6 sm:p-8">
+            <h2 class="text-lg font-heading font-bold text-text-primary mb-4 flex items-center gap-2">
+              <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+              </svg>
+              {t('profile.certificates')}
+              <span id="cert-count" class="text-sm font-normal text-text-secondary"></span>
+            </h2>
+            <div id="certificates-list" class="space-y-3">
+              <p class="text-sm text-text-secondary">{t('profile.noCerts')}</p>
+            </div>
+          </div>
+
+          <div class="glass rounded-2xl p-6 sm:p-8">
+            <h2 class="text-lg font-heading font-bold text-text-primary mb-4 flex items-center gap-2">
+              <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M18.75 4.236c.982.143 1.954.317 2.916.52A6.003 6.003 0 0 1 16.27 9.728M18.75 4.236V4.5c0 2.108-.966 3.99-2.48 5.228m0 0a6.023 6.023 0 0 1-2.77.896m5.25-6.388V2.721" />
+              </svg>
+              {t('profile.badges')}
+              <span id="badge-count" class="text-sm font-normal text-text-secondary"></span>
+            </h2>
+            <div id="badges-list" class="flex flex-wrap gap-3">
+              <p class="text-sm text-text-secondary">{t('profile.noBadges')}</p>
+            </div>
           </div>
         </div>
 
-        <!-- Edit Profile Section -->
-        <div class="glass rounded-2xl p-6 sm:p-8">
-          <button id="edit-toggle" class="w-full flex items-center justify-between text-lg font-heading font-bold text-text-primary">
-            <span class="flex items-center gap-2">
-              <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+        <!-- Tab: Events -->
+        <div id="panel-events" class="hidden space-y-6">
+          <div class="glass rounded-2xl p-6 sm:p-8">
+            <h2 class="text-lg font-heading font-bold text-text-primary mb-4 flex items-center gap-2">
+              <svg class="w-5 h-5 text-status-upcoming" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
               </svg>
-              Edit Profile
-            </span>
-            <svg id="edit-chevron" class="w-5 h-5 text-text-secondary transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
-            </svg>
-          </button>
-          <div id="edit-form-container" class="hidden mt-6 space-y-4">
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-text-secondary text-xs font-heading font-medium mb-1.5">University</label>
-                <input type="text" id="edit-university" class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors" />
-              </div>
-              <div>
-                <label class="block text-text-secondary text-xs font-heading font-medium mb-1.5">Department</label>
-                <input type="text" id="edit-department" class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors" />
-              </div>
+              Upcoming & Active Events
+            </h2>
+            <div id="events-upcoming" class="space-y-3">
+              <p class="text-sm text-text-secondary">No upcoming events.</p>
             </div>
-            <div>
-              <label class="block text-text-secondary text-xs font-heading font-medium mb-1.5">School Email</label>
-              <input type="email" id="edit-school-email" class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors" placeholder="school@university.edu" />
-            </div>
-            <div>
-              <label class="block text-text-secondary text-xs font-heading font-medium mb-1.5">LinkedIn</label>
-              <input type="url" id="edit-linkedin" class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors" placeholder="linkedin.com/in/..." />
-            </div>
-            <div>
-              <label class="block text-text-secondary text-xs font-heading font-medium mb-1.5">Ideas & Notes</label>
-              <textarea id="edit-ideas" rows="2" class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors resize-none"></textarea>
-            </div>
-            <div>
-              <label class="block text-text-secondary text-xs font-heading font-medium mb-2">Contribution Areas</label>
-              <div class="flex flex-wrap gap-2">
-                <label class="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" name="edit-interests" value="projects" class="accent-[#D4A843]" /> Participate in Projects</label>
-                <label class="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" name="edit-interests" value="workshops" class="accent-[#D4A843]" /> Workshop Content</label>
-                <label class="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" name="edit-interests" value="seminars" class="accent-[#D4A843]" /> Propose Seminars</label>
-                <label class="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" name="edit-interests" value="content" class="accent-[#D4A843]" /> Create Content</label>
-                <label class="flex items-center gap-2 text-sm text-text-secondary cursor-pointer"><input type="checkbox" name="edit-interests" value="mentorship" class="accent-[#D4A843]" /> Mentorship</label>
-              </div>
-            </div>
-            <div id="edit-error" class="hidden px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/25 text-red-400 text-sm"></div>
-            <div id="edit-success" class="hidden px-4 py-3 rounded-lg bg-green-500/10 border border-green-500/25 text-green-400 text-sm">Profile updated!</div>
-            <button id="edit-save" class="btn-gold justify-center text-sm py-2.5 px-6">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          </div>
+
+          <div id="events-pending-section" class="hidden glass rounded-2xl p-6 sm:p-8">
+            <h2 class="text-lg font-heading font-bold text-text-primary mb-4 flex items-center gap-2">
+              <svg class="w-5 h-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+              Pending Applications
+            </h2>
+            <div id="events-pending" class="space-y-3"></div>
+          </div>
+
+          <div class="glass rounded-2xl p-6 sm:p-8">
+            <h2 class="text-lg font-heading font-bold text-text-primary mb-4 flex items-center gap-2">
+              <svg class="w-5 h-5 text-status-open" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
               </svg>
-              Save
-            </button>
+              Past Events
+            </h2>
+            <div id="events-past" class="space-y-3">
+              <p class="text-sm text-text-secondary">No completed events yet.</p>
+            </div>
           </div>
-        </div>
 
-        <!-- Contribution Preferences Section -->
-        <div id="contribution-section" class="hidden glass rounded-2xl p-6 sm:p-8">
-          <h2 class="text-lg font-heading font-bold text-text-primary mb-4 flex items-center gap-2">
-            <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.455 2.456L21.75 6l-1.036.259a3.375 3.375 0 0 0-2.455 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
-            </svg>
-            Contribution Preferences
-          </h2>
-          <div id="contribution-interests" class="flex flex-wrap gap-2 mb-4"></div>
-          <div id="contribution-ideas" class="hidden">
-            <p class="text-xs text-text-secondary font-heading font-medium mb-1.5">Ideas & Notes:</p>
-            <p id="contribution-ideas-text" class="text-sm text-text-secondary/80 leading-relaxed"></p>
-          </div>
-          <div id="contribution-linkedin" class="hidden mt-3">
-            <a id="contribution-linkedin-link" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs text-gold-500 hover:text-gold-300 transition-colors font-heading">
-              <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-              LinkedIn Profile
+          <div class="text-center">
+            <a href="/en/#workshops" class="btn-outline text-sm py-2.5 px-6 inline-flex items-center gap-2">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
+              </svg>
+              Browse Events
             </a>
           </div>
-          <div class="mt-4 px-4 py-3 rounded-lg bg-gold-500/5 border border-gold-500/15 text-xs text-text-secondary leading-relaxed">
-            <span class="text-gold-500 font-heading font-medium">📬</span>
-            You can also write to us at <a href="mailto:info@legereopenedu.com" class="text-gold-500 hover:text-gold-300 transition-colors">info@legereopenedu.com</a> about programs and your ideas.
-          </div>
         </div>
 
-        <!-- Certificates Section -->
-        <div class="glass rounded-2xl p-6 sm:p-8">
-          <h2 class="text-lg font-heading font-bold text-text-primary mb-4 flex items-center gap-2">
-            <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
-            </svg>
-            {t('profile.certificates')}
-            <span id="cert-count" class="text-sm font-normal text-text-secondary"></span>
-          </h2>
-          <div id="certificates-list" class="space-y-3">
-            <p class="text-sm text-text-secondary">{t('profile.noCerts')}</p>
-          </div>
-        </div>
-
-        <!-- Badges Section -->
-        <div class="glass rounded-2xl p-6 sm:p-8">
-          <h2 class="text-lg font-heading font-bold text-text-primary mb-4 flex items-center gap-2">
-            <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M18.75 4.236c.982.143 1.954.317 2.916.52A6.003 6.003 0 0 1 16.27 9.728M18.75 4.236V4.5c0 2.108-.966 3.99-2.48 5.228m0 0a6.023 6.023 0 0 1-2.77.896m5.25-6.388V2.721" />
-            </svg>
-            {t('profile.badges')}
-            <span id="badge-count" class="text-sm font-normal text-text-secondary"></span>
-          </h2>
-          <div id="badges-list" class="flex flex-wrap gap-3">
-            <p class="text-sm text-text-secondary">{t('profile.noBadges')}</p>
-          </div>
-        </div>
-
-        <!-- Workshops Section -->
-        <div class="glass rounded-2xl p-6 sm:p-8">
-          <h2 class="text-lg font-heading font-bold text-text-primary mb-4 flex items-center gap-2">
-            <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
-            </svg>
-            {t('profile.workshops')}
-          </h2>
-          <div id="workshops-list" class="space-y-3">
-            <p class="text-sm text-text-secondary">{t('profile.noWorkshops')}</p>
-          </div>
-        </div>
-
-        <!-- Logout -->
         <div class="text-center pt-4">
           <button id="logout-btn" class="btn-outline text-sm py-2.5 px-6">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -253,44 +305,58 @@ const t = useTranslations(lang);
     'first-workshop':   { icon: '🎓', name: 'First Step', desc: 'Completed first workshop' },
     'three-workshops':  { icon: '⭐', name: 'Researcher', desc: 'Completed three workshops' },
     'five-workshops':   { icon: '🏆', name: 'Expert Researcher', desc: 'Completed five workshops' },
-    'multi-discipline': { icon: '🔗', name: 'Interdisciplinary', desc: 'Participated in 3+ discipline workshops' },
-    'pioneer':          { icon: '🚀', name: 'Pioneer', desc: 'Founding cohort participant' },
-    'mentor':           { icon: '🧭', name: 'Mentor', desc: 'Provided mentoring' },
-    'contributor':      { icon: '✍️', name: 'Contributor', desc: 'Contributed to publications' },
-    'scholar':          { icon: '📖', name: 'Scholar', desc: 'Published academic work' },
+    'multi-discipline': { icon: '🔗', name: 'Interdisciplinary', desc: 'Joined workshops from 3+ disciplines' },
+    'pioneer':          { icon: '🚀', name: 'Pioneer', desc: 'Founding period participant' },
+    'mentor':           { icon: '🧭', name: 'Mentor', desc: 'Contributed mentorship' },
+    'contributor':      { icon: '✍️', name: 'Contributor', desc: 'Active contribution to publications' },
+    'scholar':          { icon: '📖', name: 'Scholar', desc: 'Produced academic publication' },
   };
-  var CERT_TYPES = {
-    'participation': 'Certificate of Participation',
-    'achievement':   'Certificate of Achievement',
-    'contribution':  'Certificate of Contribution',
-  };
+  var CERT_TYPES = { 'participation': 'Participation Certificate', 'achievement': 'Achievement Certificate', 'contribution': 'Contribution Certificate' };
   var STATUS_MAP = {
     'completed': { label: 'Completed', cls: 'badge-open' },
     'accepted':  { label: 'Accepted', cls: 'badge-upcoming' },
     'pending':   { label: 'Pending', cls: 'badge-discipline' },
     'rejected':  { label: 'Rejected', cls: 'badge-closed' },
   };
+  var INTEREST_LABELS = {
+    'projects': 'Join Projects', 'workshops': 'Workshop Content', 'seminars': 'Propose Seminars',
+    'content': 'Create Content', 'mentorship': 'Mentorship', 'other': 'Other',
+  };
 
   var loadingEl = document.getElementById('profile-loading');
   var contentEl = document.getElementById('profile-content');
   var notLoggedEl = document.getElementById('profile-not-logged-in');
+  var currentTab = 'overview';
+
+  document.querySelectorAll('.profile-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() { switchTab(tab.dataset.tab); });
+  });
+
+  function switchTab(tabName) {
+    currentTab = tabName;
+    document.querySelectorAll('.profile-tab').forEach(function(t) {
+      if (t.dataset.tab === tabName) {
+        t.classList.add('bg-gold-500/10', 'text-gold-500', 'border', 'border-gold-500/20');
+        t.classList.remove('text-text-secondary');
+      } else {
+        t.classList.remove('bg-gold-500/10', 'text-gold-500', 'border', 'border-gold-500/20');
+        t.classList.add('text-text-secondary');
+      }
+    });
+    document.getElementById('panel-overview').classList.toggle('hidden', tabName !== 'overview');
+    document.getElementById('panel-events').classList.toggle('hidden', tabName !== 'events');
+  }
+  switchTab('overview');
 
   async function loadProfile() {
     try {
       var res = await fetch('/api/auth/me', { credentials: 'same-origin' });
-      if (!res.ok) {
-        loadingEl.classList.add('hidden');
-        notLoggedEl.classList.remove('hidden');
-        return;
-      }
+      if (!res.ok) { loadingEl.classList.add('hidden'); notLoggedEl.classList.remove('hidden'); return; }
       var data = await res.json();
       renderProfile(data);
       loadingEl.classList.add('hidden');
       contentEl.classList.remove('hidden');
-    } catch (err) {
-      loadingEl.classList.add('hidden');
-      notLoggedEl.classList.remove('hidden');
-    }
+    } catch (err) { loadingEl.classList.add('hidden'); notLoggedEl.classList.remove('hidden'); }
   }
 
   function renderProfile(data) {
@@ -308,6 +374,7 @@ const t = useTranslations(lang);
     document.getElementById('profile-uni-text').textContent = user.university || '-';
     document.getElementById('profile-dept-text').textContent = user.department || user.linkedinHeadline || '-';
     document.getElementById('profile-join-text').textContent = user.joinDate ? new Date(user.joinDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : '-';
+    if (user.schoolEmail) { document.getElementById('profile-school-email').classList.remove('hidden'); document.getElementById('profile-school-email-text').textContent = user.schoolEmail; }
 
     // Verification badges
     var badgesContainer = document.getElementById('profile-verification-badges');
@@ -337,204 +404,89 @@ const t = useTranslations(lang);
 
     var toggleFullName = document.getElementById('toggle-fullname');
     var toggleEmail = document.getElementById('toggle-email');
-    toggleFullName.checked = user.showFullName !== false;
-    toggleEmail.checked = user.showEmail === true;
-
+    toggleFullName.checked = user.showFullName ?? true;
+    toggleEmail.checked = user.showEmail ?? false;
     toggleFullName.addEventListener('change', function() { updatePrivacy({ showFullName: toggleFullName.checked }); });
     toggleEmail.addEventListener('change', function() { updatePrivacy({ showEmail: toggleEmail.checked }); });
 
-    // Populate edit form
     document.getElementById('edit-university').value = user.university || '';
     document.getElementById('edit-department').value = user.department || '';
     document.getElementById('edit-school-email').value = user.schoolEmail || '';
     document.getElementById('edit-linkedin').value = user.linkedin || '';
     document.getElementById('edit-ideas').value = user.ideas || '';
-    if (user.interests) {
-      user.interests.forEach(function(i) {
-        var cb = document.querySelector('input[name="edit-interests"][value="' + i + '"]');
-        if (cb) cb.checked = true;
-      });
-    }
-
-    // School email
-    if (user.schoolEmail) {
-      var schoolEl = document.getElementById('profile-school-email');
-      if (schoolEl) {
-        schoolEl.classList.remove('hidden');
-        document.getElementById('profile-school-email-text').textContent = user.schoolEmail;
-      }
-    }
-
-    // Contribution preferences
-    var INTEREST_LABELS = {
-      'projects': 'Participate in Projects',
-      'workshops': 'Produce Workshop Content',
-      'seminars': 'Propose Seminars / Colloquia',
-      'content': 'Create Content',
-      'mentorship': 'Provide Mentorship',
-      'other': 'Other',
-    };
+    if (user.interests) { user.interests.forEach(function(i) { var cb = document.querySelector('input[name="edit-interests"][value="'+i+'"]'); if (cb) cb.checked = true; }); }
 
     if ((user.interests && user.interests.length > 0) || user.ideas || user.linkedin) {
-      var contSection = document.getElementById('contribution-section');
-      if (contSection) contSection.classList.remove('hidden');
-
+      document.getElementById('contribution-section').classList.remove('hidden');
       if (user.interests && user.interests.length > 0) {
-        var contInterests = document.getElementById('contribution-interests');
-        if (contInterests) {
-          contInterests.innerHTML = user.interests.map(function(i) {
-            var label = INTEREST_LABELS[i] || i;
-            return '<span class="badge badge-discipline">' + label + '</span>';
-          }).join('');
-        }
+        document.getElementById('contribution-interests').innerHTML = user.interests.map(function(i) { return '<span class="badge badge-discipline">' + (INTEREST_LABELS[i]||i) + '</span>'; }).join('');
       }
-
-      if (user.ideas) {
-        var ideasEl = document.getElementById('contribution-ideas');
-        if (ideasEl) {
-          ideasEl.classList.remove('hidden');
-          document.getElementById('contribution-ideas-text').textContent = user.ideas;
-        }
-      }
-
-      if (user.linkedin) {
-        var linkedinEl = document.getElementById('contribution-linkedin');
-        if (linkedinEl) {
-          linkedinEl.classList.remove('hidden');
-          document.getElementById('contribution-linkedin-link').href = user.linkedin;
-        }
-      }
+      if (user.ideas) { document.getElementById('contribution-ideas').classList.remove('hidden'); document.getElementById('contribution-ideas-text').textContent = user.ideas; }
+      if (user.linkedin) { document.getElementById('contribution-linkedin').classList.remove('hidden'); document.getElementById('contribution-linkedin-link').href = user.linkedin; }
     }
 
     document.getElementById('stat-workshops').textContent = registrations.length;
     document.getElementById('stat-certificates').textContent = certificates.length;
     document.getElementById('stat-badges').textContent = badges.length;
+    if (registrations.length > 0) { var ce = document.getElementById('tab-events-count'); ce.textContent = registrations.length; ce.classList.remove('hidden'); }
 
     if (certificates.length > 0) {
       document.getElementById('cert-count').textContent = '(' + certificates.length + ')';
-      var certList = document.getElementById('certificates-list');
-      certList.innerHTML = certificates.map(function(cert) {
+      document.getElementById('certificates-list').innerHTML = certificates.map(function(cert) {
         var typeLabel = CERT_TYPES[cert.type] || cert.type;
         var typeColor = cert.type === 'achievement' ? 'text-gold-300' : cert.type === 'contribution' ? 'text-status-upcoming' : 'text-status-open';
-        return '<div class="glass-subtle p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">' +
-          '<div class="min-w-0">' +
-            '<div class="flex items-center gap-2 mb-1">' +
-              '<span class="text-sm font-heading font-semibold ' + typeColor + '">' + typeLabel + '</span>' +
-              '<span class="text-xs font-mono text-text-secondary">' + cert.id + '</span>' +
-            '</div>' +
-            '<p class="text-xs text-text-secondary truncate">' + (cert.workshopTitle || cert.workshopId || '-') + '</p>' +
-            (cert.issueDate ? '<p class="text-xs text-text-secondary/60 mt-0.5">' + new Date(cert.issueDate).toLocaleDateString('en-US') + '</p>' : '') +
-          '</div>' +
-          '<div class="flex items-center gap-2 shrink-0">' +
-            '<a href="/en/verify?cert=' + cert.id + '" class="text-xs text-gold-500 hover:text-gold-300 font-heading transition-colors">Verify</a>' +
-            '<button onclick="window.open(\'/en/verify?cert=' + cert.id + '&print=1\',\'_blank\')" class="btn-gold text-xs py-1.5 px-3">' +
-              '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>' +
-              'Download' +
-            '</button>' +
-          '</div>' +
-        '</div>';
+        return '<div class="glass-subtle p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div class="min-w-0"><div class="flex items-center gap-2 mb-1"><span class="text-sm font-heading font-semibold '+typeColor+'">'+typeLabel+'</span><span class="text-xs font-mono text-text-secondary">'+cert.id+'</span></div><p class="text-xs text-text-secondary truncate">'+(cert.workshopTitle||cert.workshopId||'-')+'</p>'+(cert.issueDate?'<p class="text-xs text-text-secondary/60 mt-0.5">'+new Date(cert.issueDate).toLocaleDateString('en-US')+'</p>':'')+'</div><div class="flex items-center gap-2 shrink-0"><a href="/en/verify?cert='+cert.id+'" class="text-xs text-gold-500 hover:text-gold-300 font-heading transition-colors">Verify</a></div></div>';
       }).join('');
     }
 
     if (badges.length > 0) {
       document.getElementById('badge-count').textContent = '(' + badges.length + ')';
-      var badgesList = document.getElementById('badges-list');
-      badgesList.innerHTML = badges.map(function(b) {
+      document.getElementById('badges-list').innerHTML = badges.map(function(b) {
         var meta = BADGE_META[b.badgeId] || { icon: '🎖️', name: b.badgeId, desc: '' };
-        return '<div class="glass-subtle px-4 py-3 rounded-xl flex items-center gap-3 group hover:border-gold-500/30 transition-colors" title="' + meta.desc + '">' +
-          '<span class="text-2xl">' + meta.icon + '</span>' +
-          '<div>' +
-            '<div class="text-sm font-heading font-semibold text-text-primary">' + meta.name + '</div>' +
-            '<div class="text-xs text-text-secondary">' + meta.desc + '</div>' +
-          '</div>' +
-        '</div>';
+        return '<div class="glass-subtle px-4 py-3 rounded-xl flex items-center gap-3"><span class="text-2xl">'+meta.icon+'</span><div><div class="text-sm font-heading font-semibold text-text-primary">'+meta.name+'</div><div class="text-xs text-text-secondary">'+meta.desc+'</div></div></div>';
       }).join('');
     }
 
-    if (registrations.length > 0) {
-      var wsList = document.getElementById('workshops-list');
-      wsList.innerHTML = registrations.map(function(r) {
-        var status = STATUS_MAP[r.status] || STATUS_MAP['pending'];
-        return '<div class="glass-subtle p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">' +
-          '<div class="min-w-0">' +
-            '<p class="text-sm font-heading font-medium text-text-primary truncate">' + (r.workshop || r.id) + '</p>' +
-            (r.timestamp ? '<p class="text-xs text-text-secondary/60 mt-0.5">' + new Date(r.timestamp).toLocaleDateString('en-US') + '</p>' : '') +
-          '</div>' +
-          '<span class="badge ' + status.cls + ' shrink-0">' + status.label + '</span>' +
-        '</div>';
-      }).join('');
+    var upcoming = registrations.filter(function(r){return r.status==='accepted';});
+    var pending = registrations.filter(function(r){return r.status==='pending';});
+    var past = registrations.filter(function(r){return r.status==='completed';});
+
+    function renderEventCard(r) {
+      var status = STATUS_MAP[r.status] || STATUS_MAP['pending'];
+      return '<div class="glass-subtle p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2"><div class="min-w-0"><p class="text-sm font-heading font-medium text-text-primary truncate">'+(r.workshop||r.id)+'</p>'+(r.timestamp?'<p class="text-xs text-text-secondary/60 mt-0.5">'+new Date(r.timestamp).toLocaleDateString('en-US',{day:'numeric',month:'long',year:'numeric'})+'</p>':'')+'</div><span class="badge '+status.cls+' shrink-0">'+status.label+'</span></div>';
     }
+
+    if (upcoming.length > 0) document.getElementById('events-upcoming').innerHTML = upcoming.map(renderEventCard).join('');
+    if (pending.length > 0) { document.getElementById('events-pending-section').classList.remove('hidden'); document.getElementById('events-pending').innerHTML = pending.map(renderEventCard).join(''); }
+    if (past.length > 0) document.getElementById('events-past').innerHTML = past.map(renderEventCard).join('');
   }
 
   async function updatePrivacy(settings) {
-    try {
-      var res = await fetch('/api/auth/me', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify(settings),
-      });
-      if (!res.ok) console.warn('Privacy settings could not be saved.');
-    } catch (err) {
-      console.warn('Privacy settings could not be saved:', err);
-    }
+    try { await fetch('/api/auth/me', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(settings) }); } catch(e){}
   }
 
-  // Edit profile toggle
-  var editToggle = document.getElementById('edit-toggle');
-  var editContainer = document.getElementById('edit-form-container');
-  var editChevron = document.getElementById('edit-chevron');
-  editToggle.addEventListener('click', function() {
-    editContainer.classList.toggle('hidden');
-    editChevron.style.transform = editContainer.classList.contains('hidden') ? '' : 'rotate(180deg)';
+  document.getElementById('edit-toggle').addEventListener('click', function() {
+    var c = document.getElementById('edit-form-container');
+    c.classList.toggle('hidden');
+    document.getElementById('edit-chevron').style.transform = c.classList.contains('hidden') ? '' : 'rotate(180deg)';
   });
 
-  // Edit profile save
   document.getElementById('edit-save').addEventListener('click', async function() {
-    var editError = document.getElementById('edit-error');
-    var editSuccess = document.getElementById('edit-success');
-    editError.classList.add('hidden');
-    editSuccess.classList.add('hidden');
-
+    var editError = document.getElementById('edit-error'), editSuccess = document.getElementById('edit-success');
+    editError.classList.add('hidden'); editSuccess.classList.add('hidden');
     var interests = [];
-    document.querySelectorAll('input[name="edit-interests"]:checked').forEach(function(cb) { interests.push(cb.value); });
-
+    document.querySelectorAll('input[name="edit-interests"]:checked').forEach(function(cb){interests.push(cb.value);});
     try {
-      var res = await fetch('/api/auth/me', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({
-          university: document.getElementById('edit-university').value.trim(),
-          department: document.getElementById('edit-department').value.trim(),
-          schoolEmail: document.getElementById('edit-school-email').value.trim(),
-          linkedin: document.getElementById('edit-linkedin').value.trim(),
-          ideas: document.getElementById('edit-ideas').value.trim(),
-          interests: interests,
-        }),
+      var res = await fetch('/api/auth/me', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ university: document.getElementById('edit-university').value.trim(), department: document.getElementById('edit-department').value.trim(), schoolEmail: document.getElementById('edit-school-email').value.trim(), linkedin: document.getElementById('edit-linkedin').value.trim(), ideas: document.getElementById('edit-ideas').value.trim(), interests: interests })
       });
-      if (res.ok) {
-        editSuccess.classList.remove('hidden');
-        setTimeout(function() { window.location.reload(); }, 1000);
-      } else {
-        var result = await res.json().catch(function() { return {}; });
-        editError.textContent = result.error === 'School email already in use'
-          ? 'This school email is already used by another account.'
-          : result.error === 'Invalid school email format'
-          ? 'Please enter a valid school email.'
-          : 'An error occurred. Please try again.';
-        editError.classList.remove('hidden');
-      }
-    } catch (err) {
-      editError.textContent = 'Connection error.';
-      editError.classList.remove('hidden');
-    }
+      if (res.ok) { editSuccess.classList.remove('hidden'); setTimeout(function(){window.location.reload();},1000); }
+      else { var r = await res.json().catch(function(){return {};}); editError.textContent = r.error === 'School email already in use' ? 'This school email is already in use.' : r.error === 'Invalid school email format' ? 'Please enter a valid school email.' : 'An error occurred.'; editError.classList.remove('hidden'); }
+    } catch(e) { editError.textContent = 'Connection error.'; editError.classList.remove('hidden'); }
   });
 
-  document.getElementById('logout-btn').addEventListener('click', async function() {
-    try {
-      await fetch('/api/auth/me', { method: 'DELETE', credentials: 'same-origin' });
-    } catch (err) {}
+  document.getElementById('logout-btn')?.addEventListener('click', async function() {
+    try { await fetch('/api/auth/me', { method: 'DELETE', credentials: 'same-origin' }); } catch(e){}
     document.cookie = 'legere_token=; Path=/; Max-Age=0; SameSite=Lax';
     window.location.href = '/en/';
   });

@@ -1,11 +1,12 @@
 /**
- * Cloudflare Pages Function — Workshop Registration API
+ * Cloudflare Pages Function — Workshop Registration API (Login Required)
  *
  * KV Binding: REGISTRATIONS (Cloudflare Dashboard'dan bağlanır)
- * Env vars: ADMIN_KEY, RESEND_API_KEY (opsiyonel)
+ * Session cookie ile kimlik doğrulaması yapılır.
+ * Üye bilgileri otomatik olarak member kaydından alınır.
  */
 
-import { corsHeaders, optionsResponse } from '../_shared';
+import { corsHeaders, optionsResponse, parseSessionCookie } from '../_shared';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
@@ -13,92 +14,107 @@ interface Env {
   RESEND_API_KEY?: string;
 }
 
-interface RegistrationData {
-  name: string;
-  email: string;
-  university: string;
-  department: string;
-  workshop: string;
-  motivation?: string;
-  timestamp: string;
-}
-
 export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
   const headers = corsHeaders(request);
 
   try {
-    const data: RegistrationData = await request.json();
+    // Require authentication
+    const session = parseSessionCookie(request);
+    if (!session) {
+      return new Response(JSON.stringify({ error: 'Not authenticated' }), { status: 401, headers });
+    }
 
-    if (!data.name?.trim() || !data.email?.trim() || !data.university?.trim() || !data.department?.trim() || !data.workshop?.trim()) {
+    if (!env.REGISTRATIONS) {
+      return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
+    }
+
+    // Get member data
+    const memberData = await env.REGISTRATIONS.get(`member:${session.email}`);
+    if (!memberData) {
+      return new Response(JSON.stringify({ error: 'Member not found' }), { status: 404, headers });
+    }
+
+    const member = JSON.parse(memberData);
+    if (member.token !== session.token) {
+      return new Response(JSON.stringify({ error: 'Not authenticated' }), { status: 401, headers });
+    }
+
+    const body = await request.json() as { workshop?: string; motivation?: string };
+
+    if (!body.workshop?.trim()) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers });
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(data.email)) {
-      return new Response(JSON.stringify({ error: 'Invalid email format' }), { status: 400, headers });
-    }
+    const workshop = body.workshop.trim().slice(0, 200);
 
-    // Check for duplicate registration (same email + same workshop)
-    if (env.REGISTRATIONS) {
-      const indexKey = `index:${data.workshop.trim()}`;
-      const existingIndex = await env.REGISTRATIONS.get(indexKey);
-      if (existingIndex) {
-        const ids: string[] = JSON.parse(existingIndex);
-        for (const rid of ids) {
-          const rd = await env.REGISTRATIONS.get(rid);
-          if (rd) {
-            const r = JSON.parse(rd);
-            if (r.email?.toLowerCase() === data.email.trim().toLowerCase()) {
-              return new Response(
-                JSON.stringify({ error: 'Bu atölyeye zaten kayıt yaptınız.' }),
-                { status: 409, headers },
-              );
-            }
+    // Check for duplicate registration (same member + same workshop)
+    const indexKey = `index:${workshop}`;
+    const existingIndex = await env.REGISTRATIONS.get(indexKey);
+    if (existingIndex) {
+      const ids: string[] = JSON.parse(existingIndex);
+      for (const rid of ids) {
+        const rd = await env.REGISTRATIONS.get(rid);
+        if (rd) {
+          const r = JSON.parse(rd);
+          if (r.memberEmail?.toLowerCase() === session.email.toLowerCase() ||
+              r.email?.toLowerCase() === session.email.toLowerCase()) {
+            return new Response(
+              JSON.stringify({ error: 'Bu etkinliğe zaten kayıt yaptınız.' }),
+              { status: 409, headers },
+            );
           }
         }
-        if (ids.length >= 50) {
-          return new Response(
-            JSON.stringify({ error: 'Bu atölyenin kontenjanı dolmuştur.' }),
-            { status: 409, headers },
-          );
-        }
+      }
+      if (ids.length >= 50) {
+        return new Response(
+          JSON.stringify({ error: 'Bu etkinliğin kontenjanı dolmuştur.' }),
+          { status: 409, headers },
+        );
       }
     }
 
-    // Sanitize & create registration
+    // Create registration using member data
     const idBytes = new Uint8Array(4);
     crypto.getRandomValues(idBytes);
     const idSuffix = Array.from(idBytes, b => b.toString(36)).join('').slice(0, 8);
     const registration = {
       id: `reg_${Date.now()}_${idSuffix}`,
-      name: data.name.trim().slice(0, 200),
-      email: data.email.trim().toLowerCase().slice(0, 200),
-      university: data.university.trim().slice(0, 200),
-      department: data.department.trim().slice(0, 200),
-      workshop: data.workshop.trim().slice(0, 200),
-      motivation: (data.motivation || '').trim().slice(0, 1000),
+      name: member.name || '',
+      email: member.email,
+      memberEmail: member.email,
+      university: member.university || '',
+      department: member.department || '',
+      workshop: workshop,
+      motivation: (body.motivation || '').trim().slice(0, 1000),
       status: 'pending',
       timestamp: new Date().toISOString(),
       ip: request.headers.get('CF-Connecting-IP') || 'unknown',
       country: request.headers.get('CF-IPCountry') || 'unknown',
     };
 
-    if (env.REGISTRATIONS) {
-      await env.REGISTRATIONS.put(registration.id, JSON.stringify(registration), {
-        expirationTtl: 60 * 60 * 24 * 365,
-      });
+    // Store registration
+    await env.REGISTRATIONS.put(registration.id, JSON.stringify(registration), {
+      expirationTtl: 60 * 60 * 24 * 365,
+    });
 
-      const indexKey = `index:${registration.workshop}`;
-      const existingIndex = await env.REGISTRATIONS.get(indexKey);
-      const ids: string[] = existingIndex ? JSON.parse(existingIndex) : [];
-      ids.push(registration.id);
-      await env.REGISTRATIONS.put(indexKey, JSON.stringify(ids));
+    // Update workshop index
+    const ids: string[] = existingIndex ? JSON.parse(existingIndex) : [];
+    ids.push(registration.id);
+    await env.REGISTRATIONS.put(indexKey, JSON.stringify(ids));
 
-      const countKey = 'count:total';
-      const currentCount = parseInt((await env.REGISTRATIONS.get(countKey)) || '0');
-      await env.REGISTRATIONS.put(countKey, String(currentCount + 1));
-    }
+    // Update total count
+    const countKey = 'count:total';
+    const currentCount = parseInt((await env.REGISTRATIONS.get(countKey)) || '0');
+    await env.REGISTRATIONS.put(countKey, String(currentCount + 1));
+
+    // Link registration to member record
+    const regIds = member.regIds || [];
+    regIds.push(registration.id);
+    member.regIds = regIds;
+    await env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member), {
+      expirationTtl: 60 * 60 * 24 * 365,
+    });
 
     return new Response(JSON.stringify({ success: true, id: registration.id }), { status: 200, headers });
   } catch (err) {
