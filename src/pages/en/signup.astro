@@ -7,7 +7,7 @@ const t = useTranslations(lang);
 
 <Layout lang={lang} pageTitle="Member Registration">
   <div class="relative min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-    <div class="w-full max-w-lg">
+    <div class="w-full max-w-md">
       <a href="/en/" class="inline-flex items-center gap-2 text-gold-500 hover:text-gold-300 transition-colors font-heading text-sm mb-10 group">
         <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
           <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -30,163 +30,54 @@ const t = useTranslations(lang);
           </div>
 
           <!-- Google Sign-In -->
-          <div id="google-signin-section" class="hidden mb-6">
+          <div id="google-signin-section" class="hidden">
             <div id="google-btn" class="flex justify-center"></div>
-            <div class="relative my-5">
-              <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
-              <div class="relative flex justify-center text-xs"><span class="bg-[#12121A] px-3 text-text-secondary">or with email</span></div>
-            </div>
           </div>
 
-          <form id="signup-form" class="space-y-4" novalidate>
-            <!-- Name -->
-            <div>
-              <label for="signup-name" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
-                {t('signup.name')} <span class="text-red-400">*</span>
-              </label>
-              <input
-                type="text"
-                id="signup-name"
-                required
-                class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
-                placeholder={t('signup.namePlaceholder')}
-              />
-            </div>
+          <!-- Divider -->
+          <div class="relative my-5">
+            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+            <div class="relative flex justify-center text-xs"><span class="bg-[#12121A] px-3 text-text-secondary">{t('signup.orLinkedin')}</span></div>
+          </div>
 
-            <!-- Personal Email -->
-            <div>
-              <label for="signup-personal-email" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
-                {t('signup.personalEmail')} <span class="text-red-400">*</span>
-              </label>
-              <input
-                type="email"
-                id="signup-personal-email"
-                required
-                class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
-                placeholder={t('signup.personalEmailPlaceholder')}
-              />
-            </div>
+          <!-- LinkedIn Sign-Up -->
+          <a href="/api/auth/linkedin?mode=signup&lang=en" id="linkedin-btn" class="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg bg-[#0A66C2] hover:bg-[#004182] text-white text-sm font-heading font-medium transition-colors">
+            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
+            </svg>
+            {t('signup.linkedinBtn')}
+          </a>
 
-            <!-- School Email -->
-            <div>
-              <label for="signup-school-email" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
-                {t('signup.schoolEmail')}
-                <span class="text-text-secondary/50 ml-1">({t('signup.schoolEmailHint')})</span>
-              </label>
-              <input
-                type="email"
-                id="signup-school-email"
-                class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
-                placeholder={t('signup.schoolEmailPlaceholder')}
-              />
-            </div>
+          <!-- LinkedIn benefit note -->
+          <div class="mt-4 px-4 py-3 rounded-lg bg-[#0A66C2]/5 border border-[#0A66C2]/15 text-xs text-text-secondary leading-relaxed">
+            <span class="text-[#0A66C2] font-heading font-medium">LinkedIn</span> — {t('signup.linkedinBenefit')}
+          </div>
 
-            <!-- University -->
-            <div>
-              <label for="signup-university" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
-                {t('signup.university')}
-                <span class="text-text-secondary/50 ml-1">(can add from profile)</span>
-              </label>
-              <input
-                type="text"
-                id="signup-university"
-                class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
-              />
-            </div>
+          <!-- Error message -->
+          <div id="signup-error" class="hidden mt-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/25 text-red-400 text-sm">
+          </div>
 
-            <!-- Department -->
-            <div>
-              <label for="signup-department" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
-                {t('signup.department')}
-                <span class="text-text-secondary/50 ml-1">(can add from profile)</span>
-              </label>
-              <input
-                type="text"
-                id="signup-department"
-                class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
-              />
-            </div>
-
-            <!-- LinkedIn -->
-            <div>
-              <label for="signup-linkedin" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
-                {t('signup.linkedin')}
-                <span class="text-text-secondary/50 ml-1">({t('signup.linkedinHint')})</span>
-              </label>
-              <input
-                type="url"
-                id="signup-linkedin"
-                class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors"
-                placeholder={t('signup.linkedinPlaceholder')}
-              />
-            </div>
-
-            <!-- Interests -->
-            <div>
-              <label class="block text-text-secondary text-xs font-heading font-medium mb-2">
-                {t('signup.interests')}
-              </label>
-              <div class="space-y-2">
-                <label class="flex items-center gap-2.5 text-sm text-text-secondary cursor-pointer group">
-                  <input type="checkbox" name="interests" value="projects" class="w-4 h-4 rounded bg-white/5 border-white/20 accent-[#D4A843]" />
-                  <span class="group-hover:text-text-primary transition-colors">{t('signup.interest.projects')}</span>
-                </label>
-                <label class="flex items-center gap-2.5 text-sm text-text-secondary cursor-pointer group">
-                  <input type="checkbox" name="interests" value="workshops" class="w-4 h-4 rounded bg-white/5 border-white/20 accent-[#D4A843]" />
-                  <span class="group-hover:text-text-primary transition-colors">{t('signup.interest.workshops')}</span>
-                </label>
-                <label class="flex items-center gap-2.5 text-sm text-text-secondary cursor-pointer group">
-                  <input type="checkbox" name="interests" value="seminars" class="w-4 h-4 rounded bg-white/5 border-white/20 accent-[#D4A843]" />
-                  <span class="group-hover:text-text-primary transition-colors">{t('signup.interest.seminars')}</span>
-                </label>
-                <label class="flex items-center gap-2.5 text-sm text-text-secondary cursor-pointer group">
-                  <input type="checkbox" name="interests" value="content" class="w-4 h-4 rounded bg-white/5 border-white/20 accent-[#D4A843]" />
-                  <span class="group-hover:text-text-primary transition-colors">{t('signup.interest.content')}</span>
-                </label>
-                <label class="flex items-center gap-2.5 text-sm text-text-secondary cursor-pointer group">
-                  <input type="checkbox" name="interests" value="mentorship" class="w-4 h-4 rounded bg-white/5 border-white/20 accent-[#D4A843]" />
-                  <span class="group-hover:text-text-primary transition-colors">{t('signup.interest.mentorship')}</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Ideas -->
-            <div>
-              <label for="signup-ideas" class="block text-text-secondary text-xs font-heading font-medium mb-1.5">
-                {t('signup.ideas')}
-              </label>
-              <textarea
-                id="signup-ideas"
-                rows="3"
-                class="w-full px-4 py-3 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-body placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none focus:ring-1 focus:ring-gold-500/25 transition-colors resize-none"
-                placeholder={t('signup.ideasPlaceholder')}
-              ></textarea>
-            </div>
-
-            <!-- Email note -->
-            <div class="px-4 py-3 rounded-lg bg-gold-500/5 border border-gold-500/15 text-xs text-text-secondary leading-relaxed">
-              <span class="text-gold-500 font-heading font-medium">💡</span>
-              {t('signup.emailNote')}
-            </div>
-
-            <!-- Error message -->
-            <div id="signup-error" class="hidden px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/25 text-red-400 text-sm">
-            </div>
-
-            <!-- Submit -->
-            <button type="submit" id="signup-submit" class="w-full btn-gold justify-center text-sm py-3">
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
-              </svg>
-              <span id="signup-submit-text">{t('signup.submit')}</span>
-            </button>
-          </form>
-
-          <div class="mt-4 text-center">
+          <!-- Login link -->
+          <div class="mt-6 text-center">
             <span class="text-xs text-text-secondary">{t('signup.hasAccount')}</span>
             <a href="/en/login" class="text-xs text-gold-500 hover:text-gold-300 transition-colors font-heading ml-1">
               {t('signup.goLogin')}
             </a>
+          </div>
+
+          <!-- Data usage notice -->
+          <div class="mt-5 pt-5 border-t border-white/5">
+            <div class="flex items-start gap-2">
+              <svg class="w-3.5 h-3.5 text-gold-500/60 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+              </svg>
+              <p class="text-[11px] text-text-secondary/60 leading-relaxed">
+                {t('login.dataNotice')}{' '}
+                <a href="/en/privacy/" class="text-gold-500/70 hover:text-gold-500 transition-colors">{t('login.privacyLink')}</a>
+                {' · '}
+                <a href="/en/terms/" class="text-gold-500/70 hover:text-gold-500 transition-colors">{t('login.termsLink')}</a>
+              </p>
+            </div>
           </div>
         </div>
 
@@ -200,14 +91,13 @@ const t = useTranslations(lang);
           <h3 class="text-xl font-heading font-bold text-text-primary mb-2">{t('signup.success')}</h3>
           <p class="text-text-secondary text-sm mb-4">{t('signup.successDesc')}</p>
           <div class="px-4 py-3 rounded-lg bg-gold-500/5 border border-gold-500/15 text-xs text-text-secondary leading-relaxed mb-6 text-left">
-            <span class="text-gold-500 font-heading font-medium">📬</span>
             {t('signup.successEmailNote')}
           </div>
           <a href="/en/profile" class="btn-gold justify-center text-sm py-3 inline-flex">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
             </svg>
-            Go to My Profile
+            {t('signup.goProfile')}
           </a>
         </div>
       </div>
@@ -217,6 +107,19 @@ const t = useTranslations(lang);
 
 <script is:inline>
 (function() {
+  // Check for error/success params from LinkedIn callback
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('error')) {
+    var errorEl = document.getElementById('signup-error');
+    errorEl.textContent = decodeURIComponent(params.get('error_description') || 'Registration failed.');
+    errorEl.classList.remove('hidden');
+  }
+  if (params.get('success') === 'new') {
+    document.getElementById('signup-form-state').classList.add('hidden');
+    document.getElementById('signup-success-state').classList.remove('hidden');
+  }
+
+  // Google Sign-In
   fetch('/api/config').then(function(r) { return r.json(); }).then(function(cfg) {
     if (!cfg.googleClientId) return;
     var s = document.createElement('script');
@@ -244,10 +147,8 @@ const t = useTranslations(lang);
                 }
               });
             } else {
-              return res.json().catch(function() { return {}; }).then(function(data) {
-                errorEl.textContent = 'Google sign-in failed. Please sign up with email.';
-                errorEl.classList.remove('hidden');
-              });
+              errorEl.textContent = 'Google sign-up failed. Please try again.';
+              errorEl.classList.remove('hidden');
             }
           }).catch(function() {
             errorEl.textContent = 'Connection error. Please try again.';
@@ -262,101 +163,5 @@ const t = useTranslations(lang);
     };
     document.head.appendChild(s);
   }).catch(function() {});
-})();
-</script>
-<script is:inline>
-(function() {
-  var form = document.getElementById('signup-form');
-  var formState = document.getElementById('signup-form-state');
-  var successState = document.getElementById('signup-success-state');
-  var submitBtn = document.getElementById('signup-submit');
-  var submitText = document.getElementById('signup-submit-text');
-  var errorEl = document.getElementById('signup-error');
-
-  function showError(msg) {
-    errorEl.textContent = msg;
-    errorEl.classList.remove('hidden');
-  }
-
-  form.addEventListener('submit', async function(e) {
-    e.preventDefault();
-
-    var name = document.getElementById('signup-name').value.trim();
-    var personalEmail = document.getElementById('signup-personal-email').value.trim();
-    var schoolEmail = document.getElementById('signup-school-email').value.trim();
-    var university = document.getElementById('signup-university').value.trim();
-    var department = document.getElementById('signup-department').value.trim();
-    var linkedin = document.getElementById('signup-linkedin').value.trim();
-    var ideas = document.getElementById('signup-ideas').value.trim();
-
-    var interests = [];
-    document.querySelectorAll('input[name="interests"]:checked').forEach(function(cb) {
-      interests.push(cb.value);
-    });
-
-    if (!name || !personalEmail) {
-      showError('Please enter your name and email.');
-      return;
-    }
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(personalEmail)) {
-      showError('Please enter a valid email address.');
-      return;
-    }
-
-    if (schoolEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(schoolEmail)) {
-      showError('School email address is not valid.');
-      return;
-    }
-
-    errorEl.classList.add('hidden');
-    submitBtn.disabled = true;
-    submitText.textContent = 'Registering...';
-
-    try {
-      var res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({
-          name: name,
-          personalEmail: personalEmail,
-          schoolEmail: schoolEmail || undefined,
-          university: university,
-          department: department,
-          linkedin: linkedin || undefined,
-          interests: interests,
-          ideas: ideas || undefined,
-        }),
-      });
-
-      if (res.ok) {
-        formState.classList.add('hidden');
-        successState.classList.remove('hidden');
-      } else {
-        var result = await res.json().catch(function() { return {}; });
-        console.error('[signup] Server error:', res.status, result);
-        if (result.error === 'Member already exists') {
-          showError('An account with this email already exists.');
-        } else if (result.error === 'Missing required fields') {
-          showError('Please fill in all required fields.');
-        } else if (result.error === 'Invalid email format') {
-          showError('Please enter a valid email address.');
-        } else if (result.error === 'Invalid school email format') {
-          showError('School email address is not valid.');
-        } else if (result.error === 'KV not configured') {
-          showError('Server configuration error. Please contact admin.');
-        } else {
-          showError('An error occurred (' + res.status + '). Please try again.');
-        }
-      }
-    } catch (err) {
-      console.error('[signup] Network error:', err);
-      showError('Connection error. Please check your internet and try again.');
-    } finally {
-      submitBtn.disabled = false;
-      submitText.textContent = 'Sign Up';
-    }
-  });
 })();
 </script>
