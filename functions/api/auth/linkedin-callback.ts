@@ -4,6 +4,7 @@
  * GET /api/auth/linkedin-callback?code=...&state=...
  *   → Exchange code for access token
  *   → Fetch user profile (name, email, picture)
+ *   → Check LinkedIn verification status (identity, employment, education)
  *   → Create or login member (same logic as Google auth)
  *   → Set session cookie and redirect
  *
@@ -30,6 +31,30 @@ interface LinkedInUserInfo {
   email: string;
   email_verified?: boolean;
   picture?: string;
+}
+
+/**
+ * Fetch LinkedIn verification categories for the member.
+ * Returns array of verified category strings, e.g. ['IDENTITY', 'EMPLOYMENT', 'EDUCATION']
+ */
+async function fetchLinkedInVerifications(accessToken: string): Promise<string[]> {
+  try {
+    const res = await fetch('https://api.linkedin.com/v2/memberVerifications?q=member', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    if (!res.ok) {
+      console.log('[linkedin] Verification API status:', res.status);
+      return [];
+    }
+    const data = await res.json() as { elements?: any[] };
+    if (!data.elements || !Array.isArray(data.elements)) return [];
+    return data.elements
+      .filter((v: any) => v.status === 'VERIFIED' || v.status === 'ACTIVE')
+      .map((v: any) => (v.type || v.verificationType || 'UNKNOWN').toUpperCase());
+  } catch (err) {
+    console.error('[linkedin] Verification check failed:', err);
+    return [];
+  }
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
@@ -109,11 +134,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     }
 
     const tokenData = (await tokenRes.json()) as { access_token: string };
+    const accessToken = tokenData.access_token;
 
-    // Fetch user profile using OpenID Connect userinfo endpoint
-    const userInfoRes = await fetch('https://api.linkedin.com/v2/userinfo', {
-      headers: { Authorization: `Bearer ${tokenData.access_token}` },
-    });
+    // Fetch user profile and verification status in parallel
+    const [userInfoRes, verifications] = await Promise.all([
+      fetch('https://api.linkedin.com/v2/userinfo', {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      }),
+      fetchLinkedInVerifications(accessToken),
+    ]);
 
     if (!userInfoRes.ok) {
       console.error('[linkedin] UserInfo failed:', userInfoRes.status);
@@ -140,14 +169,17 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     let member: any;
 
     if (memberData) {
-      // Existing member — update token
+      // Existing member — update token and verification data
       member = JSON.parse(memberData);
       member.token = generateToken();
       if (!member.linkedinSub) {
         member.linkedinSub = userInfo.sub;
       }
-      // Update LinkedIn profile data if available
-      if (userInfo.picture && !member.picture) {
+      // Always update verification status on each login
+      member.linkedinVerified = true;
+      member.linkedinVerifications = verifications;
+      // Update picture if available
+      if (userInfo.picture) {
         member.picture = userInfo.picture;
       }
       await env.REGISTRATIONS.put(`member:${email}`, JSON.stringify(member), {
@@ -162,12 +194,13 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           member = JSON.parse(memberData);
           member.token = generateToken();
           if (!member.linkedinSub) member.linkedinSub = userInfo.sub;
-          if (userInfo.picture && !member.picture) member.picture = userInfo.picture;
+          member.linkedinVerified = true;
+          member.linkedinVerifications = verifications;
+          if (userInfo.picture) member.picture = userInfo.picture;
           await env.REGISTRATIONS.put(`member:${alias}`, JSON.stringify(member), {
             expirationTtl: 60 * 60 * 24 * 365,
           });
 
-          // Set cookie and redirect
           const cookieValue = `${encodeURIComponent(alias)}:${member.token}`;
           const maxAge = 30 * 24 * 60 * 60;
           return new Response(null, {
@@ -204,6 +237,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         signupSource: 'linkedin',
         linkedinSub: userInfo.sub,
         linkedinVerified: true,
+        linkedinVerifications: verifications,
         signupIp: request.headers.get('CF-Connecting-IP') || 'unknown',
         signupCountry: request.headers.get('CF-IPCountry') || 'unknown',
       };
