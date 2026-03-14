@@ -15,6 +15,7 @@ import {
   generateToken,
   generatePassword,
   hashPassword,
+  buildLoginCookies,
 } from '../../_shared';
 
 interface Env {
@@ -239,13 +240,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
             expirationTtl: 60 * 60 * 24 * 365,
           });
 
-          const cookieValue = `${encodeURIComponent(alias)}:${member.token}`;
-          const maxAge = 30 * 24 * 60 * 60;
+          const cookies = buildLoginCookies(alias, member.token);
           return new Response(null, {
             status: 302,
             headers: {
               Location: `${url.origin}${profilePage}`,
-              'Set-Cookie': `legere_token=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,
+              'Set-Cookie': cookies.join(', '),
             },
           });
         }
@@ -292,9 +292,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       await env.REGISTRATIONS.put(countKey, String(currentCount + 1));
     }
 
-    // Set session cookie and redirect
-    const cookieValue = `${encodeURIComponent(email)}:${member.token}`;
-    const maxAge = 30 * 24 * 60 * 60;
+    // Set session cookies and redirect
+    const cookies = buildLoginCookies(email, member.token);
 
     const destination = isNewMember
       ? `${url.origin}${mode === 'signup' ? `${langPrefix}/signup?success=new` : profilePage}`
@@ -304,7 +303,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       status: 302,
       headers: {
         Location: destination,
-        'Set-Cookie': `legere_token=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,
+        'Set-Cookie': cookies.join(', '),
       },
     });
   } catch (err) {

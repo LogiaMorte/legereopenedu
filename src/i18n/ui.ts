@@ -248,8 +248,10 @@ export const ui = {
     'nav.login': 'Giriş',
     'nav.profile': 'Profilim',
     'login.title': 'Üye Girişi',
-    'login.desc': 'Google hesabınızla giriş yapın.',
+    'login.desc': 'Google veya LinkedIn hesabınızla giriş yapın.',
     'login.error': 'Giriş başarısız. Lütfen tekrar deneyin.',
+    'login.orLinkedin': 'veya',
+    'login.linkedinBtn': 'LinkedIn ile Giriş Yap',
     'login.back': 'Ana Sayfaya Dön',
     'login.noAccount': 'Hesabınız yok mu?',
     'login.goSignup': 'Kayıt Ol',
@@ -259,7 +261,7 @@ export const ui = {
 
     // Homepage Trust Section
     'trust.title': 'Veri Güvenliği & Gizlilik',
-    'trust.desc': 'Legere Open Edu, akademisyenlerin kişisel verilerini yalnızca üyelik yönetimi ve program organizasyonu amacıyla işler. Verileriniz üçüncü taraflarla paylaşılmaz. Giriş işlemleri Google üzerinden güvenli OAuth protokolü ile gerçekleştirilir.',
+    'trust.desc': 'Legere Open Edu, akademisyenlerin kişisel verilerini yalnızca üyelik yönetimi ve program organizasyonu amacıyla işler. Verileriniz üçüncü taraflarla paylaşılmaz. Giriş işlemleri Google ve LinkedIn üzerinden güvenli OAuth protokolü ile gerçekleştirilir.',
     'trust.privacyLink': 'Gizlilik Politikamızı İnceleyin',
     'trust.termsLink': 'Kullanım Koşulları',
 
@@ -668,8 +670,10 @@ export const ui = {
     'nav.login': 'Login',
     'nav.profile': 'My Profile',
     'login.title': 'Member Login',
-    'login.desc': 'Sign in with your Google account.',
+    'login.desc': 'Sign in with your Google or LinkedIn account.',
     'login.error': 'Login failed. Please try again.',
+    'login.orLinkedin': 'or',
+    'login.linkedinBtn': 'Sign In with LinkedIn',
     'login.back': 'Back to Home',
     'login.noAccount': 'Don\'t have an account?',
     'login.goSignup': 'Sign Up',
@@ -679,7 +683,7 @@ export const ui = {
 
     // Homepage Trust Section
     'trust.title': 'Data Security & Privacy',
-    'trust.desc': 'Legere Open Edu processes academics\' personal data solely for membership management and program organization. Your data is not shared with third parties. Login is handled securely via Google OAuth protocol.',
+    'trust.desc': 'Legere Open Edu processes academics\' personal data solely for membership management and program organization. Your data is not shared with third parties. Login is handled securely via Google and LinkedIn OAuth protocols.',
     'trust.privacyLink': 'Review Our Privacy Policy',
     'trust.termsLink': 'Terms of Service',
 

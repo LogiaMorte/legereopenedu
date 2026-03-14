@@ -111,6 +111,31 @@ export function parseSessionCookie(request: Request): { email: string; token: st
   }
 }
 
+// ── Cookie Helpers ──
+
+/**
+ * Build Set-Cookie headers for login.
+ * - legere_token: HttpOnly, Secure — actual auth token (not readable by JS)
+ * - legere_logged_in: non-HttpOnly — presence flag for Header UI detection
+ */
+export function buildLoginCookies(email: string, token: string, maxAge = 30 * 24 * 60 * 60): string[] {
+  const cookieValue = `${encodeURIComponent(email)}:${token}`;
+  return [
+    `legere_token=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,
+    `legere_logged_in=1; Path=/; SameSite=Lax; Max-Age=${maxAge}`,
+  ];
+}
+
+/**
+ * Build Set-Cookie headers for logout (clear both cookies).
+ */
+export function buildLogoutCookies(): string[] {
+  return [
+    'legere_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+    'legere_logged_in=; Path=/; SameSite=Lax; Max-Age=0',
+  ];
+}
+
 // ── Email ──
 
 export async function sendEmail(

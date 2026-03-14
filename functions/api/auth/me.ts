@@ -11,6 +11,7 @@ import {
   optionsResponse,
   parseSessionCookie,
   generateToken,
+  buildLogoutCookies,
 } from '../../_shared';
 
 interface Env {
@@ -214,13 +215,15 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
   const headers = corsHeaders(request, getMethods());
 
+  const logoutCookies = buildLogoutCookies();
+
   const session = parseSessionCookie(request);
   if (!session) {
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: {
         ...headers,
-        'Set-Cookie': 'legere_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+        'Set-Cookie': logoutCookies.join(', '),
       },
     });
   }
@@ -244,7 +247,7 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
     status: 200,
     headers: {
       ...headers,
-      'Set-Cookie': 'legere_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+      'Set-Cookie': logoutCookies.join(', '),
     },
   });
 };

@@ -11,7 +11,7 @@ interface Env {
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
-  const headers = corsHeaders(context.request);
+  const headers = corsHeaders(context.request, 'GET, OPTIONS');
   return new Response(JSON.stringify({
     googleClientId: context.env.GOOGLE_CLIENT_ID || '',
     linkedinEnabled: !!context.env.LINKEDIN_CLIENT_ID,
@@ -22,5 +22,5 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 };
 
 export const onRequestOptions: PagesFunction = async (context) => {
-  return optionsResponse(context.request);
+  return optionsResponse(context.request, 'GET, OPTIONS');
 };
