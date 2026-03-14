@@ -13,7 +13,7 @@ export const ui = {
     // Hero
     'hero.badge': 'Bağımsız Akademik Araştırma Ağı',
     'hero.title': 'LEGERE',
-    'hero.subtitle': 'Yüksek lisans, doktora ve bağımsız araştırmacılar için dijital akademik müşterekler.',
+    'hero.subtitle': 'Yüksek lisans, doktora ve bağımsız araştırmacılar için açık ve iş birlikçi bir akademik platform.',
     'hero.legere': 'Legere — Okumak, Seçmek, Bir Araya Getirmek',
     'hero.tagline': 'Atölyeler, seminerler, kolokyumlar ve yayın odaklı iş birliğiyle tartışmayı ürüne dönüştüren sanal-öncelikli bir akademik ortam.',
     'hero.cta': 'Programları Keşfedin',
@@ -21,7 +21,7 @@ export const ui = {
 
     // About
     'about.title': 'Legere Nedir?',
-    'about.p1': 'Legere Open Edu, yüksek lisans ve doktora düzeyindeki araştırmacılar, doktora sonrası araştırmacılar ve bağımsız akademisyenlerin iş birlikçi öğrenme, üretim ve kamusal bilgi paylaşımı için bir araya geldiği dijital öncelikli bir akademik müşterekler alanıdır.',
+    'about.p1': 'Legere Open Edu, yüksek lisans ve doktora düzeyindeki araştırmacılar, doktora sonrası araştırmacılar ve bağımsız akademisyenlerin iş birlikçi öğrenme, üretim ve kamusal bilgi paylaşımı için bir araya geldiği dijital öncelikli, açık bir akademik iş birliği platformudur.',
     'about.p2': 'Sadece bir kurs web sitesi değildir. Çevrimiçi başlayan, atölyeler, seminerler ve kolokyumlarla süreklilik inşa eden ve seçici biçimde yüz yüze entelektüel topluluklara, festivallere ve ortak yayın süreçlerine evrilen yaşayan bir akademik ağdır.',
     'about.p3': 'Adımızı Latince "legere" kelimesinden alıyoruz: okumak, seçmek ve bir araya getirmek. Bu üç eylem, araştırma sürecimizin özünü oluşturuyor.',
     'about.vision': 'Sanal Araştırma Köyü',
@@ -203,7 +203,7 @@ export const ui = {
     'ethics.manifesto.p3': 'Disiplinlerarası diyaloğun, tek başına hiçbir disiplinin ulaşamayacağı içgörüler ürettiğine inanıyoruz. Bu nedenle kriminoloji, sosyoloji, felsefe, veri bilimi ve diğer alanların kesişiminde çalışarak geleceğin araştırma sorularını keşfediyoruz.',
     'ethics.ip.title': 'Fikri Mülkiyet',
     'ethics.ip.p1': 'Atölye süresince üretilen tüm bireysel fikirler, notlar ve taslaklar, bunları üreten araştırmacıya aittir. Legere hiçbir koşulda bireysel fikri mülkiyet üzerinde hak iddia etmez.',
-    'ethics.ip.p2': 'Ortak çalışma çıktıları (makale, rapor, sunum vb.) tüm katkıda bulunan araştırmacıların müşterek mülkiyetindedir. Katkı düzeyleri ve yazar sıralaması, çalışmanın başında şeffaf olarak belirlenir.',
+    'ethics.ip.p2': 'Ortak çalışma çıktıları (makale, rapor, sunum vb.) tüm katkıda bulunan araştırmacıların ortak mülkiyetindedir. Katkı düzeyleri ve yazar sıralaması, çalışmanın başında şeffaf olarak belirlenir.',
     'ethics.ip.p3': 'Herhangi bir araştırmacının atölye kapsamında paylaştığı veri, analiz veya fikir, ilgili kişinin açık yazılı izni olmadan başka bağlamlarda kullanılamaz.',
     'ethics.pub.title': 'Yayınlama Prosedürü',
     'ethics.pub.p1': 'Atölye çıktılarının yayına dönüştürülmesi, tüm yazarların mutabakatıyla gerçekleşir. Tek taraflı yayınlama kararı alınamaz.',
@@ -248,9 +248,7 @@ export const ui = {
     'nav.login': 'Giriş',
     'nav.profile': 'Profilim',
     'login.title': 'Üye Girişi',
-    'login.desc': 'Google veya LinkedIn hesabınızla giriş yapın.',
-    'login.orLinkedin': 'veya',
-    'login.linkedinBtn': 'LinkedIn ile Giriş Yap',
+    'login.desc': 'Google hesabınızla giriş yapın.',
     'login.error': 'Giriş başarısız. Lütfen tekrar deneyin.',
     'login.back': 'Ana Sayfaya Dön',
     'login.noAccount': 'Hesabınız yok mu?',
@@ -261,7 +259,7 @@ export const ui = {
 
     // Homepage Trust Section
     'trust.title': 'Veri Güvenliği & Gizlilik',
-    'trust.desc': 'Legere Open Edu, akademisyenlerin kişisel verilerini yalnızca üyelik yönetimi ve program organizasyonu amacıyla işler. Verileriniz üçüncü taraflarla paylaşılmaz. Giriş işlemleri Google ve LinkedIn üzerinden güvenli OAuth protokolü ile gerçekleştirilir.',
+    'trust.desc': 'Legere Open Edu, akademisyenlerin kişisel verilerini yalnızca üyelik yönetimi ve program organizasyonu amacıyla işler. Verileriniz üçüncü taraflarla paylaşılmaz. Giriş işlemleri Google üzerinden güvenli OAuth protokolü ile gerçekleştirilir.',
     'trust.privacyLink': 'Gizlilik Politikamızı İnceleyin',
     'trust.termsLink': 'Kullanım Koşulları',
 
@@ -346,7 +344,7 @@ export const ui = {
     'terms.accounts.p2': 'Hesabınızda yetkisiz bir erişim fark ederseniz derhal info@legereopenedu.com adresine bildirmeniz gerekmektedir.',
     'terms.ip.title': 'Fikri Mülkiyet',
     'terms.ip.p1': 'Atölye sürecinde ürettiğiniz bireysel içerikler size aittir. Legere, bireysel fikri mülkiyet üzerinde hak iddia etmez.',
-    'terms.ip.p2': 'Ortak çalışma çıktıları, tüm katkıda bulunan araştırmacıların müşterek mülkiyetindedir. Detaylar Etik Kod & Manifesto belgemizde açıklanmıştır.',
+    'terms.ip.p2': 'Ortak çalışma çıktıları, tüm katkıda bulunan araştırmacıların ortak mülkiyetindedir. Detaylar Etik Kod & Manifesto belgemizde açıklanmıştır.',
     'terms.conduct.title': 'Davranış Kuralları',
     'terms.conduct.p1': 'Tüm katılımcılar saygılı, kapsayıcı ve dürüst bir akademik ortam oluşturmakla yükümlüdür.',
     'terms.conduct.p2': 'İntihal, veri manipülasyonu, ayrımcılık ve taciz kesinlikle kabul edilmez.',
@@ -670,9 +668,7 @@ export const ui = {
     'nav.login': 'Login',
     'nav.profile': 'My Profile',
     'login.title': 'Member Login',
-    'login.desc': 'Sign in with your Google or LinkedIn account.',
-    'login.orLinkedin': 'or',
-    'login.linkedinBtn': 'Sign In with LinkedIn',
+    'login.desc': 'Sign in with your Google account.',
     'login.error': 'Login failed. Please try again.',
     'login.back': 'Back to Home',
     'login.noAccount': 'Don\'t have an account?',
@@ -683,7 +679,7 @@ export const ui = {
 
     // Homepage Trust Section
     'trust.title': 'Data Security & Privacy',
-    'trust.desc': 'Legere Open Edu processes academics\' personal data solely for membership management and program organization. Your data is not shared with third parties. Login is handled securely via Google and LinkedIn OAuth protocols.',
+    'trust.desc': 'Legere Open Edu processes academics\' personal data solely for membership management and program organization. Your data is not shared with third parties. Login is handled securely via Google OAuth protocol.',
     'trust.privacyLink': 'Review Our Privacy Policy',
     'trust.termsLink': 'Terms of Service',
 

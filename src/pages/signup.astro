@@ -34,30 +34,26 @@ const t = useTranslations(lang);
             <div id="google-btn" class="flex justify-center"></div>
           </div>
 
-          <!-- Divider -->
-          <div class="relative my-5">
-            <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
-            <div class="relative flex justify-center text-xs"><span class="bg-[#12121A] px-3 text-text-secondary">{t('signup.orLinkedin')}</span></div>
+          <!-- Loading state -->
+          <div id="auth-loading" class="flex justify-center py-4">
+            <div class="inline-flex items-center gap-3 text-text-secondary font-heading text-sm">
+              <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+              </svg>
+              Yükleniyor...
+            </div>
           </div>
 
-          <!-- LinkedIn Sign-Up -->
-          <a href="/api/auth/linkedin?mode=signup" id="linkedin-btn" class="w-full flex items-center justify-center gap-3 px-4 py-3 rounded-lg bg-[#0A66C2] hover:bg-[#004182] text-white text-sm font-heading font-medium transition-colors">
-            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/>
-            </svg>
-            {t('signup.linkedinBtn')}
-          </a>
-
-          <!-- LinkedIn benefit note -->
-          <div class="mt-4 px-4 py-3 rounded-lg bg-[#0A66C2]/5 border border-[#0A66C2]/15 text-xs text-text-secondary leading-relaxed">
-            <span class="text-[#0A66C2] font-heading font-medium">LinkedIn</span> — {t('signup.linkedinBenefit')}
+          <!-- Info note -->
+          <div class="mt-6 px-4 py-3 rounded-lg bg-gold-500/5 border border-gold-500/15 text-xs text-text-secondary leading-relaxed">
+            <span class="text-gold-500 font-heading font-medium">💡</span>
+            Google hesabınızla hızlıca kayıt olabilirsiniz. Profil bilgilerinizi (üniversite, bölüm vb.) kayıt olduktan sonra profilinizden düzenleyebilirsiniz.
           </div>
 
           <!-- Error message -->
-          <div id="signup-error" class="hidden mt-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/25 text-red-400 text-sm">
-          </div>
+          <div id="signup-error" class="hidden mt-4 px-4 py-3 rounded-lg bg-red-500/10 border border-red-500/25 text-red-400 text-sm"></div>
 
-          <!-- Login link -->
           <div class="mt-6 text-center">
             <span class="text-xs text-text-secondary">{t('signup.hasAccount')}</span>
             <a href="/login" class="text-xs text-gold-500 hover:text-gold-300 transition-colors font-heading ml-1">
@@ -107,30 +103,25 @@ const t = useTranslations(lang);
 
 <script is:inline>
 (function() {
-  // Check for error/success params from LinkedIn callback
-  var params = new URLSearchParams(window.location.search);
-  if (params.get('error')) {
-    var errorEl = document.getElementById('signup-error');
-    errorEl.textContent = decodeURIComponent(params.get('error_description') || 'Kayıt başarısız.');
-    errorEl.classList.remove('hidden');
-  }
-  if (params.get('success') === 'new') {
-    document.getElementById('signup-form-state').classList.add('hidden');
-    document.getElementById('signup-success-state').classList.remove('hidden');
-  }
+  var loadingEl = document.getElementById('auth-loading');
+  var errorEl = document.getElementById('signup-error');
+  var formState = document.getElementById('signup-form-state');
+  var successState = document.getElementById('signup-success-state');
 
-  // Google Sign-In
   fetch('/api/config').then(function(r) { return r.json(); }).then(function(cfg) {
-    if (!cfg.googleClientId) return;
+    if (!cfg.googleClientId) {
+      loadingEl.classList.add('hidden');
+      errorEl.textContent = 'Kayıt sistemi yapılandırılmamış. Lütfen info@legereopenedu.com adresine yazın.';
+      errorEl.classList.remove('hidden');
+      return;
+    }
     var s = document.createElement('script');
     s.src = 'https://accounts.google.com/gsi/client';
     s.onload = function() {
       google.accounts.id.initialize({
         client_id: cfg.googleClientId,
         callback: function(response) {
-          var formState = document.getElementById('signup-form-state');
-          var successState = document.getElementById('signup-success-state');
-          var errorEl = document.getElementById('signup-error');
+          errorEl.classList.add('hidden');
           fetch('/api/auth/google', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -159,9 +150,14 @@ const t = useTranslations(lang);
       google.accounts.id.renderButton(document.getElementById('google-btn'), {
         theme: 'filled_black', size: 'large', text: 'signup_with', shape: 'rectangular', width: 320
       });
+      loadingEl.classList.add('hidden');
       document.getElementById('google-signin-section').classList.remove('hidden');
     };
     document.head.appendChild(s);
-  }).catch(function() {});
+  }).catch(function() {
+    loadingEl.classList.add('hidden');
+    errorEl.textContent = 'Bağlantı hatası.';
+    errorEl.classList.remove('hidden');
+  });
 })();
 </script>
