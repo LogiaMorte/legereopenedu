@@ -215,7 +215,7 @@ const navItems = [
     const mobileSignupBtn = document.getElementById('mobile-signup-btn');
     if (!authBtn) return;
 
-    const hasToken = document.cookie.split(';').some(c => c.trim().startsWith('legere_token='));
+    const hasToken = document.cookie.split(';').some(c => c.trim().startsWith('legere_logged_in='));
 
     [authBtn, mobileAuthBtn].forEach(el => {
       if (!el) return;

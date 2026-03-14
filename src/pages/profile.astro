@@ -619,7 +619,7 @@ const t = useTranslations(lang);
     try {
       await fetch('/api/auth/me', { method: 'DELETE', credentials: 'same-origin' });
     } catch (err) {}
-    document.cookie = 'legere_token=; Path=/; Max-Age=0; SameSite=Lax';
+    document.cookie = 'legere_logged_in=; Path=/; Max-Age=0; SameSite=Lax';
     window.location.href = '/';
   });
 

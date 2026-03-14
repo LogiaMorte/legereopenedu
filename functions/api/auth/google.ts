@@ -14,6 +14,7 @@ import {
   generateToken,
   generatePassword,
   hashPassword,
+  buildLoginCookies,
 } from '../../_shared';
 
 interface Env {
@@ -121,6 +122,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       if (!member.googleSub) {
         member.googleSub = payload.sub;
       }
+      // Update picture if available
+      if (payload.picture) {
+        member.picture = payload.picture;
+      }
       await env.REGISTRATIONS.put(`member:${email}`, JSON.stringify(member), {
         expirationTtl: 60 * 60 * 24 * 365,
       });
@@ -133,17 +138,17 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           member = JSON.parse(memberData);
           member.token = generateToken();
           if (!member.googleSub) member.googleSub = payload.sub;
+          if (payload.picture) member.picture = payload.picture;
           await env.REGISTRATIONS.put(`member:${alias}`, JSON.stringify(member), {
             expirationTtl: 60 * 60 * 24 * 365,
           });
           // Use alias email for cookie
-          const cookieValue = `${encodeURIComponent(alias)}:${member.token}`;
-          const maxAge = 30 * 24 * 60 * 60;
+          const cookies = buildLoginCookies(alias, member.token);
           return new Response(JSON.stringify({ success: true, isNewMember: false }), {
             status: 200,
             headers: {
               ...headers,
-              'Set-Cookie': `legere_token=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,
+              'Set-Cookie': cookies.join(', '),
             },
           });
         }
@@ -161,6 +166,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         token,
         university: '',
         department: '',
+        picture: payload.picture || '',
         joinDate: new Date().toISOString().split('T')[0],
         showFullName: true,
         showEmail: false,
@@ -185,15 +191,14 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       await env.REGISTRATIONS.put(countKey, String(currentCount + 1));
     }
 
-    // Set session cookie
-    const cookieValue = `${encodeURIComponent(email)}:${member.token}`;
-    const maxAge = 30 * 24 * 60 * 60;
+    // Set session cookies
+    const cookies = buildLoginCookies(email, member.token);
 
     return new Response(JSON.stringify({ success: true, isNewMember }), {
       status: 200,
       headers: {
         ...headers,
-        'Set-Cookie': `legere_token=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,
+        'Set-Cookie': cookies.join(', '),
       },
     });
   } catch (err) {

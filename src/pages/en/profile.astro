@@ -487,7 +487,7 @@ const t = useTranslations(lang);
 
   document.getElementById('logout-btn')?.addEventListener('click', async function() {
     try { await fetch('/api/auth/me', { method: 'DELETE', credentials: 'same-origin' }); } catch(e){}
-    document.cookie = 'legere_token=; Path=/; Max-Age=0; SameSite=Lax';
+    document.cookie = 'legere_logged_in=; Path=/; Max-Age=0; SameSite=Lax';
     window.location.href = '/en/';
   });
 
