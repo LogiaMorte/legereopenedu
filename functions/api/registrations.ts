@@ -1,6 +1,6 @@
 /**
  * Cloudflare Pages Function — Admin: View & Manage Registrations
- * Auth: Cloudflare Access JWT (CF_Authorization cookie)
+ * Auth: Session cookie + ADMIN_EMAILS whitelist
  *
  * POST /api/registrations  { action: 'list' }               → list all
  * POST /api/registrations  { action: 'list', workshop: 'X' } → filter by workshop
@@ -18,14 +18,13 @@ import {
   generatePassword,
   sendEmail,
   parseJsonBody,
-  verifyCfAccessJwt,
+  verifyAdmin,
 } from '../_shared';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
   RESEND_API_KEY?: string;
-  CF_ACCESS_TEAM_DOMAIN: string;
-  CF_ACCESS_AUD: string;
+  ADMIN_EMAILS?: string;
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -33,9 +32,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const headers = corsHeaders(request, 'POST, OPTIONS');
 
   try {
-    // Verify Cloudflare Access JWT
-    const jwtPayload = await verifyCfAccessJwt(request, env.CF_ACCESS_TEAM_DOMAIN, env.CF_ACCESS_AUD);
-    if (!jwtPayload) {
+    // Verify admin: session cookie + ADMIN_EMAILS whitelist
+    const adminEmail = await verifyAdmin(request, env.REGISTRATIONS, env.ADMIN_EMAILS);
+    if (!adminEmail) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
     }
 
