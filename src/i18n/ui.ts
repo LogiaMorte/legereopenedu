@@ -241,6 +241,9 @@ export const ui = {
     'signup.goProfile': 'Profilimi Tamamla',
     'signup.error': 'Bir hata oluştu. Lütfen tekrar deneyin.',
     'signup.errorExists': 'Bu e-posta adresi ile zaten kayıt yapılmış.',
+    'signup.consent': '{privacy} ve {terms} belgelerini okudum, kabul ediyorum.',
+    'signup.consentPrivacy': 'Gizlilik Politikası',
+    'signup.consentTerms': 'Kullanım Koşulları',
     'signup.hasAccount': 'Zaten hesabınız var mı?',
     'signup.goLogin': 'Giriş Yap',
 
@@ -663,6 +666,9 @@ export const ui = {
     'signup.goProfile': 'Complete My Profile',
     'signup.error': 'An error occurred. Please try again.',
     'signup.errorExists': 'An account with this email already exists.',
+    'signup.consent': 'I have read and accept the {privacy} and {terms}.',
+    'signup.consentPrivacy': 'Privacy Policy',
+    'signup.consentTerms': 'Terms of Service',
     'signup.hasAccount': 'Already have an account?',
     'signup.goLogin': 'Log In',
 
