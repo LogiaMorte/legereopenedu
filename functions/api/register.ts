@@ -6,7 +6,7 @@
  * Üye bilgileri otomatik olarak member kaydından alınır.
  */
 
-import { corsHeaders, optionsResponse, parseSessionCookie } from '../_shared';
+import { corsHeaders, optionsResponse, parseSessionCookie, parseJsonBody } from '../_shared';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
@@ -40,7 +40,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       return new Response(JSON.stringify({ error: 'Not authenticated' }), { status: 401, headers });
     }
 
-    const body = await request.json() as { workshop?: string; motivation?: string };
+    const body = await parseJsonBody<{ workshop?: string; motivation?: string }>(request);
+    if (!body) {
+      return new Response(JSON.stringify({ error: 'Invalid or oversized request body' }), { status: 400, headers });
+    }
 
     if (!body.workshop?.trim()) {
       return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers });

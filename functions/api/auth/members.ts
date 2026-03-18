@@ -6,7 +6,7 @@
  *   action: 'detail' — Tek üye detayı
  */
 
-import { corsHeaders, optionsResponse } from '../../_shared';
+import { corsHeaders, optionsResponse, constantTimeCompare, parseJsonBody } from '../../_shared';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
@@ -18,14 +18,18 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const headers = corsHeaders(request);
 
   try {
-    const body = await request.json() as {
+    const body = await parseJsonBody<{
       key?: string;
       action?: string;
       email?: string;
-    };
+    }>(request);
 
-    // Auth
-    if (!env.ADMIN_KEY || body.key !== env.ADMIN_KEY) {
+    if (!body) {
+      return new Response(JSON.stringify({ error: 'Invalid or oversized request body' }), { status: 400, headers });
+    }
+
+    // Auth — constant-time comparison to prevent timing attacks
+    if (!env.ADMIN_KEY || !body.key || !constantTimeCompare(body.key, env.ADMIN_KEY)) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
     }
 

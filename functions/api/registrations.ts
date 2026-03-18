@@ -16,6 +16,8 @@ import {
   generateToken,
   generatePassword,
   sendEmail,
+  constantTimeCompare,
+  parseJsonBody,
 } from '../_shared';
 
 interface Env {
@@ -29,7 +31,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const headers = corsHeaders(request, 'POST, OPTIONS');
 
   try {
-    const body = (await request.json()) as {
+    const body = await parseJsonBody<{
       key: string;
       action: 'list' | 'accept' | 'reject' | 'issue-certificate' | 'award-badge';
       regId?: string;
@@ -37,9 +39,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       message?: string;
       certType?: 'participation' | 'achievement' | 'contribution';
       badgeId?: string;
-    };
+    }>(request);
 
-    if (!env.ADMIN_KEY || body.key !== env.ADMIN_KEY) {
+    if (!body) {
+      return new Response(JSON.stringify({ error: 'Invalid or oversized request body' }), { status: 400, headers });
+    }
+
+    if (!env.ADMIN_KEY || !body.key || !constantTimeCompare(body.key, env.ADMIN_KEY)) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
     }
 
@@ -68,8 +74,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       );
     }
 
-    if (!body.regId) {
-      return new Response(JSON.stringify({ error: 'Missing regId' }), { status: 400, headers });
+    if (!body.regId || !/^reg_\d+_[a-z0-9]+$/.test(body.regId)) {
+      return new Response(JSON.stringify({ error: 'Invalid regId' }), { status: 400, headers });
     }
 
     const regData = await env.REGISTRATIONS.get(body.regId);

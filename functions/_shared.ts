@@ -3,6 +3,7 @@
  * - CORS origin validation (exact match, no subdomain spoofing)
  * - HTML escaping for email templates (XSS prevention)
  * - SHA-256 password hashing (Workers-compatible)
+ * - Constant-time comparison (timing attack prevention)
  * - Password generation
  * - Token generation
  */
@@ -17,16 +18,20 @@ const ALLOWED_ORIGINS = [
 export function getAllowedOrigin(request: Request): string {
   const origin = request.headers.get('Origin') || '';
   if (ALLOWED_ORIGINS.includes(origin)) return origin;
-  return ALLOWED_ORIGINS[0];
+  return '';
 }
 
 export function corsHeaders(request: Request, methods = 'POST, OPTIONS'): Record<string, string> {
-  return {
+  const origin = getAllowedOrigin(request);
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': getAllowedOrigin(request),
     'Access-Control-Allow-Methods': methods,
     'Access-Control-Allow-Headers': 'Content-Type',
   };
+  if (origin) {
+    headers['Access-Control-Allow-Origin'] = origin;
+  }
+  return headers;
 }
 
 export function optionsResponse(request: Request, methods = 'POST, OPTIONS'): Response {
@@ -61,10 +66,37 @@ export async function hashPassword(password: string): Promise<string> {
 export async function verifyPassword(input: string, stored: string): Promise<boolean> {
   if (stored.startsWith(HASH_PREFIX)) {
     const inputHash = await hashPassword(input);
-    return inputHash === stored;
+    return constantTimeCompare(inputHash, stored);
   }
-  // Legacy: plain text password (migration path)
-  return input === stored;
+  // Legacy: plain text — always hash to prevent timing side-channel
+  const inputHash = await hashPassword(input);
+  const storedHash = await hashPassword(stored);
+  return constantTimeCompare(inputHash, storedHash);
+}
+
+// ── Constant-time comparison (timing attack prevention) ──
+
+export function constantTimeCompare(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
+
+// ── Request body size guard ──
+
+const MAX_BODY_SIZE = 100 * 1024; // 100 KB
+
+export async function parseJsonBody<T = unknown>(request: Request): Promise<T | null> {
+  const contentLength = request.headers.get('content-length');
+  if (contentLength && parseInt(contentLength) > MAX_BODY_SIZE) return null;
+  try {
+    return (await request.json()) as T;
+  } catch {
+    return null;
+  }
 }
 
 export function isPasswordHashed(stored: string): boolean {

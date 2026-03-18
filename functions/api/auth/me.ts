@@ -10,6 +10,7 @@ import {
   corsHeaders,
   optionsResponse,
   parseSessionCookie,
+  parseJsonBody,
   generateToken,
   buildLogoutCookies,
   jsonResponseWithCookies,
@@ -141,7 +142,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
     }
 
-    const body = (await request.json()) as {
+    const body = await parseJsonBody<{
       showFullName?: boolean;
       showEmail?: boolean;
       university?: string;
@@ -150,7 +151,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       linkedin?: string;
       interests?: string[];
       ideas?: string;
-    };
+    }>(request);
+
+    if (!body) {
+      return new Response(JSON.stringify({ error: 'Invalid or oversized request body' }), { status: 400, headers });
+    }
 
     // Privacy toggles
     if (typeof body.showFullName === 'boolean') member.showFullName = body.showFullName;
@@ -169,13 +174,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     if (Array.isArray(body.interests)) {
-      member.interests = body.interests.slice(0, 10).map(i => String(i).slice(0, 100));
+      const VALID_INTERESTS = ['projects', 'workshops', 'seminars', 'content', 'mentorship', 'other'];
+      member.interests = body.interests
+        .filter((i): i is string => typeof i === 'string' && VALID_INTERESTS.includes(i))
+        .slice(0, 10);
     }
 
     // School email update (with alias management)
     if (typeof body.schoolEmail === 'string') {
       const newSchoolEmail = body.schoolEmail.trim().toLowerCase();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (newSchoolEmail && !emailRegex.test(newSchoolEmail)) {
         return new Response(JSON.stringify({ error: 'Invalid school email format' }), { status: 400, headers });
       }
