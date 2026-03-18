@@ -131,7 +131,7 @@ const t = useTranslations(lang);
   </div>
 </Layout>
 
-<script is:inline>
+<script data-cfasync="false" is:inline>
 document.addEventListener('astro:page-load', function() {
   var loadingEl = document.getElementById('auth-loading');
   var errorEl = document.getElementById('signup-error');
@@ -147,11 +147,34 @@ document.addEventListener('astro:page-load', function() {
     return;
   }
   if (params.get('error')) {
+    loadingEl.classList.add('hidden');
     errorEl.textContent = decodeURIComponent(params.get('error_description') || 'Registration failed.');
     errorEl.classList.remove('hidden');
   }
 
-  fetch('/api/config').then(function(r) { return r.json(); }).then(function(cfg) {
+  var loadTimeout = setTimeout(function() {
+    if (!loadingEl.classList.contains('hidden')) {
+      loadingEl.classList.add('hidden');
+      errorEl.textContent = 'Page could not load. Please refresh.';
+      errorEl.classList.remove('hidden');
+    }
+  }, 8000);
+
+  var configPromise = fetch('/api/config').then(function(r) { return r.json(); });
+  var sdkPromise = new Promise(function(resolve) {
+    if (typeof google !== 'undefined' && google.accounts) { resolve(); return; }
+    var s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.setAttribute('data-cfasync', 'false');
+    s.onload = resolve;
+    s.onerror = resolve;
+    document.head.appendChild(s);
+  });
+
+  Promise.all([configPromise, sdkPromise]).then(function(results) {
+    clearTimeout(loadTimeout);
+    var cfg = results[0];
+
     if (!cfg.googleClientId) {
       loadingEl.classList.add('hidden');
       errorEl.textContent = 'Registration system is not configured. Please contact info@legereopenedu.com.';
@@ -167,7 +190,6 @@ document.addEventListener('astro:page-load', function() {
       if (info) info.classList.remove('hidden');
     }
 
-    // Consent checkbox controls
     var consentSection = document.getElementById('consent-section');
     var consentCheckbox = document.getElementById('consent-checkbox');
     var googleSection = document.getElementById('google-signin-section');
@@ -183,55 +205,52 @@ document.addEventListener('astro:page-load', function() {
     }
     if (consentCheckbox) consentCheckbox.addEventListener('change', updateConsentState);
 
-    function initGoogle() {
-      google.accounts.id.initialize({
-        client_id: cfg.googleClientId,
-        callback: function(response) {
-          errorEl.classList.add('hidden');
-          fetch('/api/auth/google', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
-            body: JSON.stringify({ credential: response.credential }),
-          }).then(function(res) {
-            if (res.ok) {
-              return res.json().then(function(data) {
-                if (data.isNewMember) {
-                  if (formState) formState.classList.add('hidden');
-                  if (successState) successState.classList.remove('hidden');
-                } else {
-                  window.location.href = '/en/profile';
-                }
-              });
-            } else {
-              errorEl.textContent = 'Google sign-up failed. Please try again.';
-              errorEl.classList.remove('hidden');
-            }
-          }).catch(function() {
-            errorEl.textContent = 'Connection error. Please try again.';
-            errorEl.classList.remove('hidden');
-          });
-        }
-      });
-      google.accounts.id.renderButton(document.getElementById('google-btn'), {
-        theme: 'filled_black', size: 'large', text: 'signup_with', shape: 'rectangular', width: 320
-      });
+    if (typeof google === 'undefined' || !google.accounts) {
       loadingEl.classList.add('hidden');
-      googleSection.classList.remove('hidden');
-      updateConsentState();
+      errorEl.textContent = 'Google service could not load. Please disable your ad blocker and refresh.';
+      errorEl.classList.remove('hidden');
+      return;
     }
 
-    if (typeof google !== 'undefined' && google.accounts) {
-      initGoogle();
-    } else {
-      var s = document.createElement('script');
-      s.src = 'https://accounts.google.com/gsi/client';
-      s.onload = initGoogle;
-      document.head.appendChild(s);
-    }
-  }).catch(function() {
+    google.accounts.id.initialize({
+      client_id: cfg.googleClientId,
+      callback: function(response) {
+        errorEl.classList.add('hidden');
+        fetch('/api/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ credential: response.credential }),
+        }).then(function(res) {
+          if (res.ok) {
+            return res.json().then(function(data) {
+              if (data.isNewMember) {
+                if (formState) formState.classList.add('hidden');
+                if (successState) successState.classList.remove('hidden');
+              } else {
+                window.location.href = '/en/profile';
+              }
+            });
+          } else {
+            errorEl.textContent = 'Google sign-up failed. Please try again.';
+            errorEl.classList.remove('hidden');
+          }
+        }).catch(function() {
+          errorEl.textContent = 'Connection error. Please try again.';
+          errorEl.classList.remove('hidden');
+        });
+      }
+    });
+    google.accounts.id.renderButton(document.getElementById('google-btn'), {
+      theme: 'filled_black', size: 'large', text: 'signup_with', shape: 'rectangular', width: 320
+    });
     loadingEl.classList.add('hidden');
-    errorEl.textContent = 'Connection error.';
+    if (googleSection) googleSection.classList.remove('hidden');
+    updateConsentState();
+  }).catch(function() {
+    clearTimeout(loadTimeout);
+    loadingEl.classList.add('hidden');
+    errorEl.textContent = 'Connection error. Please refresh.';
     errorEl.classList.remove('hidden');
   });
 });
