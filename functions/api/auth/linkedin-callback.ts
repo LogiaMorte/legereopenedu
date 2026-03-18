@@ -16,6 +16,7 @@ import {
   generatePassword,
   hashPassword,
   buildLoginCookies,
+  redirectWithCookies,
 } from '../../_shared';
 
 interface Env {
@@ -241,13 +242,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           });
 
           const cookies = buildLoginCookies(alias, member.token);
-          return new Response(null, {
-            status: 302,
-            headers: {
-              Location: `${url.origin}${profilePage}`,
-              'Set-Cookie': cookies.join(', '),
-            },
-          });
+          return redirectWithCookies(`${url.origin}${profilePage}`, cookies);
         }
       }
 
@@ -299,13 +294,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       ? `${url.origin}${mode === 'signup' ? `${langPrefix}/signup?success=new` : profilePage}`
       : `${url.origin}${profilePage}`;
 
-    return new Response(null, {
-      status: 302,
-      headers: {
-        Location: destination,
-        'Set-Cookie': cookies.join(', '),
-      },
-    });
+    return redirectWithCookies(destination, cookies);
   } catch (err) {
     console.error('[linkedin] Error:', err instanceof Error ? err.message : err);
     return Response.redirect(
