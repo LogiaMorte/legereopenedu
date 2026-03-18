@@ -12,6 +12,7 @@ import {
   parseSessionCookie,
   generateToken,
   buildLogoutCookies,
+  jsonResponseWithCookies,
 } from '../../_shared';
 
 interface Env {
@@ -219,13 +220,7 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
 
   const session = parseSessionCookie(request);
   if (!session) {
-    return new Response(JSON.stringify({ success: true }), {
-      status: 200,
-      headers: {
-        ...headers,
-        'Set-Cookie': logoutCookies.join(', '),
-      },
-    });
+    return jsonResponseWithCookies({ success: true }, 200, headers, logoutCookies);
   }
 
   try {
@@ -243,13 +238,7 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
     console.error('[me:delete] Error:', err instanceof Error ? err.message : err);
   }
 
-  return new Response(JSON.stringify({ success: true }), {
-    status: 200,
-    headers: {
-      ...headers,
-      'Set-Cookie': logoutCookies.join(', '),
-    },
-  });
+  return jsonResponseWithCookies({ success: true }, 200, headers, logoutCookies);
 };
 
 export const onRequestOptions: PagesFunction = async (context) => {

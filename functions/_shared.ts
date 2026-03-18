@@ -136,6 +136,39 @@ export function buildLogoutCookies(): string[] {
   ];
 }
 
+// ── Response Helper ──
+
+/**
+ * Build a Response with proper multi-cookie support.
+ * Set-Cookie headers MUST be separate — cannot be comma-joined.
+ */
+export function jsonResponseWithCookies(
+  body: unknown,
+  status: number,
+  baseHeaders: Record<string, string>,
+  cookies: string[],
+): Response {
+  const headers = new Headers(baseHeaders);
+  for (const cookie of cookies) {
+    headers.append('Set-Cookie', cookie);
+  }
+  return new Response(JSON.stringify(body), { status, headers });
+}
+
+/**
+ * Build a redirect Response with proper multi-cookie support.
+ */
+export function redirectWithCookies(
+  location: string,
+  cookies: string[],
+): Response {
+  const headers = new Headers({ Location: location });
+  for (const cookie of cookies) {
+    headers.append('Set-Cookie', cookie);
+  }
+  return new Response(null, { status: 302, headers });
+}
+
 // ── Email ──
 
 export async function sendEmail(

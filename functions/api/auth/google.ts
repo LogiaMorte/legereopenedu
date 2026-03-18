@@ -15,6 +15,7 @@ import {
   generatePassword,
   hashPassword,
   buildLoginCookies,
+  jsonResponseWithCookies,
 } from '../../_shared';
 
 interface Env {
@@ -144,13 +145,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           });
           // Use alias email for cookie
           const cookies = buildLoginCookies(alias, member.token);
-          return new Response(JSON.stringify({ success: true, isNewMember: false }), {
-            status: 200,
-            headers: {
-              ...headers,
-              'Set-Cookie': cookies.join(', '),
-            },
-          });
+          return jsonResponseWithCookies({ success: true, isNewMember: false }, 200, headers, cookies);
         }
       }
 
@@ -193,14 +188,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     // Set session cookies
     const cookies = buildLoginCookies(email, member.token);
-
-    return new Response(JSON.stringify({ success: true, isNewMember }), {
-      status: 200,
-      headers: {
-        ...headers,
-        'Set-Cookie': cookies.join(', '),
-      },
-    });
+    return jsonResponseWithCookies({ success: true, isNewMember }, 200, headers, cookies);
   } catch (err) {
     console.error('[google-auth] Error:', err instanceof Error ? err.message : err);
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
