@@ -1,16 +1,18 @@
 /**
  * Admin Members API — Üye yönetimi
+ * Auth: Cloudflare Access JWT (CF_Authorization cookie)
  *
  * POST /api/auth/members
  *   action: 'list' — Tüm üyeleri listele
  *   action: 'detail' — Tek üye detayı
  */
 
-import { corsHeaders, optionsResponse, constantTimeCompare, parseJsonBody } from '../../_shared';
+import { corsHeaders, optionsResponse, parseJsonBody, verifyCfAccessJwt } from '../../_shared';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
-  ADMIN_KEY?: string;
+  CF_ACCESS_TEAM_DOMAIN: string;
+  CF_ACCESS_AUD: string;
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -18,19 +20,19 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const headers = corsHeaders(request);
 
   try {
+    // Verify Cloudflare Access JWT
+    const jwtPayload = await verifyCfAccessJwt(request, env.CF_ACCESS_TEAM_DOMAIN, env.CF_ACCESS_AUD);
+    if (!jwtPayload) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+    }
+
     const body = await parseJsonBody<{
-      key?: string;
       action?: string;
       email?: string;
     }>(request);
 
     if (!body) {
       return new Response(JSON.stringify({ error: 'Invalid or oversized request body' }), { status: 400, headers });
-    }
-
-    // Auth — constant-time comparison to prevent timing attacks
-    if (!env.ADMIN_KEY || !body.key || !constantTimeCompare(body.key, env.ADMIN_KEY)) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
     }
 
     if (!env.REGISTRATIONS) {
