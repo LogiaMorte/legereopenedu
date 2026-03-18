@@ -138,8 +138,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   }
 
   if (!env.REGISTRATIONS) {
+    console.error('[linkedin-callback] REGISTRATIONS KV binding is missing');
     return Response.redirect(
-      `${url.origin}${redirectPage}?error=config&error_description=${encodeURIComponent('Server configuration error')}`,
+      `${url.origin}${redirectPage}?error=config&error_description=${encodeURIComponent('KV storage not bound. Please check Cloudflare Pages KV bindings.')}`,
       302,
     );
   }

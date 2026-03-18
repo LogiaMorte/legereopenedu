@@ -90,7 +90,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const headers = corsHeaders(request);
 
   if (!env.REGISTRATIONS) {
-    return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
+    console.error('[google-auth] REGISTRATIONS KV binding is missing');
+    return new Response(JSON.stringify({ error: 'KV storage not bound. Please check Cloudflare Pages KV bindings.' }), { status: 500, headers });
   }
 
   if (!env.GOOGLE_CLIENT_ID) {
