@@ -53,16 +53,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
       }
       const list = await env.REGISTRATIONS.list({ prefix: 'reg_' });
-      const registrations = [];
-      for (const k of list.keys) {
-        const data = await env.REGISTRATIONS.get(k.name);
-        if (data) {
-          const reg = JSON.parse(data);
-          if (!body.workshop || reg.workshop === body.workshop) {
-            registrations.push(reg);
-          }
-        }
-      }
+      const kvResults = await Promise.all(list.keys.map((k) => env.REGISTRATIONS.get(k.name)));
+      const registrations = kvResults
+        .filter((data): data is string => data !== null)
+        .map((data) => JSON.parse(data))
+        .filter((reg) => !body.workshop || reg.workshop === body.workshop);
       registrations.sort(
         (a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       );

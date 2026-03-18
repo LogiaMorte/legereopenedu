@@ -36,28 +36,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (body.action === 'list') {
       // List all members by scanning KV with prefix "member:"
       const listResult = await env.REGISTRATIONS.list({ prefix: 'member:' });
-      const members: any[] = [];
-
-      for (const key of listResult.keys) {
-        // Skip aliases
-        if (key.name.startsWith('member-alias:')) continue;
-
-        const data = await env.REGISTRATIONS.get(key.name);
-        if (!data) continue;
-
-        const member = JSON.parse(data);
-        members.push({
-          email: member.email,
-          name: member.name || '',
-          university: member.university || '',
-          department: member.department || '',
-          joinDate: member.joinDate || '',
-          signupSource: member.signupSource || 'unknown',
-          registrationCount: (member.regIds || []).length,
-          certificateCount: (member.certificates || []).length,
-          badgeCount: (member.adminBadges || []).length,
+      const memberKeys = listResult.keys.filter((key) => !key.name.startsWith('member-alias:'));
+      const kvResults = await Promise.all(memberKeys.map((key) => env.REGISTRATIONS.get(key.name)));
+      const members: any[] = kvResults
+        .filter((data): data is string => data !== null)
+        .map((data) => {
+          const member = JSON.parse(data);
+          return {
+            email: member.email,
+            name: member.name || '',
+            university: member.university || '',
+            department: member.department || '',
+            joinDate: member.joinDate || '',
+            signupSource: member.signupSource || 'unknown',
+            registrationCount: (member.regIds || []).length,
+            certificateCount: (member.certificates || []).length,
+            badgeCount: (member.adminBadges || []).length,
+          };
         });
-      }
 
       // Sort by join date descending (newest first)
       members.sort((a, b) => {

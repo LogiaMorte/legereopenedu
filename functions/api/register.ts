@@ -53,8 +53,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const existingIndex = await env.REGISTRATIONS.get(indexKey);
     if (existingIndex) {
       const ids: string[] = JSON.parse(existingIndex);
-      for (const rid of ids) {
-        const rd = await env.REGISTRATIONS.get(rid);
+      const regResults = await Promise.all(ids.map((rid) => env.REGISTRATIONS.get(rid)));
+      for (const rd of regResults) {
         if (rd) {
           const r = JSON.parse(rd);
           if (r.memberEmail?.toLowerCase() === session.email.toLowerCase() ||

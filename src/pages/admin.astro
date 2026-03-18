@@ -329,7 +329,7 @@ const lang = 'tr' as const;
         + '<p class="text-text-secondary/60 text-xs font-mono truncate">'+esc(m.email)+'</p>'
         + '</div>'
         + '<div class="flex items-center gap-3 shrink-0 text-xs">'
-        + '<span class="badge badge-discipline">'+(sourceLabels[m.signupSource] || m.signupSource)+'</span>'
+        + '<span class="badge badge-discipline">'+(sourceLabels[m.signupSource] || esc(m.signupSource))+'</span>'
         + '<span class="text-text-secondary">' + m.registrationCount + ' etkinlik</span>'
         + '<span class="text-text-secondary font-mono">'+(m.joinDate ? new Date(m.joinDate).toLocaleDateString('tr-TR',{day:'numeric',month:'short',year:'numeric'}) : '-')+'</span>'
         + '</div></div>'
@@ -379,7 +379,7 @@ const lang = 'tr' as const;
         + '</div>'
         + (regs.length > 0 ? '<h4 class="text-sm font-heading font-bold text-text-primary mt-6 mb-3">Etkinlikler ('+regs.length+')</h4><div class="space-y-2">'+regs.map(function(r){
           var statusMap = { completed:'Tamamlandı', accepted:'Kabul', pending:'Beklemede', rejected:'Red' };
-          return '<div class="glass-subtle p-3 flex justify-between items-center"><span class="text-xs text-text-primary truncate">'+esc(r.workshop||r.id)+'</span><span class="badge text-[10px] badge-discipline">'+(statusMap[r.status]||r.status)+'</span></div>';
+          return '<div class="glass-subtle p-3 flex justify-between items-center"><span class="text-xs text-text-primary truncate">'+esc(r.workshop||r.id)+'</span><span class="badge text-[10px] badge-discipline">'+(statusMap[r.status]||esc(r.status))+'</span></div>';
         }).join('')+'</div>' : '')
         + (certs.length > 0 ? '<h4 class="text-sm font-heading font-bold text-text-primary mt-6 mb-3">Sertifikalar ('+certs.length+')</h4><div class="space-y-2">'+certs.map(function(c){
           return '<div class="glass-subtle p-3 text-xs"><span class="text-gold-500 font-mono">'+esc(c.id)+'</span> — '+esc(c.type||'')+'</div>';
