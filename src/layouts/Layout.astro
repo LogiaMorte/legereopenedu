@@ -43,6 +43,9 @@ const title = pageTitle ? `${pageTitle} | Legere` : defaultTitle;
   <link rel="alternate" hreflang="en" href={new URL('/en/', Astro.site)} />
   <link rel="alternate" hreflang="x-default" href={new URL('/', Astro.site)} />
 
+  <link rel="preconnect" href="https://accounts.google.com" crossorigin />
+  <link rel="preconnect" href="https://apis.google.com" crossorigin />
+
   <meta name="description" content={description} />
 
   <!-- Open Graph -->

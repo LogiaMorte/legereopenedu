@@ -54,21 +54,22 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers });
     }
 
-    // Get registrations via regIds
-    const registrations: any[] = [];
+    // Get registrations via regIds (parallel KV fetches)
     const regIds = member.regIds || [];
-    for (const regId of regIds) {
-      const regData = await env.REGISTRATIONS.get(regId);
-      if (regData) {
-        const reg = JSON.parse(regData);
-        registrations.push({
+    const regResults = await Promise.all(
+      regIds.map((regId: string) => env.REGISTRATIONS.get(regId))
+    );
+    const registrations = regResults
+      .filter((data): data is string => data !== null)
+      .map((data) => {
+        const reg = JSON.parse(data);
+        return {
           id: reg.id,
           workshop: reg.workshop,
           status: reg.status || 'pending',
           timestamp: reg.timestamp,
-        });
-      }
-    }
+        };
+      });
 
     // Calculate auto badges
     const completedWorkshops = registrations.filter(r => r.status === 'completed').length;
