@@ -241,6 +241,9 @@ export const ui = {
     'signup.goProfile': 'Profilimi Tamamla',
     'signup.error': 'Bir hata oluştu. Lütfen tekrar deneyin.',
     'signup.errorExists': 'Bu e-posta adresi ile zaten kayıt yapılmış.',
+    'signup.consent': '{privacy} ve {terms} belgelerini okudum, kabul ediyorum.',
+    'signup.consentPrivacy': 'Gizlilik Politikası',
+    'signup.consentTerms': 'Kullanım Koşulları',
     'signup.hasAccount': 'Zaten hesabınız var mı?',
     'signup.goLogin': 'Giriş Yap',
 
@@ -262,6 +265,7 @@ export const ui = {
     // Homepage Trust Section
     'trust.title': 'Veri Güvenliği & Gizlilik',
     'trust.desc': 'Legere Open Edu, akademisyenlerin kişisel verilerini yalnızca üyelik yönetimi ve program organizasyonu amacıyla işler. Verileriniz üçüncü taraflarla paylaşılmaz. Giriş işlemleri Google ve LinkedIn üzerinden güvenli OAuth protokolü ile gerçekleştirilir.',
+    'trust.googleData': 'Google ile giriş yapıldığında yalnızca adınız, e-posta adresiniz ve profil fotoğrafınız alınır. Bu bilgiler üyelik profilinizi oluşturmak için kullanılır, başka bir amaçla paylaşılmaz veya işlenmez.',
     'trust.privacyLink': 'Gizlilik Politikamızı İnceleyin',
     'trust.termsLink': 'Kullanım Koşulları',
 
@@ -663,6 +667,9 @@ export const ui = {
     'signup.goProfile': 'Complete My Profile',
     'signup.error': 'An error occurred. Please try again.',
     'signup.errorExists': 'An account with this email already exists.',
+    'signup.consent': 'I have read and accept the {privacy} and {terms}.',
+    'signup.consentPrivacy': 'Privacy Policy',
+    'signup.consentTerms': 'Terms of Service',
     'signup.hasAccount': 'Already have an account?',
     'signup.goLogin': 'Log In',
 
@@ -684,6 +691,7 @@ export const ui = {
     // Homepage Trust Section
     'trust.title': 'Data Security & Privacy',
     'trust.desc': 'Legere Open Edu processes academics\' personal data solely for membership management and program organization. Your data is not shared with third parties. Login is handled securely via Google and LinkedIn OAuth protocols.',
+    'trust.googleData': 'When you sign in with Google, we only access your name, email address, and profile picture. This information is used solely to create your membership profile and is not shared or processed for any other purpose.',
     'trust.privacyLink': 'Review Our Privacy Policy',
     'trust.termsLink': 'Terms of Service',
 

@@ -312,7 +312,7 @@ const t = useTranslations(lang);
 </Layout>
 
 <script is:inline>
-(function() {
+document.addEventListener('astro:page-load', function() {
   var LANG = 'tr';
   var BADGE_META = {
     'first-workshop':   { icon: '🎓', name: 'İlk Adım', desc: 'İlk atölyeyi tamamladı' },
@@ -623,6 +623,7 @@ const t = useTranslations(lang);
     window.location.href = '/';
   });
 
-  loadProfile();
-})();
+  var loadingEl = document.getElementById('profile-loading');
+  if (loadingEl) loadProfile();
+});
 </script>

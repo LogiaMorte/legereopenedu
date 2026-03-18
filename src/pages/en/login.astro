@@ -87,11 +87,11 @@ const t = useTranslations(lang);
 </Layout>
 
 <script is:inline>
-(function() {
+document.addEventListener('astro:page-load', function() {
   var loadingEl = document.getElementById('auth-loading');
   var errorEl = document.getElementById('login-error');
+  if (!loadingEl || !errorEl) return;
 
-  // Check for error param from LinkedIn callback
   var params = new URLSearchParams(window.location.search);
   if (params.get('error')) {
     errorEl.textContent = decodeURIComponent(params.get('error_description') || 'Login failed.');
@@ -106,14 +106,12 @@ const t = useTranslations(lang);
       return;
     }
 
-    // Show LinkedIn button if enabled
     if (cfg.linkedinEnabled) {
-      document.getElementById('linkedin-section').classList.remove('hidden');
+      var li = document.getElementById('linkedin-section');
+      if (li) li.classList.remove('hidden');
     }
 
-    var s = document.createElement('script');
-    s.src = 'https://accounts.google.com/gsi/client';
-    s.onload = function() {
+    function initGoogle() {
       google.accounts.id.initialize({
         client_id: cfg.googleClientId,
         callback: function(response) {
@@ -141,12 +139,20 @@ const t = useTranslations(lang);
       });
       loadingEl.classList.add('hidden');
       document.getElementById('google-signin-section').classList.remove('hidden');
-    };
-    document.head.appendChild(s);
+    }
+
+    if (typeof google !== 'undefined' && google.accounts) {
+      initGoogle();
+    } else {
+      var s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.onload = initGoogle;
+      document.head.appendChild(s);
+    }
   }).catch(function() {
     loadingEl.classList.add('hidden');
     errorEl.textContent = 'Connection error.';
     errorEl.classList.remove('hidden');
   });
-})();
+});
 </script>

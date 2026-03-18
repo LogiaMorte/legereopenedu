@@ -29,6 +29,19 @@ const t = useTranslations(lang);
             <p class="text-text-secondary text-sm leading-relaxed">{t('signup.desc')}</p>
           </div>
 
+          <!-- Consent checkbox -->
+          <div id="consent-section" class="hidden mb-4">
+            <label class="flex items-start gap-3 cursor-pointer group">
+              <input type="checkbox" id="consent-checkbox" class="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-gold-500 focus:ring-gold-500/50 focus:ring-offset-0 cursor-pointer" />
+              <span class="text-xs text-text-secondary leading-relaxed">
+                I have read and accept the
+                <a href="/en/privacy/" class="text-gold-500 hover:text-gold-300 transition-colors">{t('signup.consentPrivacy')}</a>
+                {' and '}
+                <a href="/en/terms/" class="text-gold-500 hover:text-gold-300 transition-colors">{t('signup.consentTerms')}</a>.
+              </span>
+            </label>
+          </div>
+
           <!-- Google Sign-In -->
           <div id="google-signin-section" class="hidden">
             <div id="google-btn" class="flex justify-center"></div>
@@ -119,17 +132,17 @@ const t = useTranslations(lang);
 </Layout>
 
 <script is:inline>
-(function() {
+document.addEventListener('astro:page-load', function() {
   var loadingEl = document.getElementById('auth-loading');
   var errorEl = document.getElementById('signup-error');
   var formState = document.getElementById('signup-form-state');
   var successState = document.getElementById('signup-success-state');
+  if (!loadingEl || !errorEl) return;
 
-  // Check for success/error params from LinkedIn callback
   var params = new URLSearchParams(window.location.search);
   if (params.get('success') === 'new') {
-    formState.classList.add('hidden');
-    successState.classList.remove('hidden');
+    if (formState) formState.classList.add('hidden');
+    if (successState) successState.classList.remove('hidden');
     loadingEl.classList.add('hidden');
     return;
   }
@@ -146,16 +159,31 @@ const t = useTranslations(lang);
       return;
     }
 
-    // Show LinkedIn button if enabled, otherwise show info note
     if (cfg.linkedinEnabled) {
-      document.getElementById('linkedin-section').classList.remove('hidden');
+      var li = document.getElementById('linkedin-section');
+      if (li) li.classList.remove('hidden');
     } else {
-      document.getElementById('info-note').classList.remove('hidden');
+      var info = document.getElementById('info-note');
+      if (info) info.classList.remove('hidden');
     }
 
-    var s = document.createElement('script');
-    s.src = 'https://accounts.google.com/gsi/client';
-    s.onload = function() {
+    // Consent checkbox controls
+    var consentSection = document.getElementById('consent-section');
+    var consentCheckbox = document.getElementById('consent-checkbox');
+    var googleSection = document.getElementById('google-signin-section');
+    var linkedinEl = document.getElementById('linkedin-section');
+    if (consentSection) consentSection.classList.remove('hidden');
+
+    function updateConsentState() {
+      var accepted = consentCheckbox && consentCheckbox.checked;
+      if (googleSection) googleSection.style.opacity = accepted ? '1' : '0.4';
+      if (googleSection) googleSection.style.pointerEvents = accepted ? 'auto' : 'none';
+      if (linkedinEl) linkedinEl.style.opacity = accepted ? '1' : '0.4';
+      if (linkedinEl) linkedinEl.style.pointerEvents = accepted ? 'auto' : 'none';
+    }
+    if (consentCheckbox) consentCheckbox.addEventListener('change', updateConsentState);
+
+    function initGoogle() {
       google.accounts.id.initialize({
         client_id: cfg.googleClientId,
         callback: function(response) {
@@ -169,8 +197,8 @@ const t = useTranslations(lang);
             if (res.ok) {
               return res.json().then(function(data) {
                 if (data.isNewMember) {
-                  formState.classList.add('hidden');
-                  successState.classList.remove('hidden');
+                  if (formState) formState.classList.add('hidden');
+                  if (successState) successState.classList.remove('hidden');
                 } else {
                   window.location.href = '/en/profile';
                 }
@@ -189,13 +217,22 @@ const t = useTranslations(lang);
         theme: 'filled_black', size: 'large', text: 'signup_with', shape: 'rectangular', width: 320
       });
       loadingEl.classList.add('hidden');
-      document.getElementById('google-signin-section').classList.remove('hidden');
-    };
-    document.head.appendChild(s);
+      googleSection.classList.remove('hidden');
+      updateConsentState();
+    }
+
+    if (typeof google !== 'undefined' && google.accounts) {
+      initGoogle();
+    } else {
+      var s = document.createElement('script');
+      s.src = 'https://accounts.google.com/gsi/client';
+      s.onload = initGoogle;
+      document.head.appendChild(s);
+    }
   }).catch(function() {
     loadingEl.classList.add('hidden');
     errorEl.textContent = 'Connection error.';
     errorEl.classList.remove('hidden');
   });
-})();
+});
 </script>

@@ -300,7 +300,7 @@ const t = useTranslations(lang);
 </Layout>
 
 <script is:inline>
-(function() {
+document.addEventListener('astro:page-load', function() {
   var BADGE_META = {
     'first-workshop':   { icon: '🎓', name: 'First Step', desc: 'Completed first workshop' },
     'three-workshops':  { icon: '⭐', name: 'Researcher', desc: 'Completed three workshops' },
@@ -491,6 +491,7 @@ const t = useTranslations(lang);
     window.location.href = '/en/';
   });
 
-  loadProfile();
-})();
+  var loadingEl = document.getElementById('profile-loading');
+  if (loadingEl) loadProfile();
+});
 </script>
