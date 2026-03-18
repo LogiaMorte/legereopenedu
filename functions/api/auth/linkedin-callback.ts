@@ -96,14 +96,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const url = new URL(request.url);
 
   // Parse state to get mode and lang
+  const ALLOWED_MODES = ['login', 'signup'];
+  const ALLOWED_LANGS = ['tr', 'en'];
   let mode = 'login';
   let lang = 'tr';
   try {
     const stateParam = url.searchParams.get('state') || '';
     const stateJson = atob(stateParam);
     const stateData = JSON.parse(stateJson);
-    mode = stateData.mode || 'login';
-    lang = stateData.lang || 'tr';
+    mode = ALLOWED_MODES.includes(stateData.mode) ? stateData.mode : 'login';
+    lang = ALLOWED_LANGS.includes(stateData.lang) ? stateData.lang : 'tr';
   } catch {
     // Default values already set
   }
@@ -211,8 +213,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       if (!member.linkedinSub) {
         member.linkedinSub = userInfo.sub;
       }
-      // Always update verification status on each login
-      member.linkedinVerified = true;
+      // Update verification status — only mark verified if at least one verification exists
+      member.linkedinVerified = verifications.length > 0;
       member.linkedinVerifications = verifications;
       // Update picture if available
       if (userInfo.picture) {

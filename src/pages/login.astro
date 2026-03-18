@@ -86,20 +86,42 @@ const t = useTranslations(lang);
   </div>
 </Layout>
 
-<script is:inline>
+<script data-cfasync="false" is:inline>
 document.addEventListener('astro:page-load', function() {
   var loadingEl = document.getElementById('auth-loading');
   var errorEl = document.getElementById('login-error');
   if (!loadingEl || !errorEl) return;
 
-  // Check for error param from LinkedIn callback
   var params = new URLSearchParams(window.location.search);
   if (params.get('error')) {
+    loadingEl.classList.add('hidden');
     errorEl.textContent = decodeURIComponent(params.get('error_description') || 'Giriş başarısız.');
     errorEl.classList.remove('hidden');
   }
 
-  fetch('/api/config').then(function(r) { return r.json(); }).then(function(cfg) {
+  var loadTimeout = setTimeout(function() {
+    if (!loadingEl.classList.contains('hidden')) {
+      loadingEl.classList.add('hidden');
+      errorEl.textContent = 'Sayfa yüklenemedi. Lütfen sayfayı yenileyin.';
+      errorEl.classList.remove('hidden');
+    }
+  }, 8000);
+
+  var configPromise = fetch('/api/config').then(function(r) { return r.json(); });
+  var sdkPromise = new Promise(function(resolve) {
+    if (typeof google !== 'undefined' && google.accounts) { resolve(); return; }
+    var s = document.createElement('script');
+    s.src = 'https://accounts.google.com/gsi/client';
+    s.setAttribute('data-cfasync', 'false');
+    s.onload = resolve;
+    s.onerror = resolve;
+    document.head.appendChild(s);
+  });
+
+  Promise.all([configPromise, sdkPromise]).then(function(results) {
+    clearTimeout(loadTimeout);
+    var cfg = results[0];
+
     if (!cfg.googleClientId) {
       loadingEl.classList.add('hidden');
       errorEl.textContent = 'Giriş sistemi yapılandırılmamış. Lütfen info@legereopenedu.com adresine yazın.';
@@ -107,53 +129,49 @@ document.addEventListener('astro:page-load', function() {
       return;
     }
 
-    // Show LinkedIn button if enabled
     if (cfg.linkedinEnabled) {
       var li = document.getElementById('linkedin-section');
       if (li) li.classList.remove('hidden');
     }
 
-    function initGoogle() {
-      google.accounts.id.initialize({
-        client_id: cfg.googleClientId,
-        callback: function(response) {
-          errorEl.classList.add('hidden');
-          fetch('/api/auth/google', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
-            body: JSON.stringify({ credential: response.credential }),
-          }).then(function(res) {
-            if (res.ok) {
-              window.location.href = '/profile';
-            } else {
-              errorEl.textContent = 'Google ile giriş başarısız. Lütfen tekrar deneyin.';
-              errorEl.classList.remove('hidden');
-            }
-          }).catch(function() {
-            errorEl.textContent = 'Bağlantı hatası. İnternet bağlantınızı kontrol edin.';
-            errorEl.classList.remove('hidden');
-          });
-        }
-      });
-      google.accounts.id.renderButton(document.getElementById('google-btn'), {
-        theme: 'filled_black', size: 'large', text: 'signin_with', shape: 'rectangular', width: 320
-      });
+    if (typeof google === 'undefined' || !google.accounts) {
       loadingEl.classList.add('hidden');
-      document.getElementById('google-signin-section').classList.remove('hidden');
+      errorEl.textContent = 'Google servisi yüklenemedi. Reklam engelleyicinizi devre dışı bırakıp sayfayı yenileyin.';
+      errorEl.classList.remove('hidden');
+      return;
     }
 
-    if (typeof google !== 'undefined' && google.accounts) {
-      initGoogle();
-    } else {
-      var s = document.createElement('script');
-      s.src = 'https://accounts.google.com/gsi/client';
-      s.onload = initGoogle;
-      document.head.appendChild(s);
-    }
-  }).catch(function() {
+    google.accounts.id.initialize({
+      client_id: cfg.googleClientId,
+      callback: function(response) {
+        errorEl.classList.add('hidden');
+        fetch('/api/auth/google', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'same-origin',
+          body: JSON.stringify({ credential: response.credential }),
+        }).then(function(res) {
+          if (res.ok) {
+            window.location.href = '/profile';
+          } else {
+            errorEl.textContent = 'Google ile giriş başarısız. Lütfen tekrar deneyin.';
+            errorEl.classList.remove('hidden');
+          }
+        }).catch(function() {
+          errorEl.textContent = 'Bağlantı hatası. İnternet bağlantınızı kontrol edin.';
+          errorEl.classList.remove('hidden');
+        });
+      }
+    });
+    google.accounts.id.renderButton(document.getElementById('google-btn'), {
+      theme: 'filled_black', size: 'large', text: 'signin_with', shape: 'rectangular', width: 320
+    });
     loadingEl.classList.add('hidden');
-    errorEl.textContent = 'Bağlantı hatası.';
+    document.getElementById('google-signin-section').classList.remove('hidden');
+  }).catch(function() {
+    clearTimeout(loadTimeout);
+    loadingEl.classList.add('hidden');
+    errorEl.textContent = 'Bağlantı hatası. Sayfayı yenileyin.';
     errorEl.classList.remove('hidden');
   });
 });

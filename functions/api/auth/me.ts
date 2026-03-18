@@ -10,6 +10,7 @@ import {
   corsHeaders,
   optionsResponse,
   parseSessionCookie,
+  parseJsonBody,
   generateToken,
   buildLogoutCookies,
   jsonResponseWithCookies,
@@ -54,21 +55,22 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers });
     }
 
-    // Get registrations via regIds
-    const registrations: any[] = [];
+    // Get registrations via regIds (parallel KV fetches)
     const regIds = member.regIds || [];
-    for (const regId of regIds) {
-      const regData = await env.REGISTRATIONS.get(regId);
-      if (regData) {
-        const reg = JSON.parse(regData);
-        registrations.push({
+    const regResults = await Promise.all(
+      regIds.map((regId: string) => env.REGISTRATIONS.get(regId))
+    );
+    const registrations = regResults
+      .filter((data): data is string => data !== null)
+      .map((data) => {
+        const reg = JSON.parse(data);
+        return {
           id: reg.id,
           workshop: reg.workshop,
           status: reg.status || 'pending',
           timestamp: reg.timestamp,
-        });
-      }
-    }
+        };
+      });
 
     // Calculate auto badges
     const completedWorkshops = registrations.filter(r => r.status === 'completed').length;
@@ -140,7 +142,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
     }
 
-    const body = (await request.json()) as {
+    const body = await parseJsonBody<{
       showFullName?: boolean;
       showEmail?: boolean;
       university?: string;
@@ -149,7 +151,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       linkedin?: string;
       interests?: string[];
       ideas?: string;
-    };
+    }>(request);
+
+    if (!body) {
+      return new Response(JSON.stringify({ error: 'Invalid or oversized request body' }), { status: 400, headers });
+    }
 
     // Privacy toggles
     if (typeof body.showFullName === 'boolean') member.showFullName = body.showFullName;
@@ -168,13 +174,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     if (Array.isArray(body.interests)) {
-      member.interests = body.interests.slice(0, 10).map(i => String(i).slice(0, 100));
+      const VALID_INTERESTS = ['projects', 'workshops', 'seminars', 'content', 'mentorship', 'other'];
+      member.interests = body.interests
+        .filter((i): i is string => typeof i === 'string' && VALID_INTERESTS.includes(i))
+        .slice(0, 10);
     }
 
     // School email update (with alias management)
     if (typeof body.schoolEmail === 'string') {
       const newSchoolEmail = body.schoolEmail.trim().toLowerCase();
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
       if (newSchoolEmail && !emailRegex.test(newSchoolEmail)) {
         return new Response(JSON.stringify({ error: 'Invalid school email format' }), { status: 400, headers });
       }

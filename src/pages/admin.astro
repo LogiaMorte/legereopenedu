@@ -16,11 +16,13 @@ const lang = 'tr' as const;
       <h1 class="text-3xl font-heading font-bold text-text-primary mb-2">Admin Panel</h1>
       <p class="text-text-secondary text-sm mb-8">Başvuruları ve üyeleri yönetin.</p>
 
-      <!-- Auth -->
+      <!-- Auth: Cloudflare Access JWT — no manual key needed -->
       <div id="auth-section" class="glass p-6 mb-8">
-        <label for="admin-key" class="block text-text-secondary text-xs font-heading font-medium mb-2">Admin Anahtarı</label>
-        <div class="flex gap-3">
-          <input type="password" id="admin-key" class="flex-1 px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono placeholder:text-text-secondary/40 focus:border-gold-500/50 focus:outline-none" placeholder="ADMIN_KEY değerinizi girin" />
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+            <span class="text-text-secondary text-xs font-heading font-medium">Cloudflare Access ile kimlik doğrulandı</span>
+          </div>
           <button id="fetch-btn" class="btn-gold text-sm px-6" onclick="loadAll()">Yükle</button>
         </div>
       </div>
@@ -210,17 +212,15 @@ const lang = 'tr' as const;
   }
 
   async function loadAll() {
-    var key = document.getElementById('admin-key').value.trim();
-    if (!key) return;
     var btn = document.getElementById('fetch-btn');
     btn.textContent = 'Yükleniyor...';
     btn.disabled = true;
 
     try {
-      // Load registrations and members in parallel
+      var fetchOpts = { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin' };
       var [regRes, memRes] = await Promise.all([
-        fetch('/api/registrations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: key, action: 'list' }) }),
-        fetch('/api/auth/members', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ key: key, action: 'list' }) })
+        fetch('/api/registrations', Object.assign({}, fetchOpts, { body: JSON.stringify({ action: 'list' }) })),
+        fetch('/api/auth/members', Object.assign({}, fetchOpts, { body: JSON.stringify({ action: 'list' }) }))
       ]);
 
       if (!regRes.ok) throw new Error((await regRes.json().catch(function(){return {};}).then(function(d){return d.error;})) || 'HTTP ' + regRes.status);
@@ -245,7 +245,7 @@ const lang = 'tr' as const;
     } catch (err) {
       var errorEl = document.getElementById('error-state');
       errorEl.querySelector('p').textContent = err.message === 'Unauthorized'
-        ? 'Yanlış anahtar.'
+        ? 'Cloudflare Access oturumu geçersiz. Sayfayı yenileyin.'
         : 'Hata: ' + err.message;
       errorEl.classList.remove('hidden');
     } finally {
@@ -329,7 +329,7 @@ const lang = 'tr' as const;
         + '<p class="text-text-secondary/60 text-xs font-mono truncate">'+esc(m.email)+'</p>'
         + '</div>'
         + '<div class="flex items-center gap-3 shrink-0 text-xs">'
-        + '<span class="badge badge-discipline">'+(sourceLabels[m.signupSource] || m.signupSource)+'</span>'
+        + '<span class="badge badge-discipline">'+(sourceLabels[m.signupSource] || esc(m.signupSource))+'</span>'
         + '<span class="text-text-secondary">' + m.registrationCount + ' etkinlik</span>'
         + '<span class="text-text-secondary font-mono">'+(m.joinDate ? new Date(m.joinDate).toLocaleDateString('tr-TR',{day:'numeric',month:'short',year:'numeric'}) : '-')+'</span>'
         + '</div></div>'
@@ -343,7 +343,6 @@ const lang = 'tr' as const;
   function filterMembers() { renderMembers(); }
 
   async function openMemberDetail(email) {
-    var key = document.getElementById('admin-key').value.trim();
     var modal = document.getElementById('member-detail-modal');
     var content = document.getElementById('member-detail-content');
     content.innerHTML = '<div class="text-center py-8 text-text-secondary text-sm">Yükleniyor...</div>';
@@ -354,7 +353,8 @@ const lang = 'tr' as const;
       var res = await fetch('/api/auth/members', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: key, action: 'detail', email: email })
+        credentials: 'same-origin',
+        body: JSON.stringify({ action: 'detail', email: email })
       });
       if (!res.ok) throw new Error('Detay yüklenemedi');
       var data = await res.json();
@@ -379,7 +379,7 @@ const lang = 'tr' as const;
         + '</div>'
         + (regs.length > 0 ? '<h4 class="text-sm font-heading font-bold text-text-primary mt-6 mb-3">Etkinlikler ('+regs.length+')</h4><div class="space-y-2">'+regs.map(function(r){
           var statusMap = { completed:'Tamamlandı', accepted:'Kabul', pending:'Beklemede', rejected:'Red' };
-          return '<div class="glass-subtle p-3 flex justify-between items-center"><span class="text-xs text-text-primary truncate">'+esc(r.workshop||r.id)+'</span><span class="badge text-[10px] badge-discipline">'+(statusMap[r.status]||r.status)+'</span></div>';
+          return '<div class="glass-subtle p-3 flex justify-between items-center"><span class="text-xs text-text-primary truncate">'+esc(r.workshop||r.id)+'</span><span class="badge text-[10px] badge-discipline">'+(statusMap[r.status]||esc(r.status))+'</span></div>';
         }).join('')+'</div>' : '')
         + (certs.length > 0 ? '<h4 class="text-sm font-heading font-bold text-text-primary mt-6 mb-3">Sertifikalar ('+certs.length+')</h4><div class="space-y-2">'+certs.map(function(c){
           return '<div class="glass-subtle p-3 text-xs"><span class="text-gold-500 font-mono">'+esc(c.id)+'</span> — '+esc(c.type||'')+'</div>';
@@ -437,13 +437,12 @@ const lang = 'tr' as const;
 
   async function confirmAction() {
     if (!pendingAction) return;
-    var key = document.getElementById('admin-key').value.trim();
     var message = document.getElementById('action-message').value.trim();
     var btn = document.getElementById('action-confirm');
     btn.textContent = 'Gönderiliyor...'; btn.disabled = true;
     try {
-      var res = await fetch('/api/registrations', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: key, regId: pendingAction.regId, action: pendingAction.action, message: message }) });
+      var res = await fetch('/api/registrations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ regId: pendingAction.regId, action: pendingAction.action, message: message }) });
       if (res.ok) {
         var reg = allRegistrations.find(function(r){return r.id === pendingAction.regId;});
         if (reg) { reg.status = pendingAction.action === 'accept' ? 'accepted' : 'rejected'; reg.reviewedAt = new Date().toISOString(); }
@@ -462,12 +461,11 @@ const lang = 'tr' as const;
   function closeCertModal() { var m = document.getElementById('cert-modal'); m.classList.add('hidden'); m.classList.remove('flex'); pendingCertRegId = null; }
   async function confirmCert() {
     if (!pendingCertRegId) return;
-    var key = document.getElementById('admin-key').value.trim();
     var certType = document.getElementById('cert-type-select').value;
     var btn = document.getElementById('cert-confirm'); btn.textContent = 'İşleniyor...'; btn.disabled = true;
     try {
-      var res = await fetch('/api/registrations', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: key, regId: pendingCertRegId, action: 'issue-certificate', certType: certType }) });
+      var res = await fetch('/api/registrations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ regId: pendingCertRegId, action: 'issue-certificate', certType: certType }) });
       if (res.ok) { var result = await res.json(); var reg = allRegistrations.find(function(r){return r.id === pendingCertRegId;}); if (reg) reg.status = 'completed'; closeCertModal(); updateStats(); renderCards(); alert('Sertifika verildi: ' + (result.certId || 'OK')); }
       else { var err = await res.json().catch(function(){return {};}); alert('Hata: ' + (err.error || 'Başarısız')); }
     } catch(e) { alert('Bağlantı hatası.'); }
@@ -483,12 +481,11 @@ const lang = 'tr' as const;
   function closeBadgeModal() { var m = document.getElementById('badge-modal'); m.classList.add('hidden'); m.classList.remove('flex'); pendingBadgeRegId = null; }
   async function confirmBadge() {
     if (!pendingBadgeRegId) return;
-    var key = document.getElementById('admin-key').value.trim();
     var badgeId = document.getElementById('badge-select').value;
     var btn = document.getElementById('badge-confirm'); btn.textContent = 'İşleniyor...'; btn.disabled = true;
     try {
-      var res = await fetch('/api/registrations', { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: key, regId: pendingBadgeRegId, action: 'award-badge', badgeId: badgeId }) });
+      var res = await fetch('/api/registrations', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ regId: pendingBadgeRegId, action: 'award-badge', badgeId: badgeId }) });
       if (res.ok) { closeBadgeModal(); alert('Rozet verildi!'); }
       else { var err = await res.json().catch(function(){return {};}); alert('Hata: ' + (err.error || 'Başarısız')); }
     } catch(e) { alert('Bağlantı hatası.'); }

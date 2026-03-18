@@ -299,7 +299,7 @@ const t = useTranslations(lang);
   </div>
 </Layout>
 
-<script is:inline>
+<script data-cfasync="false" is:inline>
 document.addEventListener('astro:page-load', function() {
   var BADGE_META = {
     'first-workshop':   { icon: '🎓', name: 'First Step', desc: 'Completed first workshop' },
@@ -322,6 +322,11 @@ document.addEventListener('astro:page-load', function() {
     'projects': 'Join Projects', 'workshops': 'Workshop Content', 'seminars': 'Propose Seminars',
     'content': 'Create Content', 'mentorship': 'Mentorship', 'other': 'Other',
   };
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
 
   var loadingEl = document.getElementById('profile-loading');
   var contentEl = document.getElementById('profile-content');
@@ -348,24 +353,36 @@ document.addEventListener('astro:page-load', function() {
   }
   switchTab('overview');
 
+  var loadTimeout = setTimeout(function() {
+    if (loadingEl && !loadingEl.classList.contains('hidden')) {
+      loadingEl.classList.add('hidden');
+      notLoggedEl.classList.remove('hidden');
+    }
+  }, 10000);
+
   async function loadProfile() {
     try {
       var res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+      clearTimeout(loadTimeout);
       if (!res.ok) { loadingEl.classList.add('hidden'); notLoggedEl.classList.remove('hidden'); return; }
       var data = await res.json();
       renderProfile(data);
       loadingEl.classList.add('hidden');
       contentEl.classList.remove('hidden');
-    } catch (err) { loadingEl.classList.add('hidden'); notLoggedEl.classList.remove('hidden'); }
+    } catch (err) { clearTimeout(loadTimeout); loadingEl.classList.add('hidden'); notLoggedEl.classList.remove('hidden'); }
   }
 
   function renderProfile(data) {
     var user = data.user, registrations = data.registrations, certificates = data.certificates, badges = data.badges;
 
-    // Avatar — use picture if available
     if (user.picture) {
-      var avatarEl = document.getElementById('profile-avatar');
-      avatarEl.parentElement.innerHTML = '<img src="' + user.picture + '" alt="" class="w-20 h-20 rounded-full object-cover" />';
+      var avatarParent = document.getElementById('profile-avatar').parentElement;
+      var img = document.createElement('img');
+      img.src = user.picture;
+      img.alt = '';
+      img.className = 'w-20 h-20 rounded-full object-cover';
+      avatarParent.textContent = '';
+      avatarParent.appendChild(img);
     } else {
       var initials = user.name ? user.name.split(' ').map(function(w){ return w[0]; }).join('').toUpperCase().slice(0, 2) : '?';
       document.getElementById('profile-avatar').textContent = initials;
@@ -376,7 +393,6 @@ document.addEventListener('astro:page-load', function() {
     document.getElementById('profile-join-text').textContent = user.joinDate ? new Date(user.joinDate).toLocaleDateString('en-US', { year: 'numeric', month: 'long' }) : '-';
     if (user.schoolEmail) { document.getElementById('profile-school-email').classList.remove('hidden'); document.getElementById('profile-school-email-text').textContent = user.schoolEmail; }
 
-    // Verification badges
     var badgesContainer = document.getElementById('profile-verification-badges');
     var badgeHtml = '';
 
@@ -388,16 +404,11 @@ document.addEventListener('astro:page-load', function() {
       badgeHtml += '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-heading font-semibold bg-white/10 text-text-secondary border border-white/15" title="Signed in via Google"><svg class="w-3 h-3" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>Google</span>';
     }
 
-    // LinkedIn Verified badges (from LinkedIn Verification API)
     var verifications = user.linkedinVerifications || [];
-    var VERIFY_LABELS = {
-      'IDENTITY': 'Identity Verified',
-      'EMPLOYMENT': 'Employment Verified',
-      'EDUCATION': 'Education Verified',
-    };
+    var VERIFY_LABELS = { 'IDENTITY': 'Identity Verified', 'EMPLOYMENT': 'Employment Verified', 'EDUCATION': 'Education Verified' };
     verifications.forEach(function(v) {
-      var label = VERIFY_LABELS[v] || v;
-      badgeHtml += '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-heading font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25" title="Verified on LinkedIn: ' + label + '"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>' + label + '</span>';
+      var label = VERIFY_LABELS[v] || esc(v);
+      badgeHtml += '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-heading font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25" title="Verified on LinkedIn: ' + esc(label) + '"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>' + esc(label) + '</span>';
     });
 
     badgesContainer.innerHTML = badgeHtml;
@@ -406,8 +417,8 @@ document.addEventListener('astro:page-load', function() {
     var toggleEmail = document.getElementById('toggle-email');
     toggleFullName.checked = user.showFullName ?? true;
     toggleEmail.checked = user.showEmail ?? false;
-    toggleFullName.addEventListener('change', function() { updatePrivacy({ showFullName: toggleFullName.checked }); });
-    toggleEmail.addEventListener('change', function() { updatePrivacy({ showEmail: toggleEmail.checked }); });
+    toggleFullName.addEventListener('change', function() { updatePrivacy({ showFullName: toggleFullName.checked }, toggleFullName); });
+    toggleEmail.addEventListener('change', function() { updatePrivacy({ showEmail: toggleEmail.checked }, toggleEmail); });
 
     document.getElementById('edit-university').value = user.university || '';
     document.getElementById('edit-department').value = user.department || '';
@@ -419,7 +430,7 @@ document.addEventListener('astro:page-load', function() {
     if ((user.interests && user.interests.length > 0) || user.ideas || user.linkedin) {
       document.getElementById('contribution-section').classList.remove('hidden');
       if (user.interests && user.interests.length > 0) {
-        document.getElementById('contribution-interests').innerHTML = user.interests.map(function(i) { return '<span class="badge badge-discipline">' + (INTEREST_LABELS[i]||i) + '</span>'; }).join('');
+        document.getElementById('contribution-interests').innerHTML = user.interests.map(function(i) { return '<span class="badge badge-discipline">' + esc(INTEREST_LABELS[i]||i) + '</span>'; }).join('');
       }
       if (user.ideas) { document.getElementById('contribution-ideas').classList.remove('hidden'); document.getElementById('contribution-ideas-text').textContent = user.ideas; }
       if (user.linkedin) { document.getElementById('contribution-linkedin').classList.remove('hidden'); document.getElementById('contribution-linkedin-link').href = user.linkedin; }
@@ -433,9 +444,9 @@ document.addEventListener('astro:page-load', function() {
     if (certificates.length > 0) {
       document.getElementById('cert-count').textContent = '(' + certificates.length + ')';
       document.getElementById('certificates-list').innerHTML = certificates.map(function(cert) {
-        var typeLabel = CERT_TYPES[cert.type] || cert.type;
+        var typeLabel = CERT_TYPES[cert.type] || esc(cert.type);
         var typeColor = cert.type === 'achievement' ? 'text-gold-300' : cert.type === 'contribution' ? 'text-status-upcoming' : 'text-status-open';
-        return '<div class="glass-subtle p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div class="min-w-0"><div class="flex items-center gap-2 mb-1"><span class="text-sm font-heading font-semibold '+typeColor+'">'+typeLabel+'</span><span class="text-xs font-mono text-text-secondary">'+cert.id+'</span></div><p class="text-xs text-text-secondary truncate">'+(cert.workshopTitle||cert.workshopId||'-')+'</p>'+(cert.issueDate?'<p class="text-xs text-text-secondary/60 mt-0.5">'+new Date(cert.issueDate).toLocaleDateString('en-US')+'</p>':'')+'</div><div class="flex items-center gap-2 shrink-0"><a href="/en/verify?cert='+cert.id+'" class="text-xs text-gold-500 hover:text-gold-300 font-heading transition-colors">Verify</a></div></div>';
+        return '<div class="glass-subtle p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div class="min-w-0"><div class="flex items-center gap-2 mb-1"><span class="text-sm font-heading font-semibold '+typeColor+'">'+esc(typeLabel)+'</span><span class="text-xs font-mono text-text-secondary">'+esc(cert.id)+'</span></div><p class="text-xs text-text-secondary truncate">'+esc(cert.workshopTitle||cert.workshopId||'-')+'</p>'+(cert.issueDate?'<p class="text-xs text-text-secondary/60 mt-0.5">'+new Date(cert.issueDate).toLocaleDateString('en-US')+'</p>':'')+'</div><div class="flex items-center gap-2 shrink-0"><a href="/en/verify?cert='+encodeURIComponent(cert.id)+'" class="text-xs text-gold-500 hover:text-gold-300 font-heading transition-colors">Verify</a></div></div>';
       }).join('');
     }
 
@@ -443,7 +454,7 @@ document.addEventListener('astro:page-load', function() {
       document.getElementById('badge-count').textContent = '(' + badges.length + ')';
       document.getElementById('badges-list').innerHTML = badges.map(function(b) {
         var meta = BADGE_META[b.badgeId] || { icon: '🎖️', name: b.badgeId, desc: '' };
-        return '<div class="glass-subtle px-4 py-3 rounded-xl flex items-center gap-3"><span class="text-2xl">'+meta.icon+'</span><div><div class="text-sm font-heading font-semibold text-text-primary">'+meta.name+'</div><div class="text-xs text-text-secondary">'+meta.desc+'</div></div></div>';
+        return '<div class="glass-subtle px-4 py-3 rounded-xl flex items-center gap-3" title="'+esc(meta.desc)+'"><span class="text-2xl">'+meta.icon+'</span><div><div class="text-sm font-heading font-semibold text-text-primary">'+esc(meta.name)+'</div><div class="text-xs text-text-secondary">'+esc(meta.desc)+'</div></div></div>';
       }).join('');
     }
 
@@ -453,7 +464,7 @@ document.addEventListener('astro:page-load', function() {
 
     function renderEventCard(r) {
       var status = STATUS_MAP[r.status] || STATUS_MAP['pending'];
-      return '<div class="glass-subtle p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2"><div class="min-w-0"><p class="text-sm font-heading font-medium text-text-primary truncate">'+(r.workshop||r.id)+'</p>'+(r.timestamp?'<p class="text-xs text-text-secondary/60 mt-0.5">'+new Date(r.timestamp).toLocaleDateString('en-US',{day:'numeric',month:'long',year:'numeric'})+'</p>':'')+'</div><span class="badge '+status.cls+' shrink-0">'+status.label+'</span></div>';
+      return '<div class="glass-subtle p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2"><div class="min-w-0"><p class="text-sm font-heading font-medium text-text-primary truncate">'+esc(r.workshop||r.id)+'</p>'+(r.timestamp?'<p class="text-xs text-text-secondary/60 mt-0.5">'+new Date(r.timestamp).toLocaleDateString('en-US',{day:'numeric',month:'long',year:'numeric'})+'</p>':'')+'</div><span class="badge '+status.cls+' shrink-0">'+esc(status.label)+'</span></div>';
     }
 
     if (upcoming.length > 0) document.getElementById('events-upcoming').innerHTML = upcoming.map(renderEventCard).join('');
@@ -461,8 +472,12 @@ document.addEventListener('astro:page-load', function() {
     if (past.length > 0) document.getElementById('events-past').innerHTML = past.map(renderEventCard).join('');
   }
 
-  async function updatePrivacy(settings) {
-    try { await fetch('/api/auth/me', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(settings) }); } catch(e){}
+  async function updatePrivacy(settings, toggleEl) {
+    var prevState = !toggleEl.checked;
+    try {
+      var res = await fetch('/api/auth/me', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(settings) });
+      if (!res.ok) toggleEl.checked = prevState;
+    } catch(e) { toggleEl.checked = prevState; }
   }
 
   document.getElementById('edit-toggle').addEventListener('click', function() {
@@ -471,18 +486,23 @@ document.addEventListener('astro:page-load', function() {
     document.getElementById('edit-chevron').style.transform = c.classList.contains('hidden') ? '' : 'rotate(180deg)';
   });
 
-  document.getElementById('edit-save').addEventListener('click', async function() {
+  var saveBtn = document.getElementById('edit-save');
+  saveBtn.addEventListener('click', async function() {
     var editError = document.getElementById('edit-error'), editSuccess = document.getElementById('edit-success');
     editError.classList.add('hidden'); editSuccess.classList.add('hidden');
+    saveBtn.disabled = true;
+    var origText = saveBtn.innerHTML;
+    saveBtn.innerHTML = '<svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg> Saving...';
     var interests = [];
     document.querySelectorAll('input[name="edit-interests"]:checked').forEach(function(cb){interests.push(cb.value);});
     try {
       var res = await fetch('/api/auth/me', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
         body: JSON.stringify({ university: document.getElementById('edit-university').value.trim(), department: document.getElementById('edit-department').value.trim(), schoolEmail: document.getElementById('edit-school-email').value.trim(), linkedin: document.getElementById('edit-linkedin').value.trim(), ideas: document.getElementById('edit-ideas').value.trim(), interests: interests })
       });
-      if (res.ok) { editSuccess.classList.remove('hidden'); setTimeout(function(){window.location.reload();},1000); }
+      if (res.ok) { editSuccess.classList.remove('hidden'); setTimeout(function(){window.location.reload();},1200); }
       else { var r = await res.json().catch(function(){return {};}); editError.textContent = r.error === 'School email already in use' ? 'This school email is already in use.' : r.error === 'Invalid school email format' ? 'Please enter a valid school email.' : 'An error occurred.'; editError.classList.remove('hidden'); }
     } catch(e) { editError.textContent = 'Connection error.'; editError.classList.remove('hidden'); }
+    finally { saveBtn.disabled = false; saveBtn.innerHTML = origText; }
   });
 
   document.getElementById('logout-btn')?.addEventListener('click', async function() {
@@ -491,7 +511,6 @@ document.addEventListener('astro:page-load', function() {
     window.location.href = '/en/';
   });
 
-  var loadingEl = document.getElementById('profile-loading');
   if (loadingEl) loadProfile();
 });
 </script>

@@ -3,6 +3,7 @@
  * - CORS origin validation (exact match, no subdomain spoofing)
  * - HTML escaping for email templates (XSS prevention)
  * - SHA-256 password hashing (Workers-compatible)
+ * - Constant-time comparison (timing attack prevention)
  * - Password generation
  * - Token generation
  */
@@ -17,16 +18,20 @@ const ALLOWED_ORIGINS = [
 export function getAllowedOrigin(request: Request): string {
   const origin = request.headers.get('Origin') || '';
   if (ALLOWED_ORIGINS.includes(origin)) return origin;
-  return ALLOWED_ORIGINS[0];
+  return '';
 }
 
 export function corsHeaders(request: Request, methods = 'POST, OPTIONS'): Record<string, string> {
-  return {
+  const origin = getAllowedOrigin(request);
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': getAllowedOrigin(request),
     'Access-Control-Allow-Methods': methods,
     'Access-Control-Allow-Headers': 'Content-Type',
   };
+  if (origin) {
+    headers['Access-Control-Allow-Origin'] = origin;
+  }
+  return headers;
 }
 
 export function optionsResponse(request: Request, methods = 'POST, OPTIONS'): Response {
@@ -61,10 +66,37 @@ export async function hashPassword(password: string): Promise<string> {
 export async function verifyPassword(input: string, stored: string): Promise<boolean> {
   if (stored.startsWith(HASH_PREFIX)) {
     const inputHash = await hashPassword(input);
-    return inputHash === stored;
+    return constantTimeCompare(inputHash, stored);
   }
-  // Legacy: plain text password (migration path)
-  return input === stored;
+  // Legacy: plain text — always hash to prevent timing side-channel
+  const inputHash = await hashPassword(input);
+  const storedHash = await hashPassword(stored);
+  return constantTimeCompare(inputHash, storedHash);
+}
+
+// ── Constant-time comparison (timing attack prevention) ──
+
+export function constantTimeCompare(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let result = 0;
+  for (let i = 0; i < a.length; i++) {
+    result |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  }
+  return result === 0;
+}
+
+// ── Request body size guard ──
+
+const MAX_BODY_SIZE = 100 * 1024; // 100 KB
+
+export async function parseJsonBody<T = unknown>(request: Request): Promise<T | null> {
+  const contentLength = request.headers.get('content-length');
+  if (contentLength && parseInt(contentLength) > MAX_BODY_SIZE) return null;
+  try {
+    return (await request.json()) as T;
+  } catch {
+    return null;
+  }
 }
 
 export function isPasswordHashed(stored: string): boolean {
@@ -193,4 +225,111 @@ export async function sendEmail(
   } catch {
     return false;
   }
+}
+
+// ── Cloudflare Access JWT Verification ──
+
+interface CfAccessJwtPayload {
+  email: string;
+  aud: string[];
+  iss: string;
+  iat: number;
+  exp: number;
+  sub: string;
+  type: string;
+  country?: string;
+}
+
+/**
+ * Verify Cloudflare Access JWT from CF_Authorization cookie.
+ * Validates signature against CF Access public keys (JWKS), checks expiry and audience.
+ *
+ * Requires env vars:
+ *   CF_ACCESS_TEAM_DOMAIN — e.g. "myteam" (without .cloudflareaccess.com)
+ *   CF_ACCESS_AUD         — Application Audience (AUD) tag from Access policy
+ */
+export async function verifyCfAccessJwt(
+  request: Request,
+  teamDomain: string,
+  aud: string,
+): Promise<CfAccessJwtPayload | null> {
+  try {
+    // Extract JWT from CF_Authorization cookie
+    const cookieHeader = request.headers.get('Cookie') || '';
+    const cfCookie = cookieHeader.split(';').find(c => c.trim().startsWith('CF_Authorization='));
+    if (!cfCookie) return null;
+
+    const token = cfCookie.split('=').slice(1).join('=').trim();
+    if (!token) return null;
+
+    // Decode JWT parts
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+
+    const headerB64 = parts[0];
+    const payloadB64 = parts[1];
+    const signatureB64 = parts[2];
+
+    const header = JSON.parse(b64UrlDecode(headerB64));
+    const payload: CfAccessJwtPayload = JSON.parse(b64UrlDecode(payloadB64));
+
+    // Check expiry
+    const now = Math.floor(Date.now() / 1000);
+    if (payload.exp < now) return null;
+
+    // Check audience
+    const audiences = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
+    if (!audiences.includes(aud)) return null;
+
+    // Check issuer
+    const expectedIssuer = `https://${teamDomain}.cloudflareaccess.com`;
+    if (payload.iss !== expectedIssuer) return null;
+
+    // Fetch JWKS and verify signature
+    const certsUrl = `${expectedIssuer}/cdn-cgi/access/certs`;
+    const certsRes = await fetch(certsUrl, {
+      cf: { cacheTtl: 3600, cacheEverything: true },
+    } as RequestInit);
+    if (!certsRes.ok) return null;
+
+    const certs = (await certsRes.json()) as { keys: JsonWebKey[] };
+
+    // Find matching key by kid
+    const kid = header.kid;
+    const jwk = certs.keys.find((k: any) => k.kid === kid);
+    if (!jwk) return null;
+
+    // Import key and verify signature
+    const key = await crypto.subtle.importKey(
+      'jwk',
+      jwk,
+      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+      false,
+      ['verify'],
+    );
+
+    const signedData = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
+    const signature = b64UrlToBuffer(signatureB64);
+
+    const valid = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', key, signature, signedData);
+    if (!valid) return null;
+
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+function b64UrlDecode(str: string): string {
+  const padded = str.replace(/-/g, '+').replace(/_/g, '/');
+  return atob(padded);
+}
+
+function b64UrlToBuffer(str: string): ArrayBuffer {
+  const binary = b64UrlDecode(str);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  return bytes.buffer;
 }

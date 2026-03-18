@@ -1,11 +1,12 @@
 /**
  * Cloudflare Pages Function — Admin: View & Manage Registrations
+ * Auth: Cloudflare Access JWT (CF_Authorization cookie)
  *
- * POST /api/registrations  { key, action: 'list' }               → list all
- * POST /api/registrations  { key, action: 'list', workshop: 'X' } → filter by workshop
- * POST /api/registrations  { key, action: 'accept'|'reject', regId, message? }
- * POST /api/registrations  { key, action: 'issue-certificate', regId, certType }
- * POST /api/registrations  { key, action: 'award-badge', regId, badgeId }
+ * POST /api/registrations  { action: 'list' }               → list all
+ * POST /api/registrations  { action: 'list', workshop: 'X' } → filter by workshop
+ * POST /api/registrations  { action: 'accept'|'reject', regId, message? }
+ * POST /api/registrations  { action: 'issue-certificate', regId, certType }
+ * POST /api/registrations  { action: 'award-badge', regId, badgeId }
  */
 
 import {
@@ -16,12 +17,15 @@ import {
   generateToken,
   generatePassword,
   sendEmail,
+  parseJsonBody,
+  verifyCfAccessJwt,
 } from '../_shared';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
-  ADMIN_KEY: string;
   RESEND_API_KEY?: string;
+  CF_ACCESS_TEAM_DOMAIN: string;
+  CF_ACCESS_AUD: string;
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -29,18 +33,23 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const headers = corsHeaders(request, 'POST, OPTIONS');
 
   try {
-    const body = (await request.json()) as {
-      key: string;
+    // Verify Cloudflare Access JWT
+    const jwtPayload = await verifyCfAccessJwt(request, env.CF_ACCESS_TEAM_DOMAIN, env.CF_ACCESS_AUD);
+    if (!jwtPayload) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+    }
+
+    const body = await parseJsonBody<{
       action: 'list' | 'accept' | 'reject' | 'issue-certificate' | 'award-badge';
       regId?: string;
       workshop?: string;
       message?: string;
       certType?: 'participation' | 'achievement' | 'contribution';
       badgeId?: string;
-    };
+    }>(request);
 
-    if (!env.ADMIN_KEY || body.key !== env.ADMIN_KEY) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+    if (!body) {
+      return new Response(JSON.stringify({ error: 'Invalid or oversized request body' }), { status: 400, headers });
     }
 
     if (!body.action) {
@@ -53,16 +62,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
       }
       const list = await env.REGISTRATIONS.list({ prefix: 'reg_' });
-      const registrations = [];
-      for (const k of list.keys) {
-        const data = await env.REGISTRATIONS.get(k.name);
-        if (data) {
-          const reg = JSON.parse(data);
-          if (!body.workshop || reg.workshop === body.workshop) {
-            registrations.push(reg);
-          }
-        }
-      }
+      const kvResults = await Promise.all(list.keys.map((k) => env.REGISTRATIONS.get(k.name)));
+      const registrations = kvResults
+        .filter((data): data is string => data !== null)
+        .map((data) => JSON.parse(data))
+        .filter((reg) => !body.workshop || reg.workshop === body.workshop);
       registrations.sort(
         (a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       );
@@ -73,8 +77,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       );
     }
 
-    if (!body.regId) {
-      return new Response(JSON.stringify({ error: 'Missing regId' }), { status: 400, headers });
+    if (!body.regId || !/^reg_\d+_[a-z0-9]+$/.test(body.regId)) {
+      return new Response(JSON.stringify({ error: 'Invalid regId' }), { status: 400, headers });
     }
 
     const regData = await env.REGISTRATIONS.get(body.regId);

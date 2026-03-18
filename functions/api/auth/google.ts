@@ -11,6 +11,7 @@
 import {
   corsHeaders,
   optionsResponse,
+  parseJsonBody,
   generateToken,
   generatePassword,
   hashPassword,
@@ -99,7 +100,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   }
 
   try {
-    const body = (await request.json()) as { credential?: string };
+    const body = await parseJsonBody<{ credential?: string }>(request);
+    if (!body) {
+      return new Response(JSON.stringify({ error: 'Invalid or oversized request body' }), { status: 400, headers });
+    }
     if (!body.credential) {
       return new Response(JSON.stringify({ error: 'Missing credential' }), { status: 400, headers });
     }
