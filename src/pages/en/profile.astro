@@ -5,7 +5,7 @@ const lang = 'en' as const;
 const t = useTranslations(lang);
 ---
 
-<Layout lang={lang} pageTitle="My Profile">
+<Layout lang={lang} pageTitle="My Profile" noindex>
   <div class="relative min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8">
     <div class="max-w-4xl mx-auto">
       <a href="/en/" class="inline-flex items-center gap-2 text-gold-500 hover:text-gold-300 transition-colors font-heading text-sm mb-8 group">
@@ -94,6 +94,19 @@ const t = useTranslations(lang);
                   <input type="checkbox" id="toggle-email" class="w-4 h-4 rounded bg-white/5 border-white/20 text-gold-500 focus:ring-gold-500/25 focus:ring-offset-0 accent-[#D4A843]" />
                   <span class="group-hover:text-text-primary transition-colors">{t('profile.showEmail')}</span>
                 </label>
+                <label class="flex items-center gap-2 text-xs text-text-secondary cursor-pointer group">
+                  <input type="checkbox" id="toggle-public-profile" class="w-4 h-4 rounded bg-white/5 border-white/20 text-gold-500 focus:ring-gold-500/25 focus:ring-offset-0 accent-[#D4A843]" />
+                  <span class="group-hover:text-text-primary transition-colors">Make Profile Public</span>
+                </label>
+              </div>
+              <div id="public-profile-share" class="hidden mt-3 flex items-center gap-2">
+                <span class="text-xs text-text-secondary">Share:</span>
+                <a id="public-profile-link" href="#" target="_blank" class="text-xs text-gold-500 hover:text-gold-300 transition-colors font-mono truncate max-w-[280px]"></a>
+                <button id="copy-public-link" type="button" class="text-xs text-text-secondary hover:text-gold-500 transition-colors" title="Copy">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9.75a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -415,10 +428,35 @@ document.addEventListener('astro:page-load', function() {
 
     var toggleFullName = document.getElementById('toggle-fullname');
     var toggleEmail = document.getElementById('toggle-email');
+    var togglePublicProfile = document.getElementById('toggle-public-profile');
     toggleFullName.checked = user.showFullName ?? true;
     toggleEmail.checked = user.showEmail ?? false;
+    togglePublicProfile.checked = user.showPublicProfile ?? false;
     toggleFullName.addEventListener('change', function() { updatePrivacy({ showFullName: toggleFullName.checked }, toggleFullName); });
     toggleEmail.addEventListener('change', function() { updatePrivacy({ showEmail: toggleEmail.checked }, toggleEmail); });
+    togglePublicProfile.addEventListener('change', function() {
+      updatePrivacy({ showPublicProfile: togglePublicProfile.checked }, togglePublicProfile, function() {
+        setTimeout(function() { window.location.reload(); }, 800);
+      });
+    });
+
+    if (user.showPublicProfile && user.publicProfileId) {
+      var shareContainer = document.getElementById('public-profile-share');
+      var shareLink = document.getElementById('public-profile-link');
+      var publicUrl = window.location.origin + '/m?id=' + user.publicProfileId;
+      shareContainer.classList.remove('hidden');
+      shareLink.href = publicUrl;
+      shareLink.textContent = publicUrl;
+      document.getElementById('copy-public-link').addEventListener('click', function() {
+        navigator.clipboard.writeText(publicUrl).then(function() {
+          var btn = document.getElementById('copy-public-link');
+          btn.innerHTML = '<svg class="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>';
+          setTimeout(function() {
+            btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0 0 13.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 0 1-.75.75H9.75a.75.75 0 0 1-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 0 1-2.25 2.25H6.75A2.25 2.25 0 0 1 4.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 0 1 1.927-.184" /></svg>';
+          }, 2000);
+        });
+      });
+    }
 
     document.getElementById('edit-university').value = user.university || '';
     document.getElementById('edit-department').value = user.department || '';
@@ -472,11 +510,12 @@ document.addEventListener('astro:page-load', function() {
     if (past.length > 0) document.getElementById('events-past').innerHTML = past.map(renderEventCard).join('');
   }
 
-  async function updatePrivacy(settings, toggleEl) {
+  async function updatePrivacy(settings, toggleEl, onSuccess) {
     var prevState = !toggleEl.checked;
     try {
       var res = await fetch('/api/auth/me', { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin', body: JSON.stringify(settings) });
       if (!res.ok) toggleEl.checked = prevState;
+      else if (onSuccess) onSuccess();
     } catch(e) { toggleEl.checked = prevState; }
   }
 
