@@ -18,6 +18,7 @@ import {
 
 interface Env {
   REGISTRATIONS: KVNamespace;
+  ADMIN_EMAILS?: string;
 }
 
 const AUTO_BADGES = [
@@ -88,6 +89,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
     const allBadges = [...autoBadges, ...(member.adminBadges || [])];
 
+    // Check admin status (hidden from profile UI, only used for header nav)
+    const adminEmails = env.ADMIN_EMAILS || '';
+    const isAdmin = adminEmails.split(',').map(e => e.trim().toLowerCase()).includes(session.email.toLowerCase());
+
     return new Response(
       JSON.stringify({
         user: {
@@ -102,6 +107,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           joinDate: member.joinDate,
           showFullName: member.showFullName ?? true,
           showEmail: member.showEmail ?? false,
+          showPublicProfile: member.showPublicProfile ?? false,
+          publicProfileId: member.publicProfileId || '',
           picture: member.picture || '',
           linkedinHeadline: member.linkedinHeadline || '',
           signupSource: member.signupSource || 'email',
@@ -113,6 +120,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         registrations,
         certificates: member.certificates || [],
         badges: allBadges,
+        _nav: isAdmin ? { admin: true } : undefined,
       }),
       { status: 200, headers },
     );
@@ -145,6 +153,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const body = await parseJsonBody<{
       showFullName?: boolean;
       showEmail?: boolean;
+      showPublicProfile?: boolean;
       university?: string;
       department?: string;
       schoolEmail?: string;
@@ -160,6 +169,23 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     // Privacy toggles
     if (typeof body.showFullName === 'boolean') member.showFullName = body.showFullName;
     if (typeof body.showEmail === 'boolean') member.showEmail = body.showEmail;
+    if (typeof body.showPublicProfile === 'boolean') {
+      member.showPublicProfile = body.showPublicProfile;
+      // Manage public-profile index in KV
+      const emailBytes = new TextEncoder().encode(member.email.toLowerCase());
+      const hashBuffer = await crypto.subtle.digest('SHA-256', emailBytes);
+      const hashHex = Array.from(new Uint8Array(hashBuffer), b => b.toString(16).padStart(2, '0')).join('');
+      const profileId = hashHex.slice(0, 12);
+      if (body.showPublicProfile) {
+        await env.REGISTRATIONS.put(`public-profile:${profileId}`, member.email.toLowerCase(), {
+          expirationTtl: 60 * 60 * 24 * 365,
+        });
+        member.publicProfileId = profileId;
+      } else {
+        await env.REGISTRATIONS.delete(`public-profile:${profileId}`);
+        delete member.publicProfileId;
+      }
+    }
 
     // Profile fields
     if (typeof body.university === 'string') member.university = body.university.trim().slice(0, 200);

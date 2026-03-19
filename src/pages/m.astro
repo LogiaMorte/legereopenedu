@@ -1,0 +1,260 @@
+---
+import Layout from '../layouts/Layout.astro';
+const lang = 'tr' as const;
+---
+
+<Layout lang={lang} pageTitle="Profil">
+  <div class="relative min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-3xl mx-auto">
+      <a href="/" class="inline-flex items-center gap-2 text-gold-500 hover:text-gold-300 transition-colors font-heading text-sm mb-8 group">
+        <svg class="w-4 h-4 group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
+        </svg>
+        Ana Sayfa
+      </a>
+
+      <!-- Loading -->
+      <div id="pp-loading" class="text-center py-20">
+        <div class="inline-flex items-center gap-3 text-text-secondary font-heading text-sm">
+          <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          Yükleniyor...
+        </div>
+      </div>
+
+      <!-- Not Found -->
+      <div id="pp-notfound" class="hidden text-center py-20">
+        <div class="glass gold-glow rounded-2xl p-8 max-w-md mx-auto">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-white/5 border border-white/10 mb-4">
+            <svg class="w-8 h-8 text-text-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+            </svg>
+          </div>
+          <h1 class="text-xl font-heading font-bold text-text-primary mb-2">Profil Bulunamadı</h1>
+          <p class="text-sm text-text-secondary">Bu profil mevcut değil veya herkese açık değil.</p>
+        </div>
+      </div>
+
+      <!-- Profile Content -->
+      <div id="pp-content" class="hidden space-y-6">
+        <!-- User Card -->
+        <div class="glass gold-glow rounded-2xl p-6 sm:p-8">
+          <div class="flex flex-col sm:flex-row sm:items-start gap-6">
+            <div class="shrink-0">
+              <div id="pp-avatar-container" class="w-20 h-20 rounded-full bg-gold-500/10 border-2 border-gold-500/30 flex items-center justify-center">
+                <span id="pp-avatar" class="text-3xl font-heading font-bold text-gold-500"></span>
+              </div>
+            </div>
+            <div class="flex-1 min-w-0">
+              <h1 id="pp-name" class="text-2xl font-heading font-bold text-text-primary mb-1"></h1>
+              <div id="pp-verification-badges" class="flex items-center gap-1.5 mb-3"></div>
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-text-secondary">
+                <span id="pp-university" class="flex items-center gap-1.5">
+                  <svg class="w-4 h-4 text-gold-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342" />
+                  </svg>
+                  <span id="pp-uni-text"></span>
+                </span>
+                <span id="pp-department" class="flex items-center gap-1.5">
+                  <svg class="w-4 h-4 text-gold-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z" />
+                  </svg>
+                  <span id="pp-dept-text"></span>
+                </span>
+                <span id="pp-joindate" class="flex items-center gap-1.5">
+                  <svg class="w-4 h-4 text-gold-500/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+                  </svg>
+                  <span>Üye:</span>
+                  <span id="pp-join-text"></span>
+                </span>
+              </div>
+              <!-- LinkedIn -->
+              <div id="pp-linkedin" class="hidden mt-3">
+                <a id="pp-linkedin-link" href="#" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-xs text-gold-500 hover:text-gold-300 transition-colors font-heading">
+                  <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+                  LinkedIn Profili
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="grid grid-cols-3 gap-4">
+          <div class="glass rounded-xl p-4 text-center">
+            <div id="pp-stat-workshops" class="text-2xl font-heading font-bold text-gold-500">0</div>
+            <div class="text-xs text-text-secondary font-heading mt-1">Atölye</div>
+          </div>
+          <div class="glass rounded-xl p-4 text-center">
+            <div id="pp-stat-certificates" class="text-2xl font-heading font-bold text-gold-500">0</div>
+            <div class="text-xs text-text-secondary font-heading mt-1">Sertifika</div>
+          </div>
+          <div class="glass rounded-xl p-4 text-center">
+            <div id="pp-stat-badges" class="text-2xl font-heading font-bold text-gold-500">0</div>
+            <div class="text-xs text-text-secondary font-heading mt-1">Rozet</div>
+          </div>
+        </div>
+
+        <!-- Certificates -->
+        <div id="pp-certs-section" class="hidden glass rounded-2xl p-6 sm:p-8">
+          <h2 class="text-lg font-heading font-bold text-text-primary mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+            </svg>
+            Sertifikalar
+          </h2>
+          <div id="pp-certs-list" class="space-y-3"></div>
+        </div>
+
+        <!-- Badges -->
+        <div id="pp-badges-section" class="hidden glass rounded-2xl p-6 sm:p-8">
+          <h2 class="text-lg font-heading font-bold text-text-primary mb-4 flex items-center gap-2">
+            <svg class="w-5 h-5 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M18.75 4.236c.982.143 1.954.317 2.916.52A6.003 6.003 0 0 1 16.27 9.728M18.75 4.236V4.5c0 2.108-.966 3.99-2.48 5.228m0 0a6.023 6.023 0 0 1-2.77.896m5.25-6.388V2.721" />
+            </svg>
+            Rozetler
+          </h2>
+          <div id="pp-badges-list" class="flex flex-wrap gap-3"></div>
+        </div>
+
+        <!-- Legere branding -->
+        <div class="text-center pt-4">
+          <a href="/" class="inline-flex items-center gap-2 text-xs text-text-secondary/50 hover:text-gold-500/60 transition-colors font-heading">
+            <span>Legere Open Edu üye profili</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<script data-cfasync="false" is:inline>
+document.addEventListener('astro:page-load', function() {
+  var BADGE_META = {
+    'first-workshop':   { icon: '\u{1F393}', name: 'İlk Adım', desc: 'İlk atölyeyi tamamladı' },
+    'three-workshops':  { icon: '\u2B50', name: 'Araştırmacı', desc: 'Üç atölye tamamladı' },
+    'five-workshops':   { icon: '\u{1F3C6}', name: 'Uzman Araştırmacı', desc: 'Beş atölye tamamladı' },
+    'multi-discipline': { icon: '\u{1F517}', name: 'Disiplinlerarası', desc: '3+ farklı disiplinden atölyelere katıldı' },
+    'pioneer':          { icon: '\u{1F680}', name: 'Öncü', desc: 'Kurucu dönem katılımcısı' },
+    'mentor':           { icon: '\u{1F9ED}', name: 'Mentor', desc: 'Mentorluk katkısında bulundu' },
+    'contributor':      { icon: '\u270D\uFE0F', name: 'Katkıcı', desc: 'Yayın sürecine aktif katkı' },
+    'scholar':          { icon: '\u{1F4D6}', name: 'Akademisyen', desc: 'Akademik yayın üretti' },
+  };
+  var CERT_TYPES = {
+    'participation': 'Katılım Sertifikası',
+    'achievement':   'Başarı Sertifikası',
+    'contribution':  'Katkı Sertifikası',
+  };
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+  }
+
+  // Get profile ID from query param: /m?id=xxxxxxxxxxxx
+  var params = new URLSearchParams(window.location.search);
+  var profileId = params.get('id') || '';
+  var loadingEl = document.getElementById('pp-loading');
+  var notfoundEl = document.getElementById('pp-notfound');
+  var contentEl = document.getElementById('pp-content');
+
+  if (!profileId || !/^[a-f0-9]{12}$/.test(profileId)) {
+    loadingEl.classList.add('hidden');
+    notfoundEl.classList.remove('hidden');
+    return;
+  }
+
+  async function loadPublicProfile() {
+    try {
+      var res = await fetch('/api/public-profile?id=' + encodeURIComponent(profileId));
+      if (!res.ok) {
+        loadingEl.classList.add('hidden');
+        notfoundEl.classList.remove('hidden');
+        return;
+      }
+      var data = await res.json();
+      renderPublicProfile(data);
+      loadingEl.classList.add('hidden');
+      contentEl.classList.remove('hidden');
+    } catch (err) {
+      loadingEl.classList.add('hidden');
+      notfoundEl.classList.remove('hidden');
+    }
+  }
+
+  function renderPublicProfile(data) {
+    var p = data.profile;
+
+    // Avatar
+    if (p.picture) {
+      var container = document.getElementById('pp-avatar-container');
+      var img = document.createElement('img');
+      img.src = p.picture;
+      img.alt = '';
+      img.className = 'w-20 h-20 rounded-full object-cover';
+      container.textContent = '';
+      container.appendChild(img);
+    } else {
+      var initials = p.name ? p.name.split(' ').map(function(w) { return w[0]; }).join('').toUpperCase().slice(0, 2) : '?';
+      document.getElementById('pp-avatar').textContent = initials;
+    }
+
+    document.getElementById('pp-name').textContent = p.name || 'Üye';
+    document.getElementById('pp-uni-text').textContent = p.university || '-';
+    document.getElementById('pp-dept-text').textContent = p.department || '-';
+    document.getElementById('pp-join-text').textContent = p.joinDate ? new Date(p.joinDate).toLocaleDateString('tr-TR', { year: 'numeric', month: 'long' }) : '-';
+
+    // LinkedIn verified badges
+    var badgesHtml = '';
+    var verifications = p.linkedinVerifications || [];
+    var VERIFY_LABELS = { 'IDENTITY': 'Kimlik', 'EMPLOYMENT': 'Kurum', 'EDUCATION': 'Eğitim' };
+    verifications.forEach(function(v) {
+      var label = VERIFY_LABELS[v] || esc(v);
+      badgesHtml += '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-heading font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>' + esc(label) + '</span>';
+    });
+    if (p.linkedinVerified) {
+      badgesHtml += '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-heading font-semibold bg-[#0A66C2]/15 text-[#0A66C2] border border-[#0A66C2]/25"><svg class="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>LinkedIn</span>';
+    }
+    document.getElementById('pp-verification-badges').innerHTML = badgesHtml;
+
+    // LinkedIn link
+    if (p.linkedin) {
+      document.getElementById('pp-linkedin').classList.remove('hidden');
+      document.getElementById('pp-linkedin-link').href = p.linkedin;
+    }
+
+    // Stats
+    document.getElementById('pp-stat-workshops').textContent = data.workshops.length;
+    document.getElementById('pp-stat-certificates').textContent = data.certificates.length;
+    document.getElementById('pp-stat-badges').textContent = data.badges.length;
+
+    // Certificates
+    if (data.certificates.length > 0) {
+      document.getElementById('pp-certs-section').classList.remove('hidden');
+      document.getElementById('pp-certs-list').innerHTML = data.certificates.map(function(cert) {
+        var typeLabel = CERT_TYPES[cert.type] || esc(cert.type);
+        var typeColor = cert.type === 'achievement' ? 'text-gold-300' : cert.type === 'contribution' ? 'text-status-upcoming' : 'text-status-open';
+        return '<div class="glass-subtle p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div class="min-w-0"><div class="flex items-center gap-2 mb-1"><span class="text-sm font-heading font-semibold ' + typeColor + '">' + esc(typeLabel) + '</span><span class="text-xs font-mono text-text-secondary">' + esc(cert.id) + '</span></div>' + (cert.issueDate ? '<p class="text-xs text-text-secondary/60 mt-0.5">' + new Date(cert.issueDate).toLocaleDateString('tr-TR') + '</p>' : '') + '</div><a href="/verify?cert=' + encodeURIComponent(cert.id) + '" class="text-xs text-gold-500 hover:text-gold-300 font-heading transition-colors shrink-0">Doğrula</a></div>';
+      }).join('');
+    }
+
+    // Badges
+    if (data.badges.length > 0) {
+      document.getElementById('pp-badges-section').classList.remove('hidden');
+      document.getElementById('pp-badges-list').innerHTML = data.badges.map(function(b) {
+        var meta = BADGE_META[b.badgeId] || { icon: '\u{1F396}\uFE0F', name: b.badgeId, desc: '' };
+        return '<div class="glass-subtle px-4 py-3 rounded-xl flex items-center gap-3" title="' + esc(meta.desc) + '"><span class="text-2xl">' + meta.icon + '</span><div><div class="text-sm font-heading font-semibold text-text-primary">' + esc(meta.name) + '</div><div class="text-xs text-text-secondary">' + esc(meta.desc) + '</div></div></div>';
+      }).join('');
+    }
+
+    // Update page title
+    document.title = (p.name || 'Üye') + ' | Legere Open Edu';
+  }
+
+  loadPublicProfile();
+});
+</script>

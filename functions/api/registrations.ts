@@ -55,6 +55,21 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       return new Response(JSON.stringify({ error: 'Missing action' }), { status: 400, headers });
     }
 
+    // Audit log helper — append-only log of admin actions
+    async function auditLog(action: string, target: string, detail?: string) {
+      const entry = {
+        ts: new Date().toISOString(),
+        admin: adminEmail,
+        action,
+        target,
+        detail: detail || '',
+      };
+      const logKey = `audit:${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      await env.REGISTRATIONS.put(logKey, JSON.stringify(entry), {
+        expirationTtl: 60 * 60 * 24 * 365, // 1 year
+      });
+    }
+
     // ── LIST REGISTRATIONS ──
     if (body.action === 'list') {
       if (!env.REGISTRATIONS) {
@@ -161,6 +176,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         </div>`,
       );
 
+      await auditLog('issue-certificate', reg.email, `${body.certType} — ${certId} — ${reg.workshop}`);
       return new Response(JSON.stringify({ success: true, certId, emailSent }), { status: 200, headers });
     }
 
@@ -193,6 +209,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         });
       }
 
+      await auditLog('award-badge', reg.email, body.badgeId);
       return new Response(JSON.stringify({ success: true, badgeId: body.badgeId }), {
         status: 200,
         headers,
@@ -291,6 +308,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       emailSent = await sendEmail(env.RESEND_API_KEY, reg.email, subject, htmlBody);
     }
 
+    await auditLog(body.action, reg.email, `${reg.workshop}${body.message ? ' — ' + body.message.slice(0, 100) : ''}`);
     return new Response(JSON.stringify({ success: true, status: reg.status, emailSent }), {
       status: 200,
       headers,

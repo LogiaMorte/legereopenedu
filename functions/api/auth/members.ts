@@ -5,9 +5,11 @@
  * POST /api/auth/members
  *   action: 'list' — Tüm üyeleri listele
  *   action: 'detail' — Tek üye detayı
+ *   action: 'deactivate' — Üye deaktif et (token invalidate)
+ *   action: 'audit-log' — Audit log getir
  */
 
-import { corsHeaders, optionsResponse, parseJsonBody, verifyAdmin } from '../../_shared';
+import { corsHeaders, optionsResponse, parseJsonBody, verifyAdmin, generateToken } from '../../_shared';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
@@ -78,20 +80,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
       const member = JSON.parse(memberData);
 
-      // Get registrations
-      const registrations: any[] = [];
-      for (const regId of (member.regIds || [])) {
-        const regData = await env.REGISTRATIONS.get(regId);
-        if (regData) {
-          const reg = JSON.parse(regData);
-          registrations.push({
-            id: reg.id,
-            workshop: reg.workshop,
-            status: reg.status || 'pending',
-            timestamp: reg.timestamp,
-          });
-        }
-      }
+      // Get registrations (parallel)
+      const regIds = member.regIds || [];
+      const regResults = await Promise.all(regIds.map((rid: string) => env.REGISTRATIONS.get(rid)));
+      const registrations = regResults
+        .filter((data): data is string => data !== null)
+        .map((data) => {
+          const reg = JSON.parse(data);
+          return { id: reg.id, workshop: reg.workshop, status: reg.status || 'pending', timestamp: reg.timestamp };
+        });
 
       return new Response(JSON.stringify({
         member: {
@@ -112,6 +109,43 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         certificates: member.certificates || [],
         badges: member.adminBadges || [],
       }), { status: 200, headers });
+    }
+
+    // ── DEACTIVATE MEMBER ──
+    if (body.action === 'deactivate' && body.email) {
+      const memberData = await env.REGISTRATIONS.get(`member:${body.email}`);
+      if (!memberData) {
+        return new Response(JSON.stringify({ error: 'Member not found' }), { status: 404, headers });
+      }
+      const member = JSON.parse(memberData);
+      // Invalidate token — forces logout, prevents new logins
+      member.token = generateToken();
+      member.deactivated = true;
+      member.deactivatedAt = new Date().toISOString();
+      member.deactivatedBy = adminEmail;
+      await env.REGISTRATIONS.put(`member:${body.email}`, JSON.stringify(member), {
+        expirationTtl: 60 * 60 * 24 * 365,
+      });
+
+      // Audit log
+      const logKey = `audit:${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      await env.REGISTRATIONS.put(logKey, JSON.stringify({
+        ts: new Date().toISOString(), admin: adminEmail, action: 'deactivate', target: body.email, detail: '',
+      }), { expirationTtl: 60 * 60 * 24 * 365 });
+
+      return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+    }
+
+    // ── AUDIT LOG ──
+    if (body.action === 'audit-log') {
+      const logList = await env.REGISTRATIONS.list({ prefix: 'audit:' });
+      const logResults = await Promise.all(logList.keys.map((k) => env.REGISTRATIONS.get(k.name)));
+      const logs = logResults
+        .filter((data): data is string => data !== null)
+        .map((data) => JSON.parse(data))
+        .sort((a, b) => new Date(b.ts).getTime() - new Date(a.ts).getTime())
+        .slice(0, 200);
+      return new Response(JSON.stringify({ logs }), { status: 200, headers });
     }
 
     return new Response(JSON.stringify({ error: 'Invalid action' }), { status: 400, headers });

@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 const lang = 'tr' as const;
 ---
 
-<Layout lang={lang} pageTitle="Admin Panel">
+<Layout lang={lang} pageTitle="Admin Panel" noindex>
   <div class="relative min-h-screen pt-24 pb-16 px-4 sm:px-6 lg:px-8">
     <div class="max-w-6xl mx-auto">
       <a href="/" class="inline-flex items-center gap-2 text-gold-500 hover:text-gold-300 transition-colors font-heading text-sm mb-10 group">
@@ -44,6 +44,9 @@ const lang = 'tr' as const;
         <button class="admin-tab flex-1 px-4 py-2.5 rounded-lg text-sm font-heading font-medium transition-all text-text-secondary" data-tab="members" onclick="switchAdminTab('members')">
           Üyeler
           <span id="tab-member-count" class="ml-1.5 px-1.5 py-0.5 rounded-full bg-gold-500/20 text-gold-500 text-[10px] font-mono"></span>
+        </button>
+        <button class="admin-tab flex-1 px-4 py-2.5 rounded-lg text-sm font-heading font-medium transition-all text-text-secondary" data-tab="audit" onclick="switchAdminTab('audit')">
+          İşlem Geçmişi
         </button>
       </div>
 
@@ -118,6 +121,21 @@ const lang = 'tr' as const;
         <!-- Members export -->
         <div id="members-export" class="hidden mt-6 flex justify-end">
           <button class="btn-outline text-xs" onclick="exportMembersCSV()">CSV İndir</button>
+        </div>
+      </div>
+
+      <!-- ==================== AUDIT LOG TAB ==================== -->
+      <div id="panel-audit" class="hidden">
+        <div class="glass p-4 mb-6">
+          <h2 class="text-lg font-heading font-bold text-text-primary">İşlem Geçmişi</h2>
+          <p class="text-xs text-text-secondary mt-1">Admin tarafından yapılan tüm işlemler.</p>
+        </div>
+        <div id="audit-loading" class="hidden text-center py-8">
+          <svg class="w-5 h-5 animate-spin text-gold-500 mx-auto" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+        </div>
+        <div id="audit-list" class="space-y-2"></div>
+        <div id="audit-empty" class="hidden glass p-12 text-center">
+          <p class="text-text-secondary">Henüz işlem kaydı yok.</p>
         </div>
       </div>
 
@@ -217,6 +235,59 @@ const lang = 'tr' as const;
     });
     document.getElementById('panel-registrations').classList.toggle('hidden', tab !== 'registrations');
     document.getElementById('panel-members').classList.toggle('hidden', tab !== 'members');
+    document.getElementById('panel-audit').classList.toggle('hidden', tab !== 'audit');
+    if (tab === 'audit' && !auditLoaded) loadAuditLog();
+  }
+
+  var auditLoaded = false;
+  async function loadAuditLog() {
+    document.getElementById('audit-loading').classList.remove('hidden');
+    try {
+      var res = await fetch('/api/auth/members', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ action: 'audit-log' }),
+      });
+      if (!res.ok) return;
+      var data = await res.json();
+      auditLoaded = true;
+      document.getElementById('audit-loading').classList.add('hidden');
+      if (!data.logs || data.logs.length === 0) {
+        document.getElementById('audit-empty').classList.remove('hidden');
+        return;
+      }
+      var ACTION_LABELS = { 'accept': 'Kabul', 'reject': 'Red', 'issue-certificate': 'Sertifika', 'award-badge': 'Rozet', 'deactivate': 'Deaktif' };
+      var ACTION_COLORS = { 'accept': 'text-emerald-400', 'reject': 'text-red-400', 'issue-certificate': 'text-gold-300', 'award-badge': 'text-purple-400', 'deactivate': 'text-red-500' };
+      document.getElementById('audit-list').innerHTML = data.logs.map(function(log) {
+        var label = ACTION_LABELS[log.action] || log.action;
+        var color = ACTION_COLORS[log.action] || 'text-text-secondary';
+        var ts = new Date(log.ts).toLocaleString('tr-TR');
+        return '<div class="glass-subtle p-3 flex flex-wrap items-center gap-2 text-xs">' +
+          '<span class="text-text-secondary/60 font-mono shrink-0">' + esc(ts) + '</span>' +
+          '<span class="font-heading font-semibold ' + color + '">' + esc(label) + '</span>' +
+          '<span class="text-text-secondary">' + esc(log.target) + '</span>' +
+          (log.detail ? '<span class="text-text-secondary/60 truncate max-w-[200px]">' + esc(log.detail) + '</span>' : '') +
+          '<span class="text-text-secondary/40 ml-auto">' + esc(log.admin) + '</span>' +
+          '</div>';
+      }).join('');
+    } catch(e) {
+      document.getElementById('audit-loading').classList.add('hidden');
+    }
+  }
+
+  async function deactivateMember(email) {
+    if (!confirm('Bu üyeyi deaktif etmek istediğinizden emin misiniz?\n\n' + email + '\n\nOturumu sonlandırılacak ve giriş yapamayacak.')) return;
+    try {
+      var res = await fetch('/api/auth/members', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin',
+        body: JSON.stringify({ action: 'deactivate', email: email }),
+      });
+      if (res.ok) {
+        alert('Üye deaktif edildi: ' + email);
+        loadAll();
+      } else {
+        alert('Hata oluştu.');
+      }
+    } catch(e) { alert('Bağlantı hatası.'); }
   }
 
   async function loadAll() {
@@ -405,7 +476,8 @@ const lang = 'tr' as const;
         }).join('')+'</div>' : '')
         + (badges.length > 0 ? '<h4 class="text-sm font-heading font-bold text-text-primary mt-6 mb-3">Rozetler ('+badges.length+')</h4><div class="space-y-2">'+badges.map(function(b){
           return '<div class="glass-subtle p-3 text-xs">'+esc(b.badgeId)+'</div>';
-        }).join('')+'</div>' : '');
+        }).join('')+'</div>' : '')
+        + '<div class="mt-6 pt-4 border-t border-white/5"><button class="text-xs text-red-400 hover:text-red-300 transition-colors font-heading" onclick="closeMemberDetail();deactivateMember(\''+escAttr(m.email)+'\')">Üyeyi Deaktif Et</button></div>';
     } catch (err) {
       content.innerHTML = '<p class="text-red-400 text-sm">Detay yüklenemedi.</p>';
     }
