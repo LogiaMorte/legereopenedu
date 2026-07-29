@@ -1,7 +1,6 @@
 ---
 import type { Lang } from '../i18n/languages';
 import { useTranslations } from '../i18n/utils';
-import workshopsData from '../data/workshops.json';
 
 interface Props {
   lang: Lang;
@@ -10,7 +9,13 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 
-const openWorkshops = workshopsData.filter((ws: any) => ws.status === 'open' || ws.status === 'upcoming');
+/*
+ * Modal artık yalnızca atölyeye değil her etkinlik türüne hizmet ediyor
+ * (seminer, ders, kolokyum, kongre); hangi etkinliğe kayıt olunduğu
+ * window.openRegistration(baslik, id) ile çalışma zamanında geliyor.
+ * Eskiden burada workshops.json'dan bir "açık atölyeler" listesi
+ * hesaplanıyordu ama hiçbir yerde kullanılmıyordu.
+ */
 ---
 
 <!-- Registration Modal Overlay -->
