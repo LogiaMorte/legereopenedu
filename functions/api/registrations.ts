@@ -20,6 +20,7 @@ import {
   parseJsonBody,
   verifyAdmin,
 } from '../_shared';
+import { findEvent } from './events';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
@@ -119,13 +120,26 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       await env.REGISTRATIONS.put('cert:counter', String(counter));
       const certId = `LEGERE-${new Date().getFullYear()}-${String(counter).padStart(3, '0')}`;
 
+      /*
+       * Sertifikaya etkinliğin ADI yazılır, id'si değil. Eskiden
+       * workshopTitle alanına reg.workshop (ör. 'ws-2026-spring-criminology')
+       * konuyordu ve doğrulama sayfasında da e-postada da slug görünüyordu.
+       * Sertifika kalıcı bir belge olduğu için başlık üretildiği anda
+       * dondurulur — etkinlik sonradan yeniden adlandırılsa bile belge değişmez.
+       */
+      const certEvent = await findEvent(env.REGISTRATIONS, reg.workshop);
+      const certTitle = {
+        tr: certEvent?.title?.tr || reg.workshop,
+        en: certEvent?.title?.en || reg.workshop,
+      };
+
       const cert = {
         id: certId,
         type: body.certType,
         participantName: reg.name,
         participantEmail: reg.email,
         workshopId: reg.workshop,
-        workshopTitle: { tr: reg.workshop, en: reg.workshop },
+        workshopTitle: certTitle,
         issueDate: new Date().toISOString().split('T')[0],
         issuedBy: 'admin',
       };
@@ -156,16 +170,16 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         contribution: 'Katki',
       };
       const safeName = escapeHtml(reg.name);
-      const safeWorkshop = escapeHtml(reg.workshop);
+      const safeWorkshop = escapeHtml(certTitle.tr);
 
       const emailSent = await sendEmail(
         env.RESEND_API_KEY,
         reg.email,
-        `${typeNames[body.certType]} Sertifikaniz Hazir — ${reg.workshop}`,
+        `${typeNames[body.certType]} Sertifikaniz Hazir — ${certTitle.tr}`,
         `<div style="font-family:'Segoe UI',sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#0A0A0F;color:#F0EDE6;border-radius:12px;">
           <div style="text-align:center;margin-bottom:24px;"><h1 style="color:#D4A843;font-size:24px;margin:0;">Legere Open Edu</h1></div>
           <h2 style="color:#D4A843;">Tebrikler, ${safeName}!</h2>
-          <p style="color:#A0A0B0;line-height:1.6;"><strong style="color:#D4A843;">${safeWorkshop}</strong> atolyesi icin <strong style="color:#4ADE80;">${typeNames[body.certType]} Sertifikaniz</strong> duzenlenmistir.</p>
+          <p style="color:#A0A0B0;line-height:1.6;"><strong style="color:#D4A843;">${safeWorkshop}</strong> etkinligi icin <strong style="color:#4ADE80;">${typeNames[body.certType]} Sertifikaniz</strong> duzenlenmistir.</p>
           <p style="color:#A0A0B0;line-height:1.6;">Sertifika No: <strong style="color:#D4A843;font-family:monospace;">${certId}</strong></p>
           <div style="text-align:center;margin:24px 0;">
             <a href="https://legereopenedu.com/profile" style="display:inline-block;background:linear-gradient(135deg,#B8922E,#D4A843);color:#0A0A0F;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Profilimde Goruntule</a>
@@ -264,21 +278,35 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (env.RESEND_API_KEY && reg.email) {
       const isAccepted = body.action === 'accept';
       const safeName = escapeHtml(reg.name);
-      const safeWorkshop = escapeHtml(reg.workshop);
+
+      /*
+       * reg.workshop bir id ('sem-2026-08-02-disiplinlerarasi'). Eskiden bu
+       * doğrudan e-postaya basılıyordu ve katılımcı "sem-2026-08-02-...
+       * atolyesine basvurunuz kabul edilmistir" gibi bir metin alıyordu.
+       * Başlığı KV'deki etkinlik kaydından okuyoruz; bulunamazsa id'ye düşer.
+       */
+      const eventRecord = await findEvent(env.REGISTRATIONS, reg.workshop);
+      const eventTitle = eventRecord?.title?.tr || reg.workshop;
+      const safeWorkshop = escapeHtml(eventTitle);
+      const safePlatform = eventRecord?.platform ? escapeHtml(eventRecord.platform) : '';
       const safeMessage = body.message ? escapeHtml(body.message) : '';
       const safeEmail = escapeHtml(reg.email);
 
       const subject = isAccepted
-        ? `Atolye Basvurunuz Kabul Edildi — ${reg.workshop}`
-        : `Atolye Basvuru Sonucu — ${reg.workshop}`;
+        ? `Basvurunuz Kabul Edildi — ${eventTitle}`
+        : `Basvuru Sonucu — ${eventTitle}`;
 
       const htmlBody = isAccepted
         ? `<div style="font-family:'Segoe UI',sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#0A0A0F;color:#F0EDE6;border-radius:12px;">
             <div style="text-align:center;margin-bottom:24px;"><h1 style="color:#D4A843;font-size:24px;margin:0;">Legere Open Edu</h1></div>
             <h2 style="color:#4ADE80;">Tebrikler, ${safeName}!</h2>
-            <p style="color:#A0A0B0;line-height:1.6;"><strong style="color:#D4A843;">${safeWorkshop}</strong> atolyesine basvurunuz <strong style="color:#4ADE80;">kabul edilmistir</strong>.</p>
-            ${safeMessage ? `<div style="background:rgba(212,168,67,0.1);border-left:3px solid #D4A843;padding:12px 16px;margin:16px 0;border-radius:4px;"><p style="color:#A0A0B0;margin:0;">${safeMessage}</p></div>` : ''}
-            <p style="color:#A0A0B0;line-height:1.6;">Google Classroom sinif kodu ve katilim daveti ayrica gonderilecektir.</p>
+            <p style="color:#A0A0B0;line-height:1.6;"><strong style="color:#D4A843;">${safeWorkshop}</strong> etkinligine basvurunuz <strong style="color:#4ADE80;">kabul edilmistir</strong>.</p>
+            ${safeMessage ? `<div style="background:rgba(212,168,67,0.1);border-left:3px solid #D4A843;padding:16px;margin:16px 0;border-radius:4px;"><p style="color:#D4A843;margin:0 0 6px 0;font-size:13px;font-weight:600;">Katilim Bilgileri</p><p style="color:#F0EDE6;margin:0;line-height:1.6;word-break:break-word;">${safeMessage}</p></div>` : ''}
+            <p style="color:#A0A0B0;line-height:1.6;">${
+              safeMessage
+                ? 'Katilim bilgileri yukarida yer almaktadir.'
+                : `Katilim baglantisi${safePlatform ? ` (${safePlatform})` : ''} etkinlik oncesinde ayrica gonderilecektir.`
+            }</p>
             <div style="text-align:center;margin:24px 0;">
               <a href="https://teams.live.com/l/community/FEApfJqwPQhu1UpbAI" style="display:inline-block;background:linear-gradient(135deg,#B8922E,#D4A843);color:#0A0A0F;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Teams Topluluguna Katil</a>
             </div>
@@ -295,11 +323,11 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
         : `<div style="font-family:'Segoe UI',sans-serif;max-width:600px;margin:0 auto;padding:32px;background:#0A0A0F;color:#F0EDE6;border-radius:12px;">
             <div style="text-align:center;margin-bottom:24px;"><h1 style="color:#D4A843;font-size:24px;margin:0;">Legere Open Edu</h1></div>
             <h2 style="color:#F0EDE6;">Sayin ${safeName},</h2>
-            <p style="color:#A0A0B0;line-height:1.6;"><strong style="color:#D4A843;">${safeWorkshop}</strong> atolyesine basvurunuz degerlendirilmistir. Maalesef bu donem kontenjan ve konu uyumu nedeniyle basvurunuz kabul edilememistir.</p>
+            <p style="color:#A0A0B0;line-height:1.6;"><strong style="color:#D4A843;">${safeWorkshop}</strong> etkinligine basvurunuz degerlendirilmistir. Maalesef bu donem kontenjan ve konu uyumu nedeniyle basvurunuz kabul edilememistir.</p>
             ${safeMessage ? `<div style="background:rgba(212,168,67,0.1);border-left:3px solid #D4A843;padding:12px 16px;margin:16px 0;border-radius:4px;"><p style="color:#A0A0B0;margin:0;">${safeMessage}</p></div>` : ''}
-            <p style="color:#A0A0B0;line-height:1.6;">Gelecek atolyelerimizi takip etmenizi oneririz.</p>
+            <p style="color:#A0A0B0;line-height:1.6;">Gelecek etkinliklerimizi takip etmenizi oneririz.</p>
             <div style="text-align:center;margin:24px 0;">
-              <a href="https://legereopenedu.com" style="display:inline-block;background:linear-gradient(135deg,#B8922E,#D4A843);color:#0A0A0F;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Atolyeleri Incele</a>
+              <a href="https://legereopenedu.com" style="display:inline-block;background:linear-gradient(135deg,#B8922E,#D4A843);color:#0A0A0F;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Etkinlikleri Incele</a>
             </div>
             <hr style="border:none;border-top:1px solid rgba(255,255,255,0.1);margin:24px 0;">
             <p style="color:#666;font-size:12px;text-align:center;">Legere Open Edu — legereopenedu.com</p>

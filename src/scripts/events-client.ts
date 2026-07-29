@@ -262,6 +262,23 @@ function timelineItem(ev: ApiEvent, i: number, L: EventLabels): HTMLElement {
   }
   if (meta.childElementCount) card.appendChild(meta);
 
+  /*
+   * Kayıt butonu takvimde de olmalı. Atölye ızgarası yalnızca type==='workshop'
+   * gösterdiği için seminer/kolokyum/ders "Kayıt Açık" rozetiyle görünüyor ama
+   * kaydolunacak yer yoktu — açık seminerde bile bağlantıyı e-postayla
+   * gönderebilmek için kaydın alınması gerekiyor.
+   */
+  if (deriveStatus(ev) === 'open') {
+    const btn = h('button', 'btn-gold justify-center text-xs mt-4 w-full sm:w-auto cursor-pointer', L.register);
+    btn.setAttribute('type', 'button');
+    btn.setAttribute('aria-label', `${L.register} — ${ev.title?.[lang] ?? ev.id}`);
+    btn.addEventListener('click', () => {
+      const open = (window as any).openRegistration;
+      if (typeof open === 'function') open(ev.title?.[lang] ?? ev.id, ev.id);
+    });
+    card.appendChild(btn);
+  }
+
   row.appendChild(card);
   return row;
 }
