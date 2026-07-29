@@ -14,11 +14,21 @@ interface Props {
 const { lang } = Astro.props;
 const t = useTranslations(lang);
 
-// Build sırasındaki liste yalnızca yedek/SEO içindir: JS açıkken aşağıdaki
-// script /api/events'ten gelen güncel listeyle üzerine yazar. Katılımcı sayısı
-// build'de bilinemeyeceği için 0 gösterilir — JSON'daki elle yazılmış sayı
-// (28 gibi) artık kullanılmıyor, gerçek sayı KV'den gelir.
-const fallbackWorkshops = sortForDisplay(workshopsData as any[]);
+/*
+ * Build sırasındaki liste yalnızca yedektir: JS açıkken aşağıdaki script
+ * /api/events'ten gelen güncel listeyle üzerine yazar.
+ *
+ * GEÇMİŞ ETKİNLİKLER BURAYA GİRMEZ. workshops.json artık yalnızca ilk kurulum
+ * tohumu ve içindeki atölyelerin hepsi geçmişte kaldı; bunları build'e basmak
+ * ilk boyada, JS kapalıyken ve arama motorunda "hepsi bitmiş" tablosu
+ * gösteriyordu — düzeltmeye çalıştığımız ölü site izleniminin ta kendisi.
+ * Gerçek etkinlikler KV'de, oradan hidrasyonla geliyor.
+ *
+ * Katılımcı sayısı build'de bilinemez, 0 gösterilir; gerçek sayı KV'den gelir.
+ */
+const fallbackWorkshops = sortForDisplay(
+  (workshopsData as any[]).filter((w) => deriveStatus(w) !== 'completed'),
+);
 
 const labels = buildEventLabels(lang, t);
 ---
@@ -41,30 +51,39 @@ const labels = buildEventLabels(lang, t);
     </div>
 
     <!-- Workshops grid/scroll -->
-    {fallbackWorkshops.length > 0 ? (
-      <div id="workshops-grid" class="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible" data-animate-stagger>
-        {fallbackWorkshops.map((ws: any) => (
-          <div class="snap-start shrink-0 w-[85vw] md:w-auto">
-            <WorkshopCard
-              lang={lang}
-              id={ws.id}
-              title={ws.title[lang]}
-              dateStart={ws.dateStart}
-              dateEnd={ws.dateEnd}
-              disciplines={ws.disciplines}
-              status={deriveStatus(ws)}
-              currentParticipants={0}
-              maxParticipants={ws.maxParticipants}
-              description={ws.description[lang]}
-            />
-          </div>
-        ))}
-      </div>
-    ) : (
-      <div class="glass p-12 text-center" data-animate>
-        <p class="text-text-secondary text-lg">{t('workshops.empty')}</p>
-      </div>
-    )}
+    {/*
+      Izgara HER ZAMAN render edilir — boşken bile. Hidrasyon #workshops-grid'i
+      hedef alıyor; koşullu render edilseydi liste boş olduğunda hedef bulunamaz
+      ve KV'deki gerçek etkinlikler hiç görünmezdi. Boş durum ızgaranın içinde
+      duruyor, gelen veri replaceChildren ile onu temizliyor.
+    */}
+    <div id="workshops-grid" class:list={[
+      'pb-4',
+      fallbackWorkshops.length > 0
+        ? 'flex gap-6 overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible'
+        : '',
+    ]} data-animate-stagger>
+      {fallbackWorkshops.length > 0 ? fallbackWorkshops.map((ws: any) => (
+        <div class="snap-start shrink-0 w-[85vw] md:w-auto">
+          <WorkshopCard
+            lang={lang}
+            id={ws.id}
+            title={ws.title[lang]}
+            dateStart={ws.dateStart}
+            dateEnd={ws.dateEnd}
+            disciplines={ws.disciplines}
+            status={deriveStatus(ws)}
+            currentParticipants={0}
+            maxParticipants={ws.maxParticipants}
+            description={ws.description[lang]}
+          />
+        </div>
+      )) : (
+        <div class="glass p-12 text-center">
+          <p class="text-text-secondary text-lg">{t('workshops.empty')}</p>
+        </div>
+      )}
+    </div>
 
     <script type="application/json" id="workshops-labels" set:html={JSON.stringify(labels)}></script>
 

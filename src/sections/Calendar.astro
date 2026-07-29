@@ -4,6 +4,7 @@ import type { Lang } from '../i18n/languages';
 import SectionHeading from '../components/SectionHeading.astro';
 import EventTimeline from '../components/EventTimeline.astro';
 import eventsData from '../data/events.json';
+import { deriveStatus } from '../utils/events';
 import { buildEventLabels } from '../scripts/events-client';
 
 interface Props {
@@ -16,6 +17,17 @@ const t = useTranslations(lang);
 // Build'deki liste yedek/SEO içindir; sayfa açılınca /api/events'ten gelen
 // güncel listeyle değiştirilir (bkz. aşağıdaki script).
 const labels = buildEventLabels(lang, t);
+
+/*
+ * Workshops bölümüyle aynı gerekçe: geçmiş etkinlikler build'e basılmaz.
+ * events.json artık yalnızca ilk kurulum tohumu ve içindekilerin hepsi geçti;
+ * ilk boyada "hepsi bitmiş" bir takvim göstermek ölü site izlenimi yaratıyordu.
+ * Ayrıca zaman çizelgesi HER ZAMAN render edilir — #calendar-timeline
+ * hidrasyonun hedefi, koşullu render edilseydi boş listede kaybolurdu.
+ */
+const fallbackEvents = (eventsData as any[]).filter(
+  (e) => deriveStatus({ dateStart: e.date, dateEnd: e.endDate ?? e.date }) !== 'completed',
+);
 ---
 
 <section id="calendar" class="relative section-padding bg-bg-secondary/50">
@@ -25,13 +37,7 @@ const labels = buildEventLabels(lang, t);
       subtitle={t('calendar.subtitle')}
     />
 
-    {eventsData.length > 0 ? (
-      <EventTimeline lang={lang} events={eventsData} />
-    ) : (
-      <div class="glass p-12 text-center" data-animate>
-        <p class="text-text-secondary text-lg">{t('calendar.empty')}</p>
-      </div>
-    )}
+    <EventTimeline lang={lang} events={fallbackEvents} emptyText={t('calendar.empty')} />
 
     <script type="application/json" id="calendar-labels" set:html={JSON.stringify(labels)}></script>
 
