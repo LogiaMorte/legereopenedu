@@ -4,6 +4,8 @@ import type { Lang } from '../i18n/languages';
 import SectionHeading from '../components/SectionHeading.astro';
 import WorkshopCard from '../components/WorkshopCard.astro';
 import workshopsData from '../data/workshops.json';
+import { deriveStatus, sortForDisplay } from '../utils/events';
+import { buildEventLabels } from '../scripts/events-client';
 
 interface Props {
   lang: Lang;
@@ -11,6 +13,14 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
+
+// Build sırasındaki liste yalnızca yedek/SEO içindir: JS açıkken aşağıdaki
+// script /api/events'ten gelen güncel listeyle üzerine yazar. Katılımcı sayısı
+// build'de bilinemeyeceği için 0 gösterilir — JSON'daki elle yazılmış sayı
+// (28 gibi) artık kullanılmıyor, gerçek sayı KV'den gelir.
+const fallbackWorkshops = sortForDisplay(workshopsData as any[]);
+
+const labels = buildEventLabels(lang, t);
 ---
 
 <section id="workshops" class="relative section-padding">
@@ -31,9 +41,9 @@ const t = useTranslations(lang);
     </div>
 
     <!-- Workshops grid/scroll -->
-    {workshopsData.length > 0 ? (
-      <div class="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible" data-animate-stagger>
-        {workshopsData.map((ws: any) => (
+    {fallbackWorkshops.length > 0 ? (
+      <div id="workshops-grid" class="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible" data-animate-stagger>
+        {fallbackWorkshops.map((ws: any) => (
           <div class="snap-start shrink-0 w-[85vw] md:w-auto">
             <WorkshopCard
               lang={lang}
@@ -42,10 +52,9 @@ const t = useTranslations(lang);
               dateStart={ws.dateStart}
               dateEnd={ws.dateEnd}
               disciplines={ws.disciplines}
-              status={ws.status}
-              currentParticipants={ws.currentParticipants}
+              status={deriveStatus(ws)}
+              currentParticipants={0}
               maxParticipants={ws.maxParticipants}
-              formEntryValue={ws.formEntryValue}
               description={ws.description[lang]}
             />
           </div>
@@ -56,6 +65,8 @@ const t = useTranslations(lang);
         <p class="text-text-secondary text-lg">{t('workshops.empty')}</p>
       </div>
     )}
+
+    <script type="application/json" id="workshops-labels" set:html={JSON.stringify(labels)}></script>
 
     <!-- Free registration note -->
     <p class="text-center text-text-secondary/70 text-sm mt-8 max-w-xl mx-auto" data-animate>
@@ -97,3 +108,8 @@ const t = useTranslations(lang);
     </div>
   </div>
 </section>
+
+<script>
+  import { hydrateWorkshops } from '../scripts/events-client';
+  hydrateWorkshops('workshops-grid', 'workshops-labels');
+</script>

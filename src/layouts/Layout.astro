@@ -31,6 +31,18 @@ const defaultDescription = isEn
 const description = pageDescription ?? defaultDescription;
 const defaultTitle = isEn ? 'Legere | Interdisciplinary Academic Research Network' : 'Legere | Disiplinlerarası Akademik Araştırma Ağı';
 const title = pageTitle ? `${pageTitle} | Legere` : defaultTitle;
+// Paylaşım kartı görseli (LinkedIn / WhatsApp / X). Mutlak URL zorunlu —
+// bu platformlar göreli yolu çözemez. Kaynak: scratchpad/og.svg, sharp ile üretildi.
+const ogImage = new URL(isEn ? '/og-image-en.png' : '/og-image.png', Astro.site);
+
+// hreflang sayfa başına hesaplanır. Eskiden her sayfada sabit '/' ve '/en/'
+// yazıyordu, yani /ethics/ kendi Türkçe karşılığı olarak ana sayfayı
+// gösteriyordu — arama motorlarına yanlış eşleşme bildiriliyordu.
+const path = Astro.url.pathname;
+const trPath = path.startsWith('/en/') ? path.slice(3) : path === '/en' ? '/' : path;
+const enPath = trPath === '/' ? '/en/' : `/en${trPath}`;
+// noindex sayfaların (ör. /admin) İngilizce karşılığı yok; alternatif bildirmeyiz.
+const showAlternates = !noindex;
 ---
 
 <!doctype html>
@@ -40,9 +52,13 @@ const title = pageTitle ? `${pageTitle} | Legere` : defaultTitle;
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="canonical" href={canonicalUrl} />
-  <link rel="alternate" hreflang="tr" href={new URL('/', Astro.site)} />
-  <link rel="alternate" hreflang="en" href={new URL('/en/', Astro.site)} />
-  <link rel="alternate" hreflang="x-default" href={new URL('/', Astro.site)} />
+  {showAlternates && (
+    <>
+      <link rel="alternate" hreflang="tr" href={new URL(trPath, Astro.site)} />
+      <link rel="alternate" hreflang="en" href={new URL(enPath, Astro.site)} />
+      <link rel="alternate" hreflang="x-default" href={new URL(trPath, Astro.site)} />
+    </>
+  )}
 
   <link rel="preconnect" href="https://accounts.google.com" crossorigin />
   <link rel="preconnect" href="https://apis.google.com" crossorigin />
@@ -59,11 +75,16 @@ const title = pageTitle ? `${pageTitle} | Legere` : defaultTitle;
   <meta property="og:description" content={description} />
   <meta property="og:locale" content={isEn ? 'en_US' : 'tr_TR'} />
   <meta property="og:site_name" content="Legere Open Edu" />
+  <meta property="og:image" content={ogImage} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content={defaultTitle} />
 
   <!-- Twitter -->
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={title} />
   <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={ogImage} />
 
   <!-- JSON-LD -->
   <script type="application/ld+json" set:html={JSON.stringify({

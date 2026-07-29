@@ -17,7 +17,8 @@ export const ui = {
     'hero.legere': 'Legere — Okumak, Seçmek, Bir Araya Getirmek',
     'hero.tagline': 'Atölyeler, seminerler, kolokyumlar ve yayın odaklı iş birliğiyle tartışmayı ürüne dönüştüren sanal-öncelikli bir akademik ortam.',
     'hero.cta': 'Programları Keşfedin',
-    'hero.cta2': 'Hakkımızda',
+    'hero.ctaJoin': 'Topluluğa Katıl',
+    'hero.ctaNote': 'Google veya LinkedIn ile saniyeler içinde.',
 
     // About
     'about.title': 'Legere Nedir?',
@@ -112,6 +113,7 @@ export const ui = {
     'workshops.participants': 'Katılımcı',
     'workshops.status.open': 'Kayıt Açık',
     'workshops.status.upcoming': 'Yakında',
+    'workshops.status.ongoing': 'Devam Ediyor',
     'workshops.status.completed': 'Tamamlandı',
     'workshops.empty': 'Yeni atölyeler yakında duyurulacaktır.',
     'workshops.howItWorks': 'Nasıl İşler?',
@@ -148,6 +150,7 @@ export const ui = {
     'calendar.type.seminar': 'Seminer',
     'calendar.type.congress': 'Kongre',
     'calendar.type.colloquium': 'Kolokyum',
+    'calendar.type.course': 'Ders',
     'calendar.empty': 'Yaklaşan etkinlikler yakında duyurulacaktır.',
     'calendar.meetNote': 'Seminerler halka açık olarak Google Meet üzerinden gerçekleştirilir. Kolokyumlar Microsoft Teams üzerinden yürütülür. Katılım linkleri etkinlik öncesinde duyurulur.',
 
@@ -443,7 +446,8 @@ export const ui = {
     'hero.legere': 'Legere — To Read, To Select, To Bring Together',
     'hero.tagline': 'A virtual-first academic environment that turns discussion into output through workshops, seminars, colloquia, and publication-oriented collaboration.',
     'hero.cta': 'Explore Programs',
-    'hero.cta2': 'About Us',
+    'hero.ctaJoin': 'Join the Community',
+    'hero.ctaNote': 'With Google or LinkedIn, in seconds.',
 
     // About
     'about.title': 'What is Legere?',
@@ -538,6 +542,7 @@ export const ui = {
     'workshops.participants': 'Participants',
     'workshops.status.open': 'Registration Open',
     'workshops.status.upcoming': 'Coming Soon',
+    'workshops.status.ongoing': 'Ongoing',
     'workshops.status.completed': 'Completed',
     'workshops.empty': 'New workshops will be announced soon.',
     'workshops.howItWorks': 'How It Works',
@@ -574,6 +579,7 @@ export const ui = {
     'calendar.type.seminar': 'Seminar',
     'calendar.type.congress': 'Congress',
     'calendar.type.colloquium': 'Colloquium',
+    'calendar.type.course': 'Course',
     'calendar.empty': 'Upcoming events will be announced soon.',
     'calendar.meetNote': 'Public seminars are held via Google Meet. Colloquia are conducted through Microsoft Teams. Participation links are announced before each event.',
 

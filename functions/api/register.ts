@@ -6,12 +6,16 @@
  * Üye bilgileri otomatik olarak member kaydından alınır.
  */
 
-import { corsHeaders, optionsResponse, parseSessionCookie, parseJsonBody } from '../_shared';
+import { corsHeaders, optionsResponse, parseSessionCookie, parseJsonBody, notifyAdmin } from '../_shared';
+import { canRegister } from '../../src/utils/events';
+import { findEvent } from './events';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
   ADMIN_KEY?: string;
   RESEND_API_KEY?: string;
+  DISCORD_WEBHOOK_URL?: string;
+  ADMIN_EMAILS?: string;
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -51,30 +55,71 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     const workshop = body.workshop.trim().slice(0, 200);
 
-    // Check for duplicate registration (same member + same workshop)
+    // Etkinliği KV'ye karşı doğrula. Bu olmadan uydurma bir id ile çöp
+    // index:* anahtarları açılabiliyordu ve kapasite sabit 50 varsayılıyordu —
+    // 500 kişilik kongre 50'de kilitlenirdi.
+    const eventRecord = await findEvent(env.REGISTRATIONS, workshop);
+
+    if (!eventRecord) {
+      return new Response(JSON.stringify({ error: 'Etkinlik bulunamadı.' }), { status: 404, headers });
+    }
+
+    // Yalnızca başvuruya açık ve henüz başlamamış etkinliklere kayıt alınır.
+    if (!canRegister(eventRecord)) {
+      return new Response(
+        JSON.stringify({ error: 'Bu etkinlik şu anda başvuruya kapalı.' }),
+        { status: 409, headers },
+      );
+    }
+
+    /*
+     * index:{etkinlik} girdileri artık {id, email} taşıyor.
+     *
+     * Eskiden yalnızca kayıt id'si tutuluyordu, bu yüzden "bu üye zaten kayıtlı mı"
+     * sorusuna cevap vermek için etkinliğe kayıtlı HERKESİN tam kaydı okunuyordu:
+     * 50 kişilik bir atölyede son başvuru 50 KV okuması demekti ve katılımcı
+     * sayısıyla doğrusal büyüyordu. E-posta indekste durunca tek okuma yetiyor.
+     *
+     * Eski biçimdeki (düz string) girdiler için kayıtları okumaya devam ediyoruz;
+     * yeni kayıtlar yeni biçimde yazıldıkça geçiş kendiliğinden tamamlanır.
+     */
     const indexKey = `index:${workshop}`;
     const existingIndex = await env.REGISTRATIONS.get(indexKey);
-    if (existingIndex) {
-      const ids: string[] = JSON.parse(existingIndex);
-      const regResults = await Promise.all(ids.map((rid) => env.REGISTRATIONS.get(rid)));
-      for (const rd of regResults) {
-        if (rd) {
-          const r = JSON.parse(rd);
-          if (r.memberEmail?.toLowerCase() === session.email.toLowerCase() ||
-              r.email?.toLowerCase() === session.email.toLowerCase()) {
-            return new Response(
-              JSON.stringify({ error: 'Bu etkinliğe zaten kayıt yaptınız.' }),
-              { status: 409, headers },
-            );
-          }
-        }
-      }
-      if (ids.length >= 50) {
-        return new Response(
-          JSON.stringify({ error: 'Bu etkinliğin kontenjanı dolmuştur.' }),
-          { status: 409, headers },
-        );
-      }
+    const entries: Array<string | { id: string; email?: string }> =
+      existingIndex ? JSON.parse(existingIndex) : [];
+
+    const sessionEmail = session.email.toLowerCase();
+    const legacyIds: string[] = [];
+    let duplicate = false;
+
+    for (const entry of entries) {
+      if (typeof entry === 'string') legacyIds.push(entry);
+      else if (entry?.email?.toLowerCase() === sessionEmail) duplicate = true;
+    }
+
+    if (!duplicate && legacyIds.length) {
+      const legacyRecords = await Promise.all(legacyIds.map((rid) => env.REGISTRATIONS.get(rid)));
+      duplicate = legacyRecords.some((rd) => {
+        if (!rd) return false;
+        const r = JSON.parse(rd);
+        return r.memberEmail?.toLowerCase() === sessionEmail || r.email?.toLowerCase() === sessionEmail;
+      });
+    }
+
+    if (duplicate) {
+      return new Response(
+        JSON.stringify({ error: 'Bu etkinliğe zaten kayıt yaptınız.' }),
+        { status: 409, headers },
+      );
+    }
+
+    // maxParticipants === 0 -> sınırsız (ör. halka açık seminer)
+    const capacity = Number(eventRecord.maxParticipants) || 0;
+    if (capacity > 0 && entries.length >= capacity) {
+      return new Response(
+        JSON.stringify({ error: 'Bu etkinliğin kontenjanı dolmuştur.' }),
+        { status: 409, headers },
+      );
     }
 
     // Create registration using member data
@@ -96,28 +141,32 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       country: request.headers.get('CF-IPCountry') || 'unknown',
     };
 
-    // Store registration
-    await env.REGISTRATIONS.put(registration.id, JSON.stringify(registration), {
-      expirationTtl: 60 * 60 * 24 * 365,
-    });
+    entries.push({ id: registration.id, email: member.email });
+    member.regIds = [...(member.regIds || []), registration.id];
 
-    // Update workshop index
-    const ids: string[] = existingIndex ? JSON.parse(existingIndex) : [];
-    ids.push(registration.id);
-    await env.REGISTRATIONS.put(indexKey, JSON.stringify(ids));
-
-    // Update total count
     const countKey = 'count:total';
     const currentCount = parseInt((await env.REGISTRATIONS.get(countKey)) || '0');
-    await env.REGISTRATIONS.put(countKey, String(currentCount + 1));
 
-    // Link registration to member record
-    const regIds = member.regIds || [];
-    regIds.push(registration.id);
-    member.regIds = regIds;
-    await env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member), {
-      expirationTtl: 60 * 60 * 24 * 365,
-    });
+    // Dört yazma da birbirinden bağımsız — sırayla beklemek yerine tek turda.
+    // Workers'ta her KV çağrısı gerçek bir ağ gidiş-dönüşü.
+    const YEAR = 60 * 60 * 24 * 365;
+    await Promise.all([
+      env.REGISTRATIONS.put(registration.id, JSON.stringify(registration), { expirationTtl: YEAR }),
+      env.REGISTRATIONS.put(indexKey, JSON.stringify(entries)),
+      env.REGISTRATIONS.put(countKey, String(currentCount + 1)),
+      env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member), { expirationTtl: YEAR }),
+    ]);
+
+    // Bildirim yanıtı geciktirmesin ve hata verirse kaydı etkilemesin.
+    context.waitUntil(
+      notifyAdmin(env, 'Yeni başvuru', {
+        'Etkinlik': eventRecord.title?.tr || workshop,
+        'Ad': registration.name,
+        'E-posta': registration.email,
+        'Kurum': registration.university,
+        'Motivasyon': registration.motivation,
+      }),
+    );
 
     return new Response(JSON.stringify({ success: true, id: registration.id }), { status: 200, headers });
   } catch (err) {

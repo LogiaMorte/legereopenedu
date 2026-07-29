@@ -4,6 +4,7 @@ import type { Lang } from '../i18n/languages';
 import SectionHeading from '../components/SectionHeading.astro';
 import EventTimeline from '../components/EventTimeline.astro';
 import eventsData from '../data/events.json';
+import { buildEventLabels } from '../scripts/events-client';
 
 interface Props {
   lang: Lang;
@@ -11,6 +12,10 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
+
+// Build'deki liste yedek/SEO içindir; sayfa açılınca /api/events'ten gelen
+// güncel listeyle değiştirilir (bkz. aşağıdaki script).
+const labels = buildEventLabels(lang, t);
 ---
 
 <section id="calendar" class="relative section-padding bg-bg-secondary/50">
@@ -27,6 +32,8 @@ const t = useTranslations(lang);
         <p class="text-text-secondary text-lg">{t('calendar.empty')}</p>
       </div>
     )}
+
+    <script type="application/json" id="calendar-labels" set:html={JSON.stringify(labels)}></script>
 
     <!-- Platform info notes -->
     <div class="mt-10 max-w-3xl mx-auto" data-animate>
@@ -50,3 +57,8 @@ const t = useTranslations(lang);
     </div>
   </div>
 </section>
+
+<script>
+  import { hydrateCalendar } from '../scripts/events-client';
+  hydrateCalendar('calendar-timeline', 'calendar-labels');
+</script>
