@@ -7,8 +7,12 @@ dist/
 # Astro
 .astro/
 
+# Wrangler (yerel `wrangler pages dev` durumu — yerel KV verisi içerir)
+.wrangler/
+
 # Environment
 .env
+.dev.vars
 .env.*
 
 # Claude

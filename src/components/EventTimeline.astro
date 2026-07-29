@@ -1,12 +1,13 @@
 ---
 import type { Lang } from '../i18n/languages';
 import { useTranslations } from '../i18n/utils';
+import { formatEventDate } from '../utils/events';
 
 interface EventItem {
   title: Record<string, string>;
   date: string;
   endDate?: string;
-  type: 'workshop' | 'seminar' | 'congress';
+  type: string;
   platform?: 'meet' | 'classroom';
   description: Record<string, string>;
   location: Record<string, string>;
@@ -15,9 +16,11 @@ interface EventItem {
 interface Props {
   lang: Lang;
   events: EventItem[];
+  /** Liste boşken zaman çizelgesinin içinde gösterilecek metin. */
+  emptyText?: string;
 }
 
-const { lang, events } = Astro.props;
+const { lang, events, emptyText } = Astro.props;
 const t = useTranslations(lang);
 
 const typeConfig = {
@@ -28,21 +31,18 @@ const typeConfig = {
 
 const now = new Date();
 
-const formatDate = (dateStr: string) => {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString(lang === 'tr' ? 'tr-TR' : 'en-US', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-};
 ---
 
 <div class="relative">
   <!-- Timeline line -->
   <div class="absolute left-4 md:left-1/2 md:-translate-x-px top-0 bottom-0 w-[2px] bg-gradient-to-b from-gold-500/40 via-gold-500/20 to-transparent"></div>
 
-  <div class="space-y-8 md:space-y-12">
+  <div id="calendar-timeline" class="space-y-8 md:space-y-12">
+    {events.length === 0 && emptyText && (
+      <div class="glass p-12 text-center ml-10 md:ml-0">
+        <p class="text-text-secondary text-lg">{emptyText}</p>
+      </div>
+    )}
     {events.map((event, i) => {
       const isPast = new Date(event.date) < now;
       const isEven = i % 2 === 0;
@@ -57,16 +57,16 @@ const formatDate = (dateStr: string) => {
           <!-- Card -->
           <div class={`ml-10 md:ml-0 md:w-[calc(50%-2rem)] glass p-5 ${isEven ? 'md:mr-auto md:pr-8' : 'md:ml-auto md:pl-8'}`}>
             <div class="flex items-center gap-2 mb-2">
-              <span class={`badge text-xs ${typeConfig[event.type].class}`}>
-                {typeConfig[event.type].label}
+              <span class={`badge text-xs ${typeConfig[event.type]?.class ?? 'badge-discipline'}`}>
+                {typeConfig[event.type]?.label ?? event.type}
               </span>
             </div>
             <h3 class="text-lg font-heading font-bold text-text-primary mb-1">
               {event.title[lang]}
             </h3>
             <p class="text-gold-500/80 text-sm font-mono mb-2">
-              {formatDate(event.date)}
-              {event.endDate && ` — ${formatDate(event.endDate)}`}
+              {formatEventDate(event.date, lang, true)}
+              {event.endDate && ` — ${formatEventDate(event.endDate, lang, true)}`}
             </p>
             <p class="text-text-secondary text-sm mb-2">
               {event.description[lang]}

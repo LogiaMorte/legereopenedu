@@ -17,12 +17,16 @@ import {
   hashPassword,
   buildLoginCookies,
   redirectWithCookies,
+  notifyAdmin,
 } from '../../_shared';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
   LINKEDIN_CLIENT_ID?: string;
   LINKEDIN_CLIENT_SECRET?: string;
+  DISCORD_WEBHOOK_URL?: string;
+  RESEND_API_KEY?: string;
+  ADMIN_EMAILS?: string;
 }
 
 interface LinkedInUserInfo {
@@ -288,6 +292,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       const countKey = 'count:members';
       const currentCount = parseInt((await env.REGISTRATIONS.get(countKey)) || '0');
       await env.REGISTRATIONS.put(countKey, String(currentCount + 1));
+
+      context.waitUntil(
+        notifyAdmin(env, 'Yeni üye (LinkedIn)', {
+          'Ad': member.name || '',
+          'E-posta': email,
+          'Toplam üye': String(currentCount + 1),
+        }),
+      );
     }
 
     // Set session cookies and redirect

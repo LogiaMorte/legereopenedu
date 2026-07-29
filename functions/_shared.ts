@@ -262,3 +262,71 @@ export async function sendEmail(
     return false;
   }
 }
+
+// ── Admin bildirimi ──
+
+interface NotifyEnv {
+  DISCORD_WEBHOOK_URL?: string;
+  RESEND_API_KEY?: string;
+  ADMIN_EMAILS?: string;
+}
+
+/**
+ * Yeni başvuru / yeni üye gibi olaylarda admini haberdar eder.
+ *
+ * Hangi kanal yapılandırılmışsa oraya gider: DISCORD_WEBHOOK_URL varsa Discord'a,
+ * RESEND_API_KEY + ADMIN_EMAILS varsa e-posta. İkisi de yoksa sessizce hiçbir şey
+ * yapmaz — bildirim yokluğu bir hata değil.
+ *
+ * ÖNEMLİ: bu fonksiyon asla throw etmez ve çağıran akışı bloklamamalıdır.
+ * Bildirim servisi çökse bile kayıt alınmaya devam etmeli; bu yüzden çağrılar
+ * `context.waitUntil(notifyAdmin(...))` ile yanıt döndükten sonra çalışır.
+ */
+export async function notifyAdmin(
+  env: NotifyEnv,
+  title: string,
+  fields: Record<string, string>,
+): Promise<void> {
+  const lines = Object.entries(fields)
+    .filter(([, v]) => v)
+    .map(([k, v]) => `**${k}:** ${String(v).slice(0, 300)}`);
+
+  const tasks: Promise<unknown>[] = [];
+
+  if (env.DISCORD_WEBHOOK_URL) {
+    tasks.push(
+      fetch(env.DISCORD_WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          embeds: [{
+            title: title.slice(0, 250),
+            description: lines.join('\n').slice(0, 3900),
+            color: 0xd4a843, // Legere altını
+            timestamp: new Date().toISOString(),
+          }],
+        }),
+      })
+        .then((r) => {
+          // Sessiz başarısızlık en kötüsü: webhook silinmiş/yanlışsa haber alınmalı.
+          if (!r.ok) console.error('[notify] Discord webhook döndü:', r.status);
+        })
+        .catch((e) => console.error('[notify] Discord webhook hatası:', e instanceof Error ? e.message : e)),
+    );
+  }
+
+  if (env.RESEND_API_KEY && env.ADMIN_EMAILS) {
+    // Birden çok admin tanımlıysa hepsine değil ilkine gider — bildirim
+    // kopyası çoğaltmak yerine tek adres yeter, panelde zaten hepsi görünür.
+    const to = env.ADMIN_EMAILS.split(',')[0]?.trim();
+    if (to) {
+      const html = `<h2>${escapeHtml(title)}</h2><ul>${Object.entries(fields)
+        .filter(([, v]) => v)
+        .map(([k, v]) => `<li><strong>${escapeHtml(k)}:</strong> ${escapeHtml(String(v).slice(0, 300))}</li>`)
+        .join('')}</ul><p><a href="https://legereopenedu.com/admin">Panele git</a></p>`;
+      tasks.push(sendEmail(env.RESEND_API_KEY, to, `[Legere] ${title}`, html).catch(() => undefined));
+    }
+  }
+
+  await Promise.allSettled(tasks);
+}

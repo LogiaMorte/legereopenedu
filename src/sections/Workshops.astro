@@ -4,6 +4,8 @@ import type { Lang } from '../i18n/languages';
 import SectionHeading from '../components/SectionHeading.astro';
 import WorkshopCard from '../components/WorkshopCard.astro';
 import workshopsData from '../data/workshops.json';
+import { deriveStatus, sortForDisplay } from '../utils/events';
+import { buildEventLabels } from '../scripts/events-client';
 
 interface Props {
   lang: Lang;
@@ -11,6 +13,24 @@ interface Props {
 
 const { lang } = Astro.props;
 const t = useTranslations(lang);
+
+/*
+ * Build sırasındaki liste yalnızca yedektir: JS açıkken aşağıdaki script
+ * /api/events'ten gelen güncel listeyle üzerine yazar.
+ *
+ * GEÇMİŞ ETKİNLİKLER BURAYA GİRMEZ. workshops.json artık yalnızca ilk kurulum
+ * tohumu ve içindeki atölyelerin hepsi geçmişte kaldı; bunları build'e basmak
+ * ilk boyada, JS kapalıyken ve arama motorunda "hepsi bitmiş" tablosu
+ * gösteriyordu — düzeltmeye çalıştığımız ölü site izleniminin ta kendisi.
+ * Gerçek etkinlikler KV'de, oradan hidrasyonla geliyor.
+ *
+ * Katılımcı sayısı build'de bilinemez, 0 gösterilir; gerçek sayı KV'den gelir.
+ */
+const fallbackWorkshops = sortForDisplay(
+  (workshopsData as any[]).filter((w) => deriveStatus(w) !== 'completed'),
+);
+
+const labels = buildEventLabels(lang, t);
 ---
 
 <section id="workshops" class="relative section-padding">
@@ -31,31 +51,41 @@ const t = useTranslations(lang);
     </div>
 
     <!-- Workshops grid/scroll -->
-    {workshopsData.length > 0 ? (
-      <div class="flex gap-6 overflow-x-auto pb-4 snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible" data-animate-stagger>
-        {workshopsData.map((ws: any) => (
-          <div class="snap-start shrink-0 w-[85vw] md:w-auto">
-            <WorkshopCard
-              lang={lang}
-              id={ws.id}
-              title={ws.title[lang]}
-              dateStart={ws.dateStart}
-              dateEnd={ws.dateEnd}
-              disciplines={ws.disciplines}
-              status={ws.status}
-              currentParticipants={ws.currentParticipants}
-              maxParticipants={ws.maxParticipants}
-              formEntryValue={ws.formEntryValue}
-              description={ws.description[lang]}
-            />
-          </div>
-        ))}
-      </div>
-    ) : (
-      <div class="glass p-12 text-center" data-animate>
-        <p class="text-text-secondary text-lg">{t('workshops.empty')}</p>
-      </div>
-    )}
+    {/*
+      Izgara HER ZAMAN render edilir — boşken bile. Hidrasyon #workshops-grid'i
+      hedef alıyor; koşullu render edilseydi liste boş olduğunda hedef bulunamaz
+      ve KV'deki gerçek etkinlikler hiç görünmezdi. Boş durum ızgaranın içinde
+      duruyor, gelen veri replaceChildren ile onu temizliyor.
+    */}
+    <div id="workshops-grid" class:list={[
+      'pb-4',
+      fallbackWorkshops.length > 0
+        ? 'flex gap-6 overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-3 md:overflow-visible'
+        : '',
+    ]} data-animate-stagger>
+      {fallbackWorkshops.length > 0 ? fallbackWorkshops.map((ws: any) => (
+        <div class="snap-start shrink-0 w-[85vw] md:w-auto">
+          <WorkshopCard
+            lang={lang}
+            id={ws.id}
+            title={ws.title[lang]}
+            dateStart={ws.dateStart}
+            dateEnd={ws.dateEnd}
+            disciplines={ws.disciplines}
+            status={deriveStatus(ws)}
+            currentParticipants={0}
+            maxParticipants={ws.maxParticipants}
+            description={ws.description[lang]}
+          />
+        </div>
+      )) : (
+        <div class="glass p-12 text-center">
+          <p class="text-text-secondary text-lg">{t('workshops.empty')}</p>
+        </div>
+      )}
+    </div>
+
+    <script type="application/json" id="workshops-labels" set:html={JSON.stringify(labels)}></script>
 
     <!-- Free registration note -->
     <p class="text-center text-text-secondary/70 text-sm mt-8 max-w-xl mx-auto" data-animate>
@@ -97,3 +127,8 @@ const t = useTranslations(lang);
     </div>
   </div>
 </section>
+
+<script>
+  import { hydrateWorkshops } from '../scripts/events-client';
+  hydrateWorkshops('workshops-grid', 'workshops-labels');
+</script>

@@ -1,6 +1,45 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import workshopsData from '../data/workshops.json';
+import eventsData from '../data/events.json';
+
 const lang = 'tr' as const;
+
+/**
+ * İlk kurulum tohumu: koddaki JSON dosyalarını yeni etkinlik şemasına çevirir.
+ * Yalnızca KV boşken, panelden tek tıkla içe aktarmak için kullanılır.
+ * events.json'daki 'workshop' türündekiler workshops.json ile aynı etkinlikleri
+ * tekrarladığı için dışarıda bırakılır — id çakışması olmasın diye.
+ */
+const seedData = [
+  ...workshopsData.map((w: any) => ({
+    id: w.id,
+    type: 'workshop',
+    title: w.title,
+    description: w.description,
+    dateStart: w.dateStart,
+    dateEnd: w.dateEnd,
+    disciplines: w.disciplines ?? [],
+    maxParticipants: w.maxParticipants ?? 0,
+    registrationOpen: w.status === 'open',
+    platform: 'Google Classroom',
+  })),
+  ...eventsData
+    .filter((e: any) => e.type !== 'workshop')
+    .map((e: any) => ({
+      id: e.id,
+      type: e.type,
+      title: e.title,
+      description: e.description,
+      dateStart: e.date,
+      dateEnd: e.endDate ?? e.date,
+      disciplines: [],
+      maxParticipants: 0,
+      registrationOpen: false,
+      platform: e.platform === 'meet' ? 'Google Meet' : e.platform === 'classroom' ? 'Google Classroom' : e.platform,
+      location: e.location,
+    })),
+];
 ---
 
 <Layout lang={lang} pageTitle="Admin Panel" noindex>
@@ -44,6 +83,10 @@ const lang = 'tr' as const;
         <button class="admin-tab flex-1 px-4 py-2.5 rounded-lg text-sm font-heading font-medium transition-all text-text-secondary" data-tab="members" onclick="switchAdminTab('members')">
           Üyeler
           <span id="tab-member-count" class="ml-1.5 px-1.5 py-0.5 rounded-full bg-gold-500/20 text-gold-500 text-[10px] font-mono"></span>
+        </button>
+        <button class="admin-tab flex-1 px-4 py-2.5 rounded-lg text-sm font-heading font-medium transition-all text-text-secondary" data-tab="events" onclick="switchAdminTab('events')">
+          Etkinlikler
+          <span id="tab-event-count" class="ml-1.5 px-1.5 py-0.5 rounded-full bg-gold-500/20 text-gold-500 text-[10px] font-mono"></span>
         </button>
         <button class="admin-tab flex-1 px-4 py-2.5 rounded-lg text-sm font-heading font-medium transition-all text-text-secondary" data-tab="audit" onclick="switchAdminTab('audit')">
           İşlem Geçmişi
@@ -125,6 +168,131 @@ const lang = 'tr' as const;
       </div>
 
       <!-- ==================== AUDIT LOG TAB ==================== -->
+      <!-- ==================== EVENTS TAB ==================== -->
+      <div id="panel-events" class="hidden">
+        <div class="glass p-4 mb-6 flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <h2 class="text-lg font-heading font-bold text-text-primary">Etkinlikler</h2>
+            <p class="text-xs text-text-secondary mt-1">
+              Atölye, seminer, ders, kolokyum ve kongreler. Durum tarihten otomatik hesaplanır —
+              elle ayarladığınız tek şey başvurunun açık olup olmadığı.
+            </p>
+          </div>
+          <button class="btn-gold text-sm px-5" onclick="openEventForm()">+ Yeni Etkinlik</button>
+        </div>
+
+        <!-- İlk kurulum: JSON'daki etkinlikleri KV'ye taşı -->
+        <div id="event-seed-box" class="hidden glass p-6 mb-6 border border-gold-500/20">
+          <h3 class="font-heading font-bold text-gold-500 text-sm mb-2">İlk kurulum</h3>
+          <p class="text-text-secondary text-sm mb-4">
+            Etkinlik listesi henüz boş. Sitedeki mevcut etkinlikleri (kod içindeki JSON dosyalarından)
+            bir kereliğine buraya aktarabilirsiniz. Aktardıktan sonra tek kaynak bu paneldir.
+          </p>
+          <button class="btn-outline text-sm" onclick="seedEvents()">Mevcut etkinlikleri içe aktar</button>
+        </div>
+
+        <!-- Form -->
+        <div id="event-form" class="hidden glass p-6 mb-6">
+          <h3 id="event-form-title" class="font-heading font-bold text-text-primary mb-5">Yeni Etkinlik</h3>
+          <div class="grid md:grid-cols-2 gap-4">
+            <label class="block">
+              <span class="block text-xs text-text-secondary mb-1.5">Kısa ad (URL/id) — sonradan değiştirilemez</span>
+              <input id="ev-id" type="text" placeholder="ws-2026-guz-kriminoloji"
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
+            </label>
+            <label class="block">
+              <span class="block text-xs text-text-secondary mb-1.5">Tür</span>
+              <select id="ev-type"
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm focus:outline-none focus:border-gold-500/50">
+                <option value="workshop">Atölye</option>
+                <option value="seminar">Seminer</option>
+                <option value="colloquium">Kolokyum</option>
+                <option value="course">Ders</option>
+                <option value="congress">Kongre</option>
+              </select>
+            </label>
+            <label class="block">
+              <span class="block text-xs text-text-secondary mb-1.5">Başlık (TR)</span>
+              <input id="ev-title-tr" type="text"
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm focus:outline-none focus:border-gold-500/50" />
+            </label>
+            <label class="block">
+              <span class="block text-xs text-text-secondary mb-1.5">Başlık (EN)</span>
+              <input id="ev-title-en" type="text"
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm focus:outline-none focus:border-gold-500/50" />
+            </label>
+            <label class="block">
+              <span class="block text-xs text-text-secondary mb-1.5">Başlangıç tarihi</span>
+              <input id="ev-start" type="date"
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm focus:outline-none focus:border-gold-500/50" />
+            </label>
+            <label class="block">
+              <span class="block text-xs text-text-secondary mb-1.5">Bitiş tarihi (tek günlükse aynısı)</span>
+              <input id="ev-end" type="date"
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm focus:outline-none focus:border-gold-500/50" />
+            </label>
+            <label class="block">
+              <span class="block text-xs text-text-secondary mb-1.5">
+                Başlangıç saati <span class="text-gold-500/70">(Türkiye saati)</span> — boş = tüm gün
+              </span>
+              <input id="ev-time-start" type="time"
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
+            </label>
+            <label class="block">
+              <span class="block text-xs text-text-secondary mb-1.5">Bitiş saati</span>
+              <input id="ev-time-end" type="time"
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
+            </label>
+            <label class="block">
+              <span class="block text-xs text-text-secondary mb-1.5">Kontenjan (0 = sınırsız)</span>
+              <input id="ev-max" type="number" min="0" value="50"
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
+            </label>
+            <label class="block">
+              <span class="block text-xs text-text-secondary mb-1.5">Platform (serbest metin)</span>
+              <input id="ev-platform" type="text" placeholder="Google Classroom"
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm focus:outline-none focus:border-gold-500/50" />
+            </label>
+            <label class="block md:col-span-2">
+              <span class="block text-xs text-text-secondary mb-1.5">Disiplinler (virgülle ayırın)</span>
+              <input id="ev-disciplines" type="text" placeholder="criminology, data-science"
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
+            </label>
+            <label class="block md:col-span-2">
+              <span class="block text-xs text-text-secondary mb-1.5">Açıklama (TR)</span>
+              <textarea id="ev-desc-tr" rows="3"
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm focus:outline-none focus:border-gold-500/50"></textarea>
+            </label>
+            <label class="block md:col-span-2">
+              <span class="block text-xs text-text-secondary mb-1.5">Açıklama (EN)</span>
+              <textarea id="ev-desc-en" rows="3"
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm focus:outline-none focus:border-gold-500/50"></textarea>
+            </label>
+          </div>
+
+          <label class="flex items-center gap-3 mt-5 cursor-pointer">
+            <input id="ev-open" type="checkbox" class="w-4 h-4 accent-[#D4A843]" />
+            <span class="text-sm text-text-primary font-heading">Başvuruya açık</span>
+            <span class="text-xs text-text-secondary">— işaretlenmezse sitede "Yakında" görünür</span>
+          </label>
+
+          <p id="event-form-error" class="hidden text-red-400 text-sm mt-4"></p>
+
+          <div class="flex gap-3 mt-6">
+            <button class="btn-gold text-sm px-6" onclick="saveEvent()">Kaydet</button>
+            <button class="btn-outline text-sm px-6" onclick="closeEventForm()">Vazgeç</button>
+          </div>
+        </div>
+
+        <div id="events-loading" class="hidden text-center py-8">
+          <svg class="w-5 h-5 animate-spin text-gold-500 mx-auto" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+        </div>
+        <div id="events-list" class="space-y-3"></div>
+
+        <!-- İlk kurulum tohumu; yalnızca "içe aktar" butonu okur. -->
+        <script type="application/json" id="event-seed-data" set:html={JSON.stringify(seedData)}></script>
+      </div>
+
       <div id="panel-audit" class="hidden">
         <div class="glass p-4 mb-6">
           <h2 class="text-lg font-heading font-bold text-text-primary">İşlem Geçmişi</h2>
@@ -235,7 +403,9 @@ const lang = 'tr' as const;
     });
     document.getElementById('panel-registrations').classList.toggle('hidden', tab !== 'registrations');
     document.getElementById('panel-members').classList.toggle('hidden', tab !== 'members');
+    document.getElementById('panel-events').classList.toggle('hidden', tab !== 'events');
     document.getElementById('panel-audit').classList.toggle('hidden', tab !== 'audit');
+    if (tab === 'events' && !eventsLoaded) loadEvents();
     if (tab === 'audit' && !auditLoaded) loadAuditLog();
   }
 
@@ -288,6 +458,210 @@ const lang = 'tr' as const;
         alert('Hata oluştu.');
       }
     } catch(e) { alert('Bağlantı hatası.'); }
+  }
+
+  // ==================== ETKİNLİKLER ====================
+  // Durum hesabı src/utils/events.ts'ten gelir (aşağıdaki module script window'a
+  // bağlar) — kural burada tekrarlanmasın diye. Yüklenmemişse 'upcoming' varsayılır.
+  var eventsCache = [];
+  var eventCounts = {};
+  var eventsLoaded = false;
+
+  function evStatus(ev) {
+    if (!window.__deriveStatus) {
+      // Sessizce 'upcoming' dönmek en kötüsü olurdu: tüm etkinlikler yanlışlıkla
+      // "Yakında" görünür, admin de bunun bir hata olduğunu anlamaz.
+      console.error('[admin] durum modülü yüklenmedi — rozetler güvenilmez');
+      return 'upcoming';
+    }
+    return window.__deriveStatus(ev);
+  }
+
+  var STATUS_LABEL = {
+    open: ['Kayıt Açık', 'badge-open'],
+    ongoing: ['Devam Ediyor', 'badge-open'],
+    upcoming: ['Yakında', 'badge-upcoming'],
+    completed: ['Tamamlandı', 'badge-closed'],
+  };
+  var TYPE_LABEL = {
+    workshop: 'Atölye', seminar: 'Seminer', colloquium: 'Kolokyum',
+    course: 'Ders', congress: 'Kongre',
+  };
+
+  function el(tag, cls, text) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (text != null) n.textContent = text;
+    return n;
+  }
+
+  function renderEvents() {
+    var list = document.getElementById('events-list');
+    var seedBox = document.getElementById('event-seed-box');
+    list.innerHTML = '';
+    seedBox.classList.toggle('hidden', eventsCache.length > 0);
+
+    var countEl = document.getElementById('tab-event-count');
+    if (countEl) countEl.textContent = eventsCache.length ? String(eventsCache.length) : '';
+
+    if (!eventsCache.length) return;
+
+    eventsCache.forEach(function (ev) {
+      var st = evStatus(ev);
+      var meta = STATUS_LABEL[st] || STATUS_LABEL.upcoming;
+      var n = Number(eventCounts[ev.id] || 0);
+
+      var card = el('div', 'glass p-5 flex flex-col md:flex-row md:items-center gap-4');
+
+      var left = el('div', 'flex-1 min-w-0');
+      var titleRow = el('div', 'flex items-center gap-2 flex-wrap mb-1');
+      titleRow.appendChild(el('h4', 'font-heading font-bold text-text-primary', ev.title && ev.title.tr ? ev.title.tr : ev.id));
+      titleRow.appendChild(el('span', 'badge ' + meta[1] + ' shrink-0', meta[0]));
+      titleRow.appendChild(el('span', 'badge badge-discipline text-xs shrink-0', TYPE_LABEL[ev.type] || ev.type));
+      if (!ev.registrationOpen && st !== 'completed') {
+        titleRow.appendChild(el('span', 'text-[10px] font-mono text-text-secondary/60', 'başvuru kapalı'));
+      }
+      left.appendChild(titleRow);
+
+      var cap = ev.maxParticipants > 0 ? n + '/' + ev.maxParticipants : n + ' başvuru';
+      var whenTxt = ev.dateStart + (ev.dateEnd !== ev.dateStart ? ' → ' + ev.dateEnd : '');
+      if (ev.timeStart) whenTxt += ' ' + ev.timeStart + (ev.timeEnd ? '-' + ev.timeEnd : '');
+      left.appendChild(el('p', 'text-xs text-text-secondary font-mono',
+        whenTxt + '  ·  ' + cap + '  ·  ' + ev.id));
+
+      var actions = el('div', 'flex gap-2 shrink-0');
+      var edit = el('button', 'btn-outline text-xs px-4 py-2', 'Düzenle');
+      edit.addEventListener('click', function () { openEventForm(ev.id); });
+      actions.appendChild(edit);
+
+      var del = el('button', 'btn-outline text-xs px-4 py-2', 'Sil');
+      if (n > 0) {
+        del.disabled = true;
+        del.className += ' opacity-40 cursor-not-allowed';
+        del.title = 'Başvuru almış etkinlik silinemez';
+      } else {
+        del.addEventListener('click', function () { deleteEvent(ev.id); });
+      }
+      actions.appendChild(del);
+
+      card.appendChild(left);
+      card.appendChild(actions);
+      list.appendChild(card);
+    });
+  }
+
+  async function loadEvents() {
+    var loading = document.getElementById('events-loading');
+    loading.classList.remove('hidden');
+    try {
+      var res = await fetch('/api/events', { credentials: 'same-origin' });
+      var data = await res.json();
+      eventsCache = Array.isArray(data.events) ? data.events : [];
+      eventCounts = data.counts || {};
+      eventsLoaded = true;
+      renderEvents();
+    } catch (e) {
+      console.error('[admin] etkinlikler yüklenemedi', e);
+    } finally {
+      loading.classList.add('hidden');
+    }
+  }
+
+  function setVal(id, v) { document.getElementById(id).value = v == null ? '' : v; }
+
+  function openEventForm(id) {
+    var ev = id ? eventsCache.filter(function (x) { return x.id === id; })[0] : null;
+    document.getElementById('event-form-title').textContent = ev ? 'Etkinliği Düzenle' : 'Yeni Etkinlik';
+    document.getElementById('event-form-error').classList.add('hidden');
+
+    setVal('ev-id', ev ? ev.id : '');
+    document.getElementById('ev-id').readOnly = !!ev;
+    setVal('ev-type', ev ? ev.type : 'workshop');
+    setVal('ev-title-tr', ev && ev.title ? ev.title.tr : '');
+    setVal('ev-title-en', ev && ev.title ? ev.title.en : '');
+    setVal('ev-desc-tr', ev && ev.description ? ev.description.tr : '');
+    setVal('ev-desc-en', ev && ev.description ? ev.description.en : '');
+    setVal('ev-start', ev ? ev.dateStart : '');
+    setVal('ev-end', ev ? ev.dateEnd : '');
+    setVal('ev-time-start', ev ? (ev.timeStart || '') : '');
+    setVal('ev-time-end', ev ? (ev.timeEnd || '') : '');
+    setVal('ev-max', ev ? ev.maxParticipants : 50);
+    setVal('ev-platform', ev ? (ev.platform || '') : '');
+    setVal('ev-disciplines', ev && ev.disciplines ? ev.disciplines.join(', ') : '');
+    document.getElementById('ev-open').checked = !!(ev && ev.registrationOpen);
+
+    document.getElementById('event-form').classList.remove('hidden');
+    document.getElementById('event-form').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function closeEventForm() {
+    document.getElementById('event-form').classList.add('hidden');
+  }
+
+  function eventFormError(msg) {
+    var p = document.getElementById('event-form-error');
+    p.textContent = msg;
+    p.classList.remove('hidden');
+  }
+
+  // save/delete/seed aynı sözleşmeyi kullanıyor; üç kopya yerine tek yer.
+  async function postEvents(body, onError) {
+    try {
+      var res = await fetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify(body),
+      });
+      var data = await res.json();
+      if (!res.ok) { onError(data.error || 'İşlem başarısız.'); return null; }
+      eventsCache = data.events || [];
+      renderEvents();
+      return data;
+    } catch (e) {
+      onError('Ağ hatası. Tekrar deneyin.');
+      return null;
+    }
+  }
+
+  async function saveEvent() {
+    var payload = {
+      id: document.getElementById('ev-id').value.trim().toLowerCase(),
+      type: document.getElementById('ev-type').value,
+      title: {
+        tr: document.getElementById('ev-title-tr').value,
+        en: document.getElementById('ev-title-en').value,
+      },
+      description: {
+        tr: document.getElementById('ev-desc-tr').value,
+        en: document.getElementById('ev-desc-en').value,
+      },
+      dateStart: document.getElementById('ev-start').value,
+      dateEnd: document.getElementById('ev-end').value,
+      timeStart: document.getElementById('ev-time-start').value,
+      timeEnd: document.getElementById('ev-time-end').value,
+      maxParticipants: parseInt(document.getElementById('ev-max').value, 10),
+      platform: document.getElementById('ev-platform').value,
+      disciplines: document.getElementById('ev-disciplines').value
+        .split(',').map(function (s) { return s.trim(); }).filter(Boolean),
+      registrationOpen: document.getElementById('ev-open').checked,
+    };
+
+    if (await postEvents({ action: 'save', event: payload }, eventFormError)) closeEventForm();
+  }
+
+  async function deleteEvent(id) {
+    if (!confirm('"' + id + '" silinsin mi? Bu geri alınamaz.')) return;
+    await postEvents({ action: 'delete', id: id }, alert);
+  }
+
+  async function seedEvents() {
+    var raw = document.getElementById('event-seed-data');
+    if (!raw) return;
+    var seed;
+    try { seed = JSON.parse(raw.textContent); } catch (e) { alert('Tohum verisi okunamadı.'); return; }
+    if (!confirm(seed.length + ' etkinlik içe aktarılacak. Devam edilsin mi?')) return;
+    await postEvents({ action: 'seed', events: seed }, alert);
   }
 
   async function loadAll() {
@@ -606,4 +980,15 @@ const lang = 'tr' as const;
   }
 
   document.querySelector('[data-filter="all"]')?.style && (document.querySelector('[data-filter="all"]').style.opacity = '1');
+</script>
+
+<!--
+  Durum hesabı tek kaynaktan gelsin diye: yukarıdaki panel script'i is:inline
+  olduğu için (onclick handler'ları global fonksiyon bekliyor) modül import'u
+  yapamıyor. Bu modül src/utils/events.ts'teki kuralı window'a bağlar, böylece
+  "bitiş tarihi geçtiyse tamamlandı" mantığı ikinci kez yazılmamış olur.
+-->
+<script>
+  import { deriveStatus } from '../utils/events';
+  (window as any).__deriveStatus = deriveStatus;
 </script>
