@@ -178,3 +178,35 @@ const labels = buildEventLabels(lang, t);
   import { initEvents } from '../../scripts/events-client';
   initEvents();
 </script>
+
+<!--
+  Güvenlik ağı: Cloudflare Rocket Loader, Astro'nun ürettiği type="module"
+  script'lerini kendi öneğiyle yeniden yazıyor ve ES modülü olarak
+  çalıştırmıyor — bu durumda yukarıdaki init hiç koşmaz ve iskelet ekranda
+  sonsuza kadar kalır, sayfa bozuk görünür.
+
+  data-cfasync="false" bu script'i Rocket Loader'dan muaf tutar. 6 saniye içinde
+  modül devreye girmediyse iskeleti kaldırıp boş duruma düşürür: içerik
+  gelmemiş olur ama sayfa "yükleniyor"da donmuş görünmez.
+
+  Kalıcı çözüm Rocket Loader'ı kapatmaktır (Speed → Optimization); bu yalnızca
+  bir emniyet supabıdır.
+-->
+<script is:inline data-cfasync="false">
+  (function () {
+    setTimeout(function () {
+      var sk = document.getElementById('lg-ev-skeleton');
+      if (!sk) return; // modül çalıştı, iskeleti zaten kaldırdı
+      sk.remove();
+      var dot = document.getElementById('lg-feed-dot');
+      var label = document.getElementById('lg-feed-label');
+      var labels = document.getElementById('lg-ev-labels');
+      var empty = document.getElementById('lg-ev-empty');
+      var txt = '';
+      try { txt = JSON.parse(labels.textContent).feedOffline; } catch (e) {}
+      if (dot) dot.className = 'lg-ev__feedDot is-error';
+      if (label && txt) label.textContent = txt;
+      if (empty) empty.hidden = false;
+    }, 6000);
+  })();
+</script>
