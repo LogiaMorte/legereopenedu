@@ -361,18 +361,26 @@ export function initEvents(): void {
   tabUpcoming.addEventListener('click', () => setTab('upcoming'));
   tabPast.addEventListener('click', () => setTab('past'));
 
+  /*
+   * Hata sessiz kalmasın: bu bölüm bir kez canlıda sessizce boş kaldı
+   * (Cloudflare kenar önbelleği bu modülün URL'sinde HTML sunuyordu) ve neyin
+   * bozulduğunu anlamak uzun sürdü. Artık konsola net bir iz düşüyor.
+   */
   fetch('/api/events')
-    .then((r) => (r.ok ? r.json() : null))
+    .then((r) => {
+      if (!r.ok) throw new Error(`/api/events HTTP ${r.status}`);
+      return r.json();
+    })
     .then((d: ApiPayload | null) => {
-      if (!d || !Array.isArray(d.events)) {
-        finish(false);
-        return;
-      }
+      if (!d || !Array.isArray(d.events)) throw new Error('/api/events beklenmeyen gövde');
       counts = d.counts || {};
       const all = sortForDisplay(d.events);
       upcoming = all.filter((e) => deriveStatus(e) !== 'completed');
       past = all.filter((e) => deriveStatus(e) === 'completed');
       finish(true);
     })
-    .catch(() => finish(false));
+    .catch((err) => {
+      console.error('[events] liste yüklenemedi:', err instanceof Error ? err.message : err);
+      finish(false);
+    });
 }

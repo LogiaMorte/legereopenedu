@@ -1,0 +1,85 @@
+---
+/**
+ * 404 sayfası.
+ *
+ * Neden var: Cloudflare Pages, çıktıda 404.html yoksa bulunamayan her yol için
+ * ana sayfayı 200 ile sunuyordu. Bunun iki kötü sonucu vardı:
+ *
+ * 1. `_headers` içindeki `/_astro/* → immutable, 1 yıl` kuralı yüzünden, bir
+ *    asset deploy sırasında bir an bulunamadığında yerine dönen ANA SAYFA HTML'i
+ *    o URL'de bir yıllığına önbelleğe alınıyordu. Canlıda tam olarak bu oldu:
+ *    Events modülü text/html olarak servis edildi ve nosniff yüzünden tarayıcı
+ *    onu çalıştırmayı reddetti — etkinlik bölümü sessizce boş kaldı.
+ * 2. Var olmayan yollar 200 döndüğü için ("/rss.xml" gibi) durum koduna bakarak
+ *    "bu sayfa var" sonucuna varmak mümkün değildi.
+ *
+ * Gerçek bir 404.html ikisini de çözer.
+ */
+import Layout from '../layouts/Layout.astro';
+
+const lang = 'tr' as const;
+---
+
+<Layout lang={lang} pageTitle="Sayfa bulunamadı" noindex>
+  <section class="lg-sec lg-404">
+    <div class="lg-404__mark" aria-hidden="true">
+      <svg width="96" height="96" viewBox="0 0 64 64" fill="none">
+        <path d="M32 4L56 18V46L32 60L8 46V18L32 4Z" stroke="rgba(212,168,67,0.34)" stroke-width="1.2" fill="rgba(212,168,67,0.04)" />
+        <path d="M24 18V46H42" stroke="#D4A843" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+      </svg>
+    </div>
+
+    <div class="lg-404__code">404</div>
+    <h1 class="lg-404__title">Aradığınız sayfa burada değil.</h1>
+    <p class="lg-404__body">
+      Bağlantı eskimiş ya da adres yanlış yazılmış olabilir. Aşağıdan devam edebilirsiniz.
+    </p>
+
+    <div class="lg-404__actions">
+      <a href="/" class="lg-btn-gold">Ana sayfaya dön <span class="lg-btn-gold__arrow">→</span></a>
+      <a href="/#events" class="lg-btn-outline">Etkinliklere bak</a>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .lg-404 {
+    padding-top: 120px;
+    padding-bottom: 120px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .lg-404__mark { animation: lgBreathe 4.6s ease-in-out infinite; }
+  .lg-404__code {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--color-gold-500);
+    margin-top: 22px;
+  }
+  .lg-404__title {
+    font-family: var(--font-heading);
+    font-size: clamp(28px, 3.4vw, 40px);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--color-text-primary);
+    margin-top: 12px;
+  }
+  .lg-404__body {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+    margin-top: 12px;
+    max-width: 46ch;
+    text-wrap: pretty;
+  }
+  .lg-404__actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+</style>
