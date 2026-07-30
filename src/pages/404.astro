@@ -42,6 +42,25 @@ const lang = 'tr' as const;
   </section>
 </Layout>
 
+<!--
+  Ziyaretçi 404 ekranında kalmasın: hemen ana sayfaya yönlendiriyoruz.
+  Yukarıdaki içerik yalnızca JS kapalıysa ya da yönlendirme bir sebeple
+  çalışmazsa görünür.
+
+  ÖNEMLİ — dosya yine de gerekli: Cloudflare Pages bu dosyayı 404 DURUM
+  KODUYLA sunar. Bot'lar ve asset istekleri JS çalıştırmadığı için onlar
+  gerçek 404 alır. 404.html'i tamamen kaldırırsak Pages eksik yollara ana
+  sayfayı 200 ile döner ve `/_astro/* immutable` kuralı o HTML'i asset
+  URL'lerinde bir yıllığına önbelleğe alır — canlıda etkinlik bölümünü
+  susturan hata tam olarak buydu.
+
+  data-cfasync="false": Rocket Loader tekrar açılırsa bu script bozulmasın.
+-->
+<script is:inline data-cfasync="false">
+  // replace(): geri tuşu ziyaretçiyi 404'e geri düşürmesin.
+  location.replace('/');
+</script>
+
 <style>
   .lg-404 {
     padding-top: 120px;
