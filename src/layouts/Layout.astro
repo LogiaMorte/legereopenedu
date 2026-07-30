@@ -2,6 +2,9 @@
 import '../styles/global.css';
 import '@fontsource/space-grotesk/400.css';
 import '@fontsource/space-grotesk/500.css';
+// 600 tasarımda başlık/buton/kart başlıklarının ana ağırlığı — eksikti, 700'e
+// yuvarlanıyordu. Fontlar @fontsource ile self-hosted (CSP dış font'a kapalı).
+import '@fontsource/space-grotesk/600.css';
 import '@fontsource/space-grotesk/700.css';
 import '@fontsource/inter/300.css';
 import '@fontsource/inter/400.css';
@@ -10,9 +13,8 @@ import '@fontsource/inter/600.css';
 import '@fontsource/jetbrains-mono/400.css';
 import '@fontsource/jetbrains-mono/500.css';
 import { ClientRouter } from 'astro:transitions';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import ScrollProgress from '../components/ScrollProgress.astro';
+import SiteNav from '../components/SiteNav.astro';
+import SiteFooter from '../components/SiteFooter.astro';
 import RegistrationModal from '../components/RegistrationModal.astro';
 
 interface Props {
@@ -107,14 +109,13 @@ const showAlternates = !noindex;
     {isEn ? 'Skip to content' : 'İçeriğe geç'}
   </a>
 
-  <ScrollProgress />
-  <Header lang={lang} />
+    <SiteNav lang={lang} />
 
   <main id="main-content">
     <slot />
   </main>
 
-  <Footer lang={lang} />
+  <SiteFooter lang={lang} />
   <RegistrationModal lang={lang} />
 
   <!-- Back to Top Button -->
@@ -129,48 +130,22 @@ const showAlternates = !noindex;
     </svg>
   </button>
 
-  <!-- Scroll animation observer -->
   <script>
-    const initAnimations = () => {
-      const observer = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('visible');
-              observer.unobserve(entry.target);
-            }
-          });
-        },
-        { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
-      );
+    import { initSite } from '../scripts/site';
 
-      document
-        .querySelectorAll('[data-animate], [data-animate-stagger]')
-        .forEach((el) => observer.observe(el));
-    };
+    initSite();
+    document.addEventListener('astro:after-swap', initSite);
 
-    initAnimations();
-    document.addEventListener('astro:after-swap', initAnimations);
-
-    // Back to top button
     const initBackToTop = () => {
       const btn = document.getElementById('back-to-top');
       if (!btn) return;
-
       const toggle = () => {
-        if (window.scrollY > 600) {
-          btn.style.opacity = '1';
-          btn.style.pointerEvents = 'auto';
-        } else {
-          btn.style.opacity = '0';
-          btn.style.pointerEvents = 'none';
-        }
+        const on = window.scrollY > 600;
+        btn.style.opacity = on ? '1' : '0';
+        btn.style.pointerEvents = on ? 'auto' : 'none';
       };
-
       window.addEventListener('scroll', toggle, { passive: true });
-      btn.addEventListener('click', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      });
+      btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
       toggle();
     };
 

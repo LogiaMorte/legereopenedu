@@ -1,0 +1,98 @@
+---
+/**
+ * 04 · Araştırma Alanları — 12 disiplinin hairline ızgarası.
+ *
+ * Izgara `gap:1px` + kapsayıcı zeminle kuruluyor: hücreler arası çizgiler
+ * kenarlıklardan değil, arkadaki zeminin görünmesinden geliyor. Böylece
+ * komşu kenarlıklar iki kat kalınlaşmıyor.
+ *
+ * Veri src/i18n/disciplines.ts'ten; sıra numarası dizinin sırasından türetilir.
+ */
+import { useTranslations } from '../../i18n/utils';
+import type { Lang } from '../../i18n/languages';
+import { disciplines } from '../../i18n/disciplines';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const isEn = lang === 'en';
+---
+
+<section id="fields" data-reveal class="lg-sec">
+  <div class="lg-sec__head">
+    <span class="lg-sec__num">04</span>
+    <h2 class="lg-sec__title">{t('disciplines.title')}</h2>
+    <span class="lg-sec__kicker">{t('lp.fields.kicker')}</span>
+  </div>
+
+  <div data-stagger class="lg-fields">
+    {disciplines.map((d, i) => (
+      <div class="lg-fields__cell">
+        <div class="lg-fields__top">
+          <span class="lg-fields__num">{String(i + 1).padStart(2, '0')}</span>
+          <span class="lg-fields__code">{d.code}</span>
+        </div>
+        <h3 class="lg-fields__title">{isEn ? d.label.en : d.label.tr}</h3>
+        <p class="lg-fields__body">{isEn ? d.desc.en : d.desc.tr}</p>
+      </div>
+    ))}
+  </div>
+</section>
+
+<style>
+  .lg-fields {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(232px, 1fr));
+    gap: 1px;
+    background: rgba(240, 237, 230, 0.07);
+    border: 1px solid rgba(240, 237, 230, 0.07);
+    border-radius: 16px;
+    overflow: hidden;
+    margin-top: 36px;
+  }
+
+  .lg-fields__cell {
+    background: #0c0c12;
+    padding: 26px 22px 30px;
+    position: relative;
+    transition: background 260ms ease;
+  }
+  .lg-fields__cell:hover { background: rgba(212, 168, 67, 0.07); }
+
+  .lg-fields__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .lg-fields__num {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    color: #6e6e80;
+  }
+  .lg-fields__code {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    color: var(--color-gold-500);
+    opacity: 0.55;
+  }
+  .lg-fields__title {
+    font-family: var(--font-heading);
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-top: 18px;
+  }
+  .lg-fields__body {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #8e8e9e;
+    margin-top: 8px;
+    text-wrap: pretty;
+  }
+</style>

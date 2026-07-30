@@ -1,0 +1,169 @@
+---
+/**
+ * Footer — one-pager tasarımı.
+ *
+ * Eski Footer.astro'nun yerini alır ve eski ayrı "Trust" bölümünü içine alır:
+ * veri güvenliği artık kendi başına bir bölüm değil, footer'da bir satır.
+ * Güven verir ama sayfanın ortasında yer kaplamaz.
+ */
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/languages';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const base = lang === 'en' ? '/en' : '';
+
+const home = lang === 'en' ? '/en/' : '/';
+const siteLinks = [
+  { href: `${home}#about`, label: t('nav.about') },
+  { href: `${home}#programs`, label: t('nav.programs') },
+  { href: `${home}#events`, label: t('nav.events') },
+  { href: `${home}#fields`, label: t('nav.fields') },
+  { href: `${base}/signup`, label: t('nav.cta') },
+];
+
+const legalLinks = [
+  { href: `${base}/kvkk`, label: lang === 'en' ? 'KVKK Notice' : 'KVKK Aydınlatma Metni' },
+  { href: `${base}/privacy`, label: lang === 'en' ? 'Privacy Policy' : 'Gizlilik Politikası' },
+  { href: `${base}/terms`, label: lang === 'en' ? 'Terms of Use' : 'Kullanım Koşulları' },
+  { href: `${base}/cookies`, label: lang === 'en' ? 'Cookie Policy' : 'Çerez Politikası' },
+  { href: `${base}/ethics`, label: lang === 'en' ? 'Ethical Principles' : 'Etik İlkeler' },
+];
+---
+
+<footer id="footer" class="lg-footer">
+  <div class="lg-footer__grid">
+    <div>
+      <div class="lg-footer__brand">
+        <svg width="25" height="25" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <path d="M32 4L56 18V46L32 60L8 46V18L32 4Z" stroke="rgba(212,168,67,0.6)" stroke-width="2" fill="none" />
+          <path d="M24 18V46H42" stroke="#D4A843" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+        </svg>
+        <span>LEGERE</span>
+      </div>
+      <p class="lg-footer__tagline">{t('lp.footer.tagline')}</p>
+      <div class="lg-footer__trust">
+        <span class="lg-footer__dot"></span>
+        <span>{t('lp.footer.trust')}</span>
+      </div>
+    </div>
+
+    <div>
+      <div class="lg-footer__label">{t('lp.footer.site')}</div>
+      <div class="lg-footer__links">
+        {siteLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+      </div>
+    </div>
+
+    <div>
+      <div class="lg-footer__label">{t('lp.footer.legal')}</div>
+      <div class="lg-footer__links">
+        {legalLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+      </div>
+    </div>
+  </div>
+
+  <div class="lg-footer__bar">
+    <div class="lg-footer__barInner">
+      <span>© 2026 LEGERE OPEN EDU</span>
+      <span>{t('lp.footer.motto')}</span>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .lg-footer {
+    border-top: 1px solid rgba(240, 237, 230, 0.08);
+    background: #08080c;
+  }
+
+  .lg-footer__grid {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 52px 32px 40px;
+    display: grid;
+    grid-template-columns: 1.3fr 1fr 1fr;
+    gap: 44px;
+  }
+
+  .lg-footer__brand { display: flex; align-items: center; gap: 11px; }
+  .lg-footer__brand span {
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: var(--color-text-primary);
+  }
+
+  .lg-footer__tagline {
+    font-size: 14px;
+    line-height: 1.7;
+    color: #6e6e80;
+    margin-top: 14px;
+    max-width: 38ch;
+    text-wrap: pretty;
+  }
+
+  .lg-footer__trust {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 18px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: #4a4a58;
+  }
+  .lg-footer__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 999px;
+    background: var(--color-status-open);
+    display: block;
+  }
+
+  .lg-footer__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #6e6e80;
+  }
+
+  .lg-footer__links {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    margin-top: 14px;
+    font-size: 14px;
+  }
+  .lg-footer__links a { color: var(--color-text-secondary); }
+  .lg-footer__links a:hover { color: var(--color-gold-200); }
+
+  .lg-footer__bar { border-top: 1px solid rgba(240, 237, 230, 0.06); }
+  .lg-footer__barInner {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: #4a4a58;
+  }
+
+  @media (max-width: 860px) {
+    .lg-footer__grid { grid-template-columns: 1fr 1fr; gap: 32px; }
+  }
+  @media (max-width: 560px) {
+    .lg-footer__grid { grid-template-columns: 1fr; padding: 40px 18px 30px; }
+    .lg-footer__barInner { flex-direction: column; align-items: flex-start; gap: 8px; padding: 16px 18px; }
+  }
+</style>

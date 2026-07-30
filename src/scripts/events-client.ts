@@ -1,17 +1,24 @@
 /**
- * Etkinliklerin tarayıcıda hidrasyonu.
+ * Etkinlik bölümünün istemci tarafı.
  *
- * Site statik build alıyor; etkinlikler ise artık KV'de ve panelden yönetiliyor.
- * Bu yüzden bölümler build sırasında JSON'dan render edilir (SEO + JS kapalıyken
- * çalışsın diye), sayfa açılınca burası /api/events'ten gelen güncel listeyle
- * üzerine yazar. API boş dönerse veya hata olursa statik içerik olduğu gibi kalır.
+ * Site statik build alıyor; etkinlikler KV'de ve panelden yönetiliyor. Bu modül
+ * kabuğu (Events.astro) /api/events'ten gelen listeyle doldurur.
  *
- * Durum ve disiplin mantığı import edilir, burada tekrarlanmaz.
+ * Üç durum: iskelet (istek sürerken) → kart ızgarası veya boş durum.
+ * Boş durum İSTİSNA DEĞİL, bugünün normal hâli — o yüzden "Yakında" yazan bir
+ * kutu değil, tasarlanmış bir ekran.
+ *
+ * Durum (Kayıt Açık / Yakında / Devam Ediyor / Tamamlandı) src/utils/events.ts
+ * ile TARİHTEN türetilir; burada yeniden hesaplanmaz.
  */
 
 import {
-  deriveStatus, sortForDisplay, STATUS_CLASS, formatEventDate,
-  participantsText, fillPercent, type EventStatus,
+  deriveStatus,
+  sortForDisplay,
+  formatEventDate,
+  participantsText,
+  fillPercent,
+  type EventStatus,
 } from '../utils/events';
 import { disciplineLabel } from '../i18n/disciplines';
 
@@ -38,15 +45,26 @@ export interface EventLabels {
   lang: string;
   status: Record<EventStatus, string>;
   type: Record<string, string>;
-  participants: string;
-  register: string;
+  cta: Record<EventStatus, string>;
+  seats: string;
+  attendees: string;
+  feedLive: string;
+  feedOffline: string;
+  empty: {
+    kicker: string;
+    title: string;
+    body: string;
+    nextCall: string;
+    pastCount: string;
+    cta1: string;
+    cta2: string;
+    pastTitle: string;
+    pastBody: string;
+  };
+  signupPath: string;
 }
 
-/**
- * Bölümlerin gömdüğü etiket bloğunu üretir. Workshops.astro ve Calendar.astro
- * bunu aynı şekilde kuruyordu; iki kopya olunca yeni bir tür/durum eklendiğinde
- * biri güncellenmeyip aynı etkinlik iki bölümde farklı görünüyordu.
- */
+/** Bölümlerin gömdüğü etiket bloğunu üretir (build sırasında çağrılır). */
 export function buildEventLabels(lang: string, t: (k: any) => string): EventLabels {
   return {
     lang,
@@ -63,8 +81,28 @@ export function buildEventLabels(lang: string, t: (k: any) => string): EventLabe
       course: t('calendar.type.course'),
       congress: t('calendar.type.congress'),
     },
-    participants: t('workshops.participants'),
-    register: t('workshops.register'),
+    cta: {
+      open: t('lp.card.ctaOpen'),
+      upcoming: t('lp.card.ctaUpcoming'),
+      ongoing: t('lp.card.ctaOngoing'),
+      completed: t('lp.card.ctaClosed'),
+    },
+    seats: t('lp.card.seats'),
+    attendees: t('lp.card.attendees'),
+    feedLive: t('lp.events.feedLive'),
+    feedOffline: t('lp.events.feedOffline'),
+    empty: {
+      kicker: t('lp.empty.kicker'),
+      title: t('lp.empty.title'),
+      body: t('lp.empty.body'),
+      nextCall: t('lp.empty.nextCall'),
+      pastCount: t('lp.empty.pastCount'),
+      cta1: t('lp.empty.cta1'),
+      cta2: t('lp.empty.cta2'),
+      pastTitle: t('lp.empty.pastTitle'),
+      pastBody: t('lp.empty.pastBody'),
+    },
+    signupPath: lang === 'en' ? '/en/signup' : '/signup',
   };
 }
 
@@ -73,225 +111,268 @@ interface ApiPayload {
   counts: Record<string, number>;
 }
 
-let cached: Promise<ApiPayload | null> | null = null;
-
-/** Tek fetch, iki bölüm paylaşır. */
-export function fetchEvents(): Promise<ApiPayload | null> {
-  if (!cached) {
-    cached = fetch('/api/events')
-      .then((r) => (r.ok ? r.json() : null))
-      .then((d) => (d && Array.isArray(d.events) ? (d as ApiPayload) : null))
-      .catch(() => null);
-  }
-  return cached;
-}
-
-export function readLabels(id: string): EventLabels | null {
-  const node = document.getElementById(id);
-  if (!node?.textContent) return null;
-  try {
-    return JSON.parse(node.textContent) as EventLabels;
-  } catch {
-    return null;
-  }
-}
+/** Durum → renk. Kart kenarı, rozet ve doluluk çubuğu bunu paylaşır. */
+const STATUS_COLOR: Record<EventStatus, { fg: string; bg: string; border: string }> = {
+  open: { fg: '#4ADE80', bg: 'rgba(74,222,128,0.13)', border: 'rgba(74,222,128,0.3)' },
+  upcoming: { fg: '#60A5FA', bg: 'rgba(96,165,250,0.13)', border: 'rgba(96,165,250,0.3)' },
+  ongoing: { fg: '#D4A843', bg: 'rgba(212,168,67,0.13)', border: 'rgba(212,168,67,0.32)' },
+  completed: { fg: '#F87171', bg: 'rgba(248,113,113,0.1)', border: 'rgba(248,113,113,0.24)' },
+};
 
 function h(tag: string, cls?: string, text?: string): HTMLElement {
   const n = document.createElement(tag);
   if (cls) n.className = cls;
-  // textContent kullanılıyor: etkinlik metinleri panelden geliyor, innerHTML yok.
+  // textContent: etkinlik metinleri panelden geliyor, innerHTML kullanılmaz.
   if (text != null) n.textContent = text;
   return n;
 }
 
 /**
- * "2 Ağustos 2026 · 21:00–21:55 GMT+3" — saat ZİYARETÇİNİN saat diliminde.
- *
- * Etkinlik saatleri Türkiye saatiyle girilir ama `startsAt` içinde ofsetiyle
- * saklanır; burada tarayıcının yerel saatine çevrilir. Almanya'daki bir
- * katılımcı 20:00 görür ve yanlış saate uyanmaz. Saat dilimi kısaltması da
- * yazılır ki hangi saat olduğu tartışmaya açık kalmasın.
+ * "2 Ağustos 2026 · 21:00–21:55 GMT+3" — saat ZİYARETÇİNİN diliminde.
+ * Saatler Türkiye saatiyle girilip ofsetiyle saklanır; burada çevrilir.
  */
-function whenText(ev: ApiEvent, lang: string, long = false): string {
-  const loc = lang === 'tr' ? 'tr-TR' : 'en-US';
-  const f = (iso: string, l: string) => formatEventDate(iso, l, long);
+function whenText(ev: ApiEvent, lang: string): string {
+  const loc = lang === 'en' ? 'en-US' : 'tr-TR';
   const multiDay = ev.dateEnd && ev.dateEnd !== ev.dateStart;
 
   if (!multiDay && ev.startsAt) {
     const start = new Date(ev.startsAt);
     if (!Number.isNaN(start.getTime())) {
-      // Yerel saate çevrildiğinde tarih de kayabilir (ör. 23:30 TR = ertesi gün
-      // bazı dilimlerde), o yüzden tarihi de bu andan okuyoruz.
-      const dateStr = start.toLocaleDateString(loc, {
-        day: 'numeric',
-        month: long ? 'long' : 'short',
-        year: 'numeric',
-      });
-      const timeOpts: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
-      let timeStr = start.toLocaleTimeString(loc, { ...timeOpts, timeZoneName: 'short' });
+      const dateStr = start.toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric' });
+      const o: Intl.DateTimeFormatOptions = { hour: '2-digit', minute: '2-digit' };
+      let timeStr = start.toLocaleTimeString(loc, { ...o, timeZoneName: 'short' });
       if (ev.endsAt) {
         const end = new Date(ev.endsAt);
         if (!Number.isNaN(end.getTime())) {
-          timeStr = `${start.toLocaleTimeString(loc, timeOpts)}–${end.toLocaleTimeString(loc, { ...timeOpts, timeZoneName: 'short' })}`;
+          timeStr = `${start.toLocaleTimeString(loc, o)}–${end.toLocaleTimeString(loc, { ...o, timeZoneName: 'short' })}`;
         }
       }
       return `${dateStr} · ${timeStr}`;
     }
   }
 
-  let out = multiDay ? `${f(ev.dateStart, lang)} — ${f(ev.dateEnd, lang)}` : f(ev.dateStart, lang);
-  // startsAt yoksa (tüm gün süren etkinlik) ham saat varsa onu göster.
+  let out = multiDay
+    ? `${formatEventDate(ev.dateStart, lang)} — ${formatEventDate(ev.dateEnd, lang)}`
+    : formatEventDate(ev.dateStart, lang);
   if (!multiDay && ev.timeStart) {
     out += ` · ${ev.timeStart}${ev.timeEnd ? `–${ev.timeEnd}` : ''}`;
   }
   return out;
 }
 
-// ── Atölye kartları ──
+// ── Kart ──
 
-function workshopCard(ev: ApiEvent, count: number, L: EventLabels): HTMLElement {
+function card(ev: ApiEvent, count: number, L: EventLabels): HTMLElement {
   const lang = L.lang;
   const status = deriveStatus(ev);
+  const color = STATUS_COLOR[status];
+  const isDone = status === 'completed';
 
-  const card = h('div', 'glass p-6 flex flex-col gap-4 min-w-[300px] md:min-w-[350px] hover:gold-glow transition-all duration-300');
+  const el = h('article', `lg-card${isDone ? ' is-done' : ''}`);
 
-  const header = h('div', 'flex items-start justify-between gap-3');
-  header.appendChild(h('h3', 'text-lg font-heading font-bold text-text-primary', ev.title?.[lang] ?? ev.id));
-  header.appendChild(h('span', `badge shrink-0 ${STATUS_CLASS[status]}`, L.status[status]));
-  card.appendChild(header);
+  const top = h('div', 'lg-card__top');
+  top.appendChild(h('span', 'lg-card__type', L.type[ev.type] ?? ev.type));
+  const badge = h('span', 'lg-card__status');
+  badge.style.color = color.fg;
+  badge.style.background = color.bg;
+  badge.style.borderColor = color.border;
+  const badgeDot = h('span', 'lg-card__statusDot');
+  badgeDot.style.background = color.fg;
+  badge.appendChild(badgeDot);
+  badge.appendChild(document.createTextNode(L.status[status]));
+  top.appendChild(badge);
+  el.appendChild(top);
 
-  const dateRow = h('div', 'flex items-center gap-2 text-text-secondary text-sm');
-  dateRow.appendChild(h('span', undefined, whenText(ev, lang)));
-  card.appendChild(dateRow);
+  el.appendChild(h('h3', 'lg-card__title', ev.title?.[lang] ?? ev.id));
+  el.appendChild(h('div', 'lg-card__date', whenText(ev, lang)));
 
   const desc = ev.description?.[lang];
-  if (desc) card.appendChild(h('p', 'text-text-secondary text-sm leading-relaxed', desc));
+  if (desc) el.appendChild(h('p', 'lg-card__body', desc));
 
   if (ev.disciplines?.length) {
-    const tags = h('div', 'flex flex-wrap gap-2');
-    ev.disciplines.forEach((d) => {
-      tags.appendChild(h('span', 'badge badge-discipline text-xs', disciplineLabel(d, lang)));
-    });
-    card.appendChild(tags);
+    const tags = h('div', 'lg-card__tags');
+    ev.disciplines.forEach((d) => tags.appendChild(h('span', 'lg-card__tag', disciplineLabel(d, lang))));
+    el.appendChild(tags);
   }
 
-  // Katılımcı çubuğu — sayı KV'den gelen gerçek başvuru sayısı.
-  const barWrap = h('div');
-  const barTop = h('div', 'flex justify-between text-xs text-text-secondary mb-1.5');
-  barTop.appendChild(h('span', undefined, L.participants));
-  barTop.appendChild(h('span', 'font-mono', participantsText(count, ev.maxParticipants)));
-  barWrap.appendChild(barTop);
+  const foot = h('div', 'lg-card__foot');
 
-  const track = h('div', 'w-full h-1.5 bg-white/5 rounded-full overflow-hidden');
-  const fill = h('div', 'h-full rounded-full bg-gradient-to-r from-gold-600 to-gold-400 transition-all duration-500');
-  fill.style.width = `${fillPercent(count, ev.maxParticipants)}%`;
-  track.appendChild(fill);
-  barWrap.appendChild(track);
-  card.appendChild(barWrap);
+  // Kontenjan satırı yalnızca sınırlı etkinliklerde anlamlı; sınırsızda
+  // (halka açık seminer) sadece katılımcı sayısı gösterilir, çubuk çizilmez.
+  const seatRow = h('div', 'lg-card__seatRow');
+  // Kontenjan sınırsızsa (maxParticipants 0) "Kontenjan: 0" yazmak "sıfır kişilik"
+  // gibi okunur; orada gösterilen şey aslında katılımcı sayısıdır.
+  const unlimited = ev.maxParticipants === 0;
+  seatRow.appendChild(h('span', undefined, isDone || unlimited ? L.attendees : L.seats));
+  seatRow.appendChild(h('span', 'lg-card__seatVal', participantsText(count, ev.maxParticipants)));
+  foot.appendChild(seatRow);
 
+  if (ev.maxParticipants > 0) {
+    const track = h('div', 'lg-card__track');
+    const fill = h('div', 'lg-card__fill');
+    fill.style.background = color.fg;
+    fill.style.width = `${fillPercent(count, ev.maxParticipants)}%`;
+    track.appendChild(fill);
+    foot.appendChild(track);
+  }
+
+  const actions = h('div', 'lg-card__actions');
+  actions.appendChild(h('span', 'lg-card__platform', ev.platform ?? ''));
+
+  const cta = h('button', `lg-card__cta${status === 'open' ? ' is-solid' : ''}`, L.cta[status]);
+  cta.setAttribute('type', 'button');
+  cta.setAttribute('aria-label', `${L.cta[status]} — ${ev.title?.[lang] ?? ev.id}`);
   if (status === 'open') {
-    const btn = h('button', 'btn-gold text-center justify-center text-sm mt-auto cursor-pointer', L.register);
-    btn.setAttribute('type', 'button');
-    btn.setAttribute('aria-label', `${L.register} - ${ev.title?.[lang] ?? ev.id}`);
-    btn.addEventListener('click', () => {
+    cta.addEventListener('click', () => {
       const open = (window as any).openRegistration;
       if (typeof open === 'function') open(ev.title?.[lang] ?? ev.id, ev.id);
     });
-    card.appendChild(btn);
-  } else if (status === 'upcoming') {
-    card.appendChild(h('div', 'btn-outline text-center justify-center text-sm mt-auto cursor-default opacity-70', L.status.upcoming));
-  }
-
-  return card;
-}
-
-/** #workshops-grid içeriğini API'den gelen atölyelerle değiştirir. */
-export async function hydrateWorkshops(gridId: string, labelsId: string): Promise<void> {
-  const grid = document.getElementById(gridId);
-  const L = readLabels(labelsId);
-  if (!grid || !L) return;
-
-  const data = await fetchEvents();
-  if (!data || !data.events.length) return;
-
-  const workshops = sortForDisplay(data.events.filter((e) => e.type === 'workshop'));
-  if (!workshops.length) return;
-
-  grid.replaceChildren(
-    ...workshops.map((ev) => {
-      const cell = h('div', 'snap-start shrink-0 w-[85vw] md:w-auto');
-      cell.appendChild(workshopCard(ev, Number(data.counts[ev.id] ?? 0), L));
-      return cell;
-    }),
-  );
-}
-
-// ── Takvim zaman çizelgesi ──
-
-function timelineItem(ev: ApiEvent, i: number, L: EventLabels): HTMLElement {
-  const lang = L.lang;
-  const status = deriveStatus(ev);
-  const past = status === 'completed';
-  const even = i % 2 === 0;
-
-  const row = h('div', `relative flex items-start gap-6 md:gap-0 ${past ? 'opacity-50' : ''}`);
-
-  const dot = h('div', `absolute left-4 md:left-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 z-10 mt-6 ${past ? 'border-text-secondary bg-bg-primary' : 'border-gold-500 bg-gold-500/30'}`);
-  if (!past) dot.appendChild(h('div', 'absolute inset-0 rounded-full bg-gold-500/50 animate-ping'));
-  row.appendChild(dot);
-
-  const card = h('div', `ml-10 md:ml-0 md:w-[calc(50%-2rem)] glass p-5 ${even ? 'md:mr-auto md:pr-8' : 'md:ml-auto md:pl-8'}`);
-
-  const badges = h('div', 'flex items-center gap-2 mb-2 flex-wrap');
-  badges.appendChild(h('span', 'badge text-xs badge-discipline', L.type[ev.type] ?? ev.type));
-  badges.appendChild(h('span', `badge text-xs ${STATUS_CLASS[status]}`, L.status[status]));
-  card.appendChild(badges);
-
-  card.appendChild(h('h3', 'text-lg font-heading font-bold text-text-primary mb-1', ev.title?.[lang] ?? ev.id));
-
-  card.appendChild(h('p', 'text-gold-500/80 text-sm font-mono mb-2', whenText(ev, lang, true)));
-
-  const desc = ev.description?.[lang];
-  if (desc) card.appendChild(h('p', 'text-text-secondary text-sm mb-2', desc));
-
-  const meta = h('div', 'flex items-center gap-3 flex-wrap');
-  const loc = ev.location?.[lang];
-  if (loc) meta.appendChild(h('p', 'text-text-secondary/60 text-xs', `📍 ${loc}`));
-  if (ev.platform) {
-    meta.appendChild(h('span', 'text-[10px] font-mono text-text-secondary/60 tracking-wide', ev.platform));
-  }
-  if (meta.childElementCount) card.appendChild(meta);
-
-  /*
-   * Kayıt butonu takvimde de olmalı. Atölye ızgarası yalnızca type==='workshop'
-   * gösterdiği için seminer/kolokyum/ders "Kayıt Açık" rozetiyle görünüyor ama
-   * kaydolunacak yer yoktu — açık seminerde bile bağlantıyı e-postayla
-   * gönderebilmek için kaydın alınması gerekiyor.
-   */
-  if (deriveStatus(ev) === 'open') {
-    const btn = h('button', 'btn-gold justify-center text-xs mt-4 w-full sm:w-auto cursor-pointer', L.register);
-    btn.setAttribute('type', 'button');
-    btn.setAttribute('aria-label', `${L.register} — ${ev.title?.[lang] ?? ev.id}`);
-    btn.addEventListener('click', () => {
-      const open = (window as any).openRegistration;
-      if (typeof open === 'function') open(ev.title?.[lang] ?? ev.id, ev.id);
+  } else {
+    // Kayıt alınmayan durumlarda tek anlamlı eylem topluluğa katılmak
+    cta.addEventListener('click', () => {
+      location.href = L.signupPath;
     });
-    card.appendChild(btn);
   }
+  actions.appendChild(cta);
+  foot.appendChild(actions);
 
-  row.appendChild(card);
-  return row;
+  el.appendChild(foot);
+  return el;
 }
 
-/** #calendar-timeline içeriğini API'den gelen etkinliklerle değiştirir. */
-export async function hydrateCalendar(listId: string, labelsId: string): Promise<void> {
-  const list = document.getElementById(listId);
-  const L = readLabels(labelsId);
-  if (!list || !L) return;
+// ── Boş durum ──
 
-  const data = await fetchEvents();
-  if (!data || !data.events.length) return;
+function emptyState(L: EventLabels, tab: 'upcoming' | 'past', pastCount: number, onShowPast: () => void): HTMLElement {
+  const box = h('div', 'lg-empty');
 
-  const ordered = sortForDisplay(data.events);
-  list.replaceChildren(...ordered.map((ev, i) => timelineItem(ev, i, L)));
+  const mark = h('div', 'lg-empty__mark');
+  // innerHTML burada güvenli: tamamen sabit SVG, hiçbir veri enterpolasyonu yok.
+  // Dosyanın geri kalanı metin için bilinçli olarak textContent kullanır.
+  mark.innerHTML = `
+    <svg width="112" height="112" viewBox="0 0 64 64" fill="none" class="lg-empty__breathe" aria-hidden="true">
+      <path d="M32 4L56 18V46L32 60L8 46V18L32 4Z" stroke="rgba(212,168,67,0.34)" stroke-width="1.2" fill="rgba(212,168,67,0.04)"/>
+    </svg>
+    <svg width="112" height="112" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+      <path d="M32 4L56 18V46L32 60L8 46V18L32 4Z" stroke="#FFD54F" stroke-width="1.6" stroke-dasharray="15 170" class="lg-empty__dash"/>
+    </svg>
+    <svg width="46" height="46" viewBox="0 0 64 64" fill="none" class="lg-empty__l" aria-hidden="true">
+      <path d="M24 18V46H42" stroke="#D4A843" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>`;
+  box.appendChild(mark);
+
+  const mid = h('div');
+  if (tab === 'past') {
+    mid.appendChild(h('div', 'lg-empty__kicker', L.empty.kicker));
+    mid.appendChild(h('h3', 'lg-empty__title', L.empty.pastTitle));
+    mid.appendChild(h('p', 'lg-empty__body', L.empty.pastBody));
+  } else {
+    mid.appendChild(h('div', 'lg-empty__kicker', L.empty.kicker));
+    mid.appendChild(h('h3', 'lg-empty__title', L.empty.title));
+    mid.appendChild(h('p', 'lg-empty__body', L.empty.body));
+    const meta = h('div', 'lg-empty__meta');
+    meta.appendChild(h('span', undefined, L.empty.nextCall));
+    meta.appendChild(h('span', 'lg-empty__sep', '/'));
+    meta.appendChild(h('span', undefined, `${L.empty.pastCount} · ${pastCount}`));
+    mid.appendChild(meta);
+  }
+  box.appendChild(mid);
+
+  const actions = h('div', 'lg-empty__actions');
+  const join = h('a', 'lg-btn-gold lg-empty__cta1', L.empty.cta1);
+  join.setAttribute('href', L.signupPath);
+  actions.appendChild(join);
+  if (tab === 'upcoming' && pastCount > 0) {
+    const seePast = h('button', 'lg-btn-outline lg-empty__cta2', L.empty.cta2);
+    seePast.setAttribute('type', 'button');
+    seePast.addEventListener('click', onShowPast);
+    actions.appendChild(seePast);
+  }
+  box.appendChild(actions);
+
+  return box;
+}
+
+// ── Ana akış ──
+
+export function initEvents(): void {
+  const labelsNode = document.getElementById('lg-ev-labels');
+  const skeleton = document.getElementById('lg-ev-skeleton');
+  const list = document.getElementById('lg-ev-list');
+  const emptyBox = document.getElementById('lg-ev-empty');
+  const tabUpcoming = document.getElementById('lg-tab-upcoming');
+  const tabPast = document.getElementById('lg-tab-past');
+  const feedDot = document.getElementById('lg-feed-dot');
+  const feedLabel = document.getElementById('lg-feed-label');
+  if (!labelsNode || !skeleton || !list || !emptyBox || !tabUpcoming || !tabPast) return;
+
+  let L: EventLabels;
+  try {
+    L = JSON.parse(labelsNode.textContent || '{}');
+  } catch {
+    return;
+  }
+
+  let tab: 'upcoming' | 'past' = 'upcoming';
+  let upcoming: ApiEvent[] = [];
+  let past: ApiEvent[] = [];
+  let counts: Record<string, number> = {};
+
+  const setTab = (next: 'upcoming' | 'past') => {
+    tab = next;
+    tabUpcoming.classList.toggle('is-active', next === 'upcoming');
+    tabPast.classList.toggle('is-active', next === 'past');
+    tabUpcoming.setAttribute('aria-selected', String(next === 'upcoming'));
+    tabPast.setAttribute('aria-selected', String(next === 'past'));
+    render();
+  };
+
+  function render(): void {
+    const items = tab === 'upcoming' ? upcoming : past;
+    list!.replaceChildren();
+    emptyBox!.replaceChildren();
+
+    if (items.length === 0) {
+      list!.hidden = true;
+      emptyBox!.hidden = false;
+      emptyBox!.appendChild(emptyState(L, tab, past.length, () => setTab('past')));
+      return;
+    }
+
+    emptyBox!.hidden = true;
+    list!.hidden = false;
+    items.forEach((ev) => list!.appendChild(card(ev, Number(counts[ev.id] ?? 0), L)));
+  }
+
+  const finish = (ok: boolean) => {
+    skeleton.hidden = true;
+    skeleton.remove();
+    if (feedDot) feedDot.className = `lg-ev__feedDot${ok ? '' : ' is-error'}`;
+    if (feedLabel) feedLabel.textContent = ok ? L.feedLive : L.feedOffline;
+
+    document.getElementById('lg-count-upcoming')!.textContent = String(upcoming.length);
+    document.getElementById('lg-count-past')!.textContent = String(past.length);
+    // About bölümündeki "gerçekleşen etkinlik" istatistiği aynı veriden
+    const statPast = document.getElementById('lg-stat-past');
+    if (statPast) statPast.textContent = String(past.length);
+
+    render();
+  };
+
+  tabUpcoming.addEventListener('click', () => setTab('upcoming'));
+  tabPast.addEventListener('click', () => setTab('past'));
+
+  fetch('/api/events')
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d: ApiPayload | null) => {
+      if (!d || !Array.isArray(d.events)) {
+        finish(false);
+        return;
+      }
+      counts = d.counts || {};
+      const all = sortForDisplay(d.events);
+      upcoming = all.filter((e) => deriveStatus(e) !== 'completed');
+      past = all.filter((e) => deriveStatus(e) === 'completed');
+      finish(true);
+    })
+    .catch(() => finish(false));
 }

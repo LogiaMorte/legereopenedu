@@ -30,3 +30,8 @@ Thumbs.db
 
 # Debug
 npm-debug.log*
+
+# Kullanıcının public/social altına koyduğu, siteyle ilgisi olmayan dosyalar.
+# public/ altındaki her şey herkese açık servis edilir — bunlar yayımlanmamalı.
+public/social/ara-rapor-formu.doc
+public/social/linkedin-cover (1).png
