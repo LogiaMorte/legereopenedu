@@ -1,0 +1,348 @@
+---
+/**
+ * 05 · Katıl — dönüşümün bittiği yer.
+ *
+ * OAuth akışı DEĞİŞTİRİLMEDİ:
+ * - LinkedIn zaten düz bir yönlendirme bağlantısı, doğrudan kullanılıyor.
+ * - Google, GIS SDK'sıyla ve KVKK onay kutusunun ARKASINDA çalışıyor; o onayı
+ *   atlamamak için buton /signup sayfasına götürüyor. Onay kutusunu by-pass edip
+ *   burada doğrudan GIS başlatmak yasal olarak yanlış olurdu.
+ *
+ * "Kayıt altında yürütülür" metni kurucudan geldi ve birebir korunmalı.
+ */
+import { useTranslations } from '../../i18n/utils';
+import type { Lang } from '../../i18n/languages';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const base = lang === 'en' ? '/en' : '';
+const signupPath = `${base}/signup`;
+const linkedinPath = `/api/auth/linkedin?mode=signup&lang=${lang}`;
+
+const afterJoin = [
+  { num: '01', title: t('lp.after1.title'), body: t('lp.after1.body') },
+  { num: '02', title: t('lp.after2.title'), body: t('lp.after2.body') },
+  { num: '03', title: t('lp.after3.title'), body: t('lp.after3.body') },
+];
+---
+
+<section id="join" data-reveal class="lg-join">
+  <div class="lg-join__glow" aria-hidden="true"></div>
+
+  <div class="lg-join__inner">
+    <div>
+      <div class="lg-sec__head">
+        <span class="lg-sec__num">05</span>
+        <h2 class="lg-sec__title">{t('nav.join')}</h2>
+      </div>
+
+      <p class="lg-join__lede">{t('lp.join.lede')}</p>
+      <p class="lg-join__body">{t('lp.join.body')}</p>
+
+      <div data-stagger class="lg-join__auth">
+        <a href={signupPath} class="lg-join__google">
+          <svg width="17" height="17" viewBox="0 0 18 18" aria-hidden="true">
+            <path fill="#EA4335" d="M9 3.48c1.47 0 2.5.63 3.07 1.17l2.24-2.19C12.96 1.19 11.2.5 9 .5 5.83.5 3.1 2.32 1.77 4.96l2.57 2c.66-1.96 2.48-3.48 4.66-3.48z" />
+            <path fill="#4285F4" d="M17.5 9.2c0-.63-.05-1.09-.16-1.57H9v2.98h4.85c-.1.8-.62 2-1.3 2.62l2.5 1.94c1.5-1.39 2.45-3.43 2.45-5.97z" />
+            <path fill="#FBBC05" d="M4.34 10.96A5.4 5.4 0 014.05 9c0-.68.11-1.34.28-1.96l-2.56-2A8.94 8.94 0 00.5 9c0 1.45.35 2.81.97 4.02l2.87-2.06z" />
+            <path fill="#34A853" d="M9 17.5c2.2 0 4.05-.72 5.4-1.97l-2.63-2.04c-.7.49-1.65.83-2.77.83-2.18 0-4.03-1.44-4.69-3.4l-2.86 2.06C4.09 15.6 6.8 17.5 9 17.5z" />
+          </svg>
+          {t('lp.join.google')}
+        </a>
+
+        <a href={linkedinPath} class="lg-join__linkedin">
+          <svg width="17" height="17" viewBox="0 0 18 18" aria-hidden="true">
+            <path fill="#0A66C2" d="M15.6 0H2.4A2.4 2.4 0 000 2.4v13.2A2.4 2.4 0 002.4 18h13.2A2.4 2.4 0 0018 15.6V2.4A2.4 2.4 0 0015.6 0zM5.5 15.2H2.8V6.9h2.7v8.3zM4.1 5.7a1.6 1.6 0 110-3.2 1.6 1.6 0 010 3.2zm11.1 9.5h-2.7v-4.3c0-1.1-.4-1.8-1.4-1.8-.8 0-1.2.5-1.4 1-.1.2-.1.5-.1.7v4.4H7V6.9h2.6v1.2c.4-.6 1-1.4 2.5-1.4 1.8 0 3.1 1.2 3.1 3.7v4.8z" />
+          </svg>
+          {t('lp.join.linkedin')}
+        </a>
+
+        <p class="lg-join__legal">
+          {t('lp.join.legal1')} <a href={`${base}/kvkk`}>{t('lp.join.legalKvkk')}</a>
+          {' '}{t('lp.join.legal2')} <a href={`${base}/terms`}>{t('lp.join.legalTerms')}</a>{t('lp.join.legal3')}
+        </p>
+      </div>
+    </div>
+
+    <div class="lg-join__side">
+      <div class="lg-join__card">
+        <div class="lg-join__cardHead">
+          <h3 class="lg-join__cardTitle">{t('lp.after.title')}</h3>
+          <span class="lg-join__badge">{t('lp.after.badge')}</span>
+        </div>
+        <div data-stagger class="lg-join__steps">
+          {afterJoin.map((a) => (
+            <div class="lg-join__step">
+              <span class="lg-join__stepNum">{a.num}</span>
+              <div>
+                <div class="lg-join__stepTitle">{a.title}</div>
+                <p class="lg-join__stepBody">{a.body}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div class="lg-join__rec">
+        <div class="lg-join__recBar" aria-hidden="true"></div>
+        <div class="lg-join__recHead">
+          <svg width="15" height="15" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="8" cy="8" r="6.6" stroke="#D4A843" stroke-width="1.1" />
+            <circle cx="8" cy="8" r="2.4" fill="#D4A843" class="lg-join__recDot" />
+          </svg>
+          <span>{t('lp.rec.kicker')}</span>
+        </div>
+        <p class="lg-join__recP1">
+          {t('lp.rec.p1a')} <strong>{t('lp.rec.p1b')}</strong>
+        </p>
+        <p class="lg-join__recP2">{t('lp.rec.p2')}</p>
+      </div>
+
+      <div class="lg-join__contact">
+        <div class="lg-join__contactLabel">{t('lp.contact.kicker')}</div>
+        <a href="mailto:info@legereopenedu.com" class="lg-join__mail">info@legereopenedu.com</a>
+        <p class="lg-join__contactNote">{t('lp.contact.note')}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .lg-join {
+    margin-top: 104px;
+    position: relative;
+    overflow: hidden;
+    border-top: 1px solid rgba(212, 168, 67, 0.14);
+    background: linear-gradient(180deg, #0c0c14, #0a0a0f);
+  }
+  .lg-join__glow {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(720px circle at 22% 0%, rgba(212, 168, 67, 0.1), transparent 68%);
+    pointer-events: none;
+  }
+  .lg-join__inner {
+    position: relative;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 84px 32px 88px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+    gap: 56px;
+  }
+
+  .lg-join__lede {
+    font-family: var(--font-heading);
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 1.45;
+    color: var(--color-text-primary);
+    margin-top: 30px;
+    max-width: 34ch;
+    text-wrap: pretty;
+  }
+  .lg-join__body {
+    font-size: 16px;
+    line-height: 1.72;
+    color: var(--color-text-secondary);
+    margin-top: 16px;
+    max-width: 52ch;
+    text-wrap: pretty;
+  }
+
+  .lg-join__auth {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 30px;
+    max-width: 400px;
+  }
+  .lg-join__google,
+  .lg-join__linkedin {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 11px;
+    font-family: var(--font-heading);
+    font-size: 15px;
+    font-weight: 600;
+    padding: 16px 22px;
+    border-radius: 10px;
+    transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 240ms ease, background 220ms ease;
+  }
+  .lg-join__google {
+    background: var(--color-text-primary);
+    color: var(--color-bg-primary);
+  }
+  .lg-join__google:hover {
+    color: var(--color-bg-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.5);
+  }
+  .lg-join__linkedin {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--color-text-primary);
+    border: 1px solid rgba(240, 237, 230, 0.14);
+  }
+  .lg-join__linkedin:hover {
+    color: var(--color-text-primary);
+    background: rgba(255, 255, 255, 0.09);
+    transform: translateY(-2px);
+  }
+  .lg-join__google:active,
+  .lg-join__linkedin:active { transform: translateY(0) scale(0.98); }
+
+  .lg-join__legal {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    line-height: 1.7;
+    letter-spacing: 0.04em;
+    color: #6e6e80;
+    margin-top: 8px;
+  }
+  .lg-join__legal a { border-bottom: 1px solid rgba(212, 168, 67, 0.4); }
+
+  .lg-join__side { display: flex; flex-direction: column; gap: 14px; }
+
+  .lg-join__card {
+    background: rgba(255, 255, 255, 0.035);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(212, 168, 67, 0.14);
+    border-radius: 16px;
+    padding: 28px 26px;
+  }
+  .lg-join__cardHead {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .lg-join__cardTitle {
+    font-family: var(--font-heading);
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+  .lg-join__badge {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-status-open);
+    background: rgba(74, 222, 128, 0.13);
+    border: 1px solid rgba(74, 222, 128, 0.28);
+    border-radius: 999px;
+    padding: 5px 10px;
+  }
+  .lg-join__steps { display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
+  .lg-join__step { display: flex; gap: 14px; align-items: flex-start; }
+  .lg-join__stepNum {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-gold-500);
+    border: 1px solid rgba(212, 168, 67, 0.26);
+    border-radius: 5px;
+    padding: 4px 6px;
+    margin-top: 2px;
+    flex: none;
+  }
+  .lg-join__stepTitle {
+    font-family: var(--font-heading);
+    font-size: 15.5px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+  }
+  .lg-join__stepBody {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #8e8e9e;
+    margin-top: 4px;
+    text-wrap: pretty;
+  }
+
+  .lg-join__rec {
+    position: relative;
+    overflow: hidden;
+    background: rgba(212, 168, 67, 0.05);
+    border: 1px solid rgba(212, 168, 67, 0.2);
+    border-radius: 16px;
+    padding: 24px 26px;
+  }
+  .lg-join__recBar {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(180deg, #ffd54f, rgba(212, 168, 67, 0));
+  }
+  .lg-join__recHead {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-gold-500);
+  }
+  .lg-join__recDot { animation: lgBreathe 3.4s ease-in-out infinite; transform-origin: center; }
+  .lg-join__recP1 {
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: #c9c6be;
+    margin-top: 12px;
+    text-wrap: pretty;
+  }
+  .lg-join__recP1 strong { color: var(--color-text-primary); font-weight: 600; }
+  .lg-join__recP2 {
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: #8e8e9e;
+    margin-top: 8px;
+    text-wrap: pretty;
+  }
+
+  .lg-join__contact {
+    background: rgba(255, 255, 255, 0.022);
+    border: 1px solid rgba(240, 237, 230, 0.07);
+    border-radius: 16px;
+    padding: 24px 26px;
+  }
+  .lg-join__contactLabel {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #6e6e80;
+  }
+  .lg-join__mail {
+    display: block;
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 500;
+    margin-top: 10px;
+    word-break: break-word;
+  }
+  .lg-join__contactNote {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: #8e8e9e;
+    margin-top: 10px;
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 1080px) {
+    .lg-join__inner { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  }
+  @media (max-width: 560px) {
+    .lg-join { margin-top: 68px; }
+    .lg-join__inner { padding: 56px 18px 60px; }
+    .lg-join__auth { max-width: none; }
+  }
+</style>

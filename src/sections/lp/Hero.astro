@@ -1,0 +1,335 @@
+---
+/**
+ * Hero — one-pager tasarımı.
+ *
+ * Katmanlar (arkadan öne): parçacık canvas → imleç ışığı → kare ızgara → içerik.
+ * Canvas ve ışık yalnızca JS ile ve prefers-reduced-motion kapalıyken kurulur
+ * (bkz. src/scripts/site.ts) — hareket istemeyende hiç çalışmaz.
+ *
+ * Giriş sıralaması kasıtlı: eyebrow → başlık → alt başlık → gövde → butonlar.
+ * Butonlar 0.44s'de görünür; brief'in "ilk 600 ms'te CTA görünsün" isteği.
+ */
+import { useTranslations } from '../../i18n/utils';
+import type { Lang } from '../../i18n/languages';
+import { disciplines } from '../../i18n/disciplines';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const signupPath = lang === 'en' ? '/en/signup' : '/signup';
+
+// Şerit kesintisiz dönsün diye liste iki kez basılır; animasyon -50% kaydırır.
+const ticker = [...disciplines, ...disciplines];
+---
+
+<header id="top" class="lg-hero">
+  <canvas id="lg-canvas" class="lg-hero__canvas" aria-hidden="true"></canvas>
+  <div id="lg-spot" class="lg-hero__spot" aria-hidden="true"></div>
+  <div class="lg-hero__grid-bg" aria-hidden="true"></div>
+
+  <div class="lg-hero__inner">
+    <div>
+      <div class="lg-hero__eyebrow">
+        <span class="lg-hero__dot"></span>
+        <span>{t('lp.hero.eyebrow')}</span>
+      </div>
+
+      <h1 class="lg-hero__h1"><span>LEGERE</span></h1>
+
+      <p class="lg-hero__tagline">
+        {t('lp.hero.tagline1')}<br />{t('lp.hero.tagline2')}
+      </p>
+
+      <p class="lg-hero__body">{t('lp.hero.body')}</p>
+
+      <div class="lg-hero__actions">
+        <a href={signupPath} class="lg-btn-gold">
+          {t('nav.cta')} <span class="lg-btn-gold__arrow">→</span>
+        </a>
+        <a href="#about" class="lg-btn-outline">{t('lp.hero.ctaAbout')}</a>
+      </div>
+
+      <p class="lg-hero__micro">{t('lp.hero.micro')}</p>
+    </div>
+
+    <div class="lg-hero__panel">
+      <div class="lg-hero__card">
+        <div class="lg-hero__cardHead">
+          <span class="lg-hero__cardTitle">{t('lp.hero.disciplines')}</span>
+          <span class="lg-hero__cardCount">{t('lp.hero.fieldCount')}</span>
+        </div>
+
+        <div class="lg-hero__ticker">
+          <div class="lg-hero__tickerTrack">
+            {ticker.map((d) => (
+              <div class="lg-hero__axis">
+                <span class="lg-hero__axisCode">{d.code}</span>
+                <span class="lg-hero__axisName">{lang === 'en' ? d.label.en : d.label.tr}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div class="lg-hero__counter">
+          <span id="lg-field-count" data-target={disciplines.length}>0</span>
+          <span class="lg-hero__counterLabel">{t('lp.hero.fieldUnit')}</span>
+        </div>
+      </div>
+
+      <a href="#about" class="lg-hero__scroll">
+        <span class="lg-hero__scrollArrow">↓</span> {t('lp.hero.scroll')}
+      </a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .lg-hero {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(212, 168, 67, 0.1);
+  }
+
+  .lg-hero__canvas,
+  .lg-hero__spot,
+  .lg-hero__grid-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
+  .lg-hero__canvas { width: 100%; height: 100%; display: block; }
+  .lg-hero__spot {
+    background: radial-gradient(420px circle at 50% 30%, rgba(212, 168, 67, 0.09), transparent 70%);
+    transition: background 400ms ease;
+  }
+  /* Kenarları eriyen kare ızgara — derinlik verir, dikkat çalmaz */
+  .lg-hero__grid-bg {
+    background-image:
+      linear-gradient(rgba(240, 237, 230, 0.028) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(240, 237, 230, 0.028) 1px, transparent 1px);
+    background-size: 76px 76px;
+    mask-image: radial-gradient(circle at 50% 40%, #000, transparent 78%);
+    -webkit-mask-image: radial-gradient(circle at 50% 40%, #000, transparent 78%);
+  }
+
+  .lg-hero__inner {
+    position: relative;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 104px 32px 92px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.6fr);
+    gap: 64px;
+    align-items: center;
+  }
+
+  .lg-hero__eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(212, 168, 67, 0.2);
+    border-radius: 999px;
+    padding: 7px 14px 7px 11px;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-gold-500);
+    animation: lgUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .lg-hero__dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-gold-500);
+    box-shadow: 0 0 10px var(--color-gold-500);
+    display: block;
+    flex: none;
+  }
+
+  .lg-hero__h1 {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: clamp(58px, 8.6vw, 112px);
+    line-height: 0.94;
+    letter-spacing: -0.03em;
+    margin-top: 24px;
+    animation: lgUp 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.08s both;
+  }
+  .lg-hero__h1 span {
+    background: linear-gradient(135deg, #ffd54f, #d4a843 55%, #b8922e);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  .lg-hero__tagline {
+    font-family: var(--font-heading);
+    font-size: clamp(21px, 2.4vw, 29px);
+    font-weight: 400;
+    line-height: 1.3;
+    color: var(--color-text-primary);
+    margin-top: 10px;
+    max-width: 24ch;
+    animation: lgUp 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.2s both;
+  }
+
+  .lg-hero__body {
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+    margin-top: 22px;
+    max-width: 56ch;
+    text-wrap: pretty;
+    animation: lgUp 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.32s both;
+  }
+
+  .lg-hero__actions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-top: 34px;
+    flex-wrap: wrap;
+    animation: lgUp 0.75s cubic-bezier(0.22, 1, 0.36, 1) 0.44s both;
+  }
+
+  .lg-hero__micro {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: #6e6e80;
+    margin-top: 18px;
+    animation: lgIn 0.8s ease 0.7s both;
+  }
+
+  .lg-hero__panel { animation: lgUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.56s both; }
+
+  .lg-hero__card {
+    background: rgba(255, 255, 255, 0.04);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(212, 168, 67, 0.12);
+    border-radius: 16px;
+    padding: 26px 24px;
+  }
+  .lg-hero__cardHead {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .lg-hero__cardTitle {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: #6e6e80;
+  }
+  .lg-hero__cardCount {
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    color: #4a4a58;
+  }
+
+  /* Üstü/altı eriyen kayan şerit; hover'da durur ki okunabilsin */
+  .lg-hero__ticker {
+    position: relative;
+    height: 212px;
+    overflow: hidden;
+    margin-top: 14px;
+    mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
+    -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
+  }
+  .lg-hero__tickerTrack {
+    display: flex;
+    flex-direction: column;
+    animation: lgTicker 42s linear infinite;
+  }
+  .lg-hero__ticker:hover .lg-hero__tickerTrack { animation-play-state: paused; }
+
+  .lg-hero__axis {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 11px;
+    margin-bottom: 11px;
+    border: 1px solid rgba(240, 237, 230, 0.07);
+    border-radius: 9px;
+    transition: border-color 220ms ease, background 220ms ease,
+                transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .lg-hero__axis:hover {
+    border-color: rgba(212, 168, 67, 0.34);
+    background: rgba(212, 168, 67, 0.07);
+    transform: translateX(4px);
+  }
+  .lg-hero__axisCode {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    color: var(--color-gold-500);
+    border: 1px solid rgba(212, 168, 67, 0.28);
+    border-radius: 4px;
+    padding: 4px 5px;
+    flex: none;
+  }
+  .lg-hero__axisName {
+    font-family: var(--font-heading);
+    font-size: 15px;
+    color: var(--color-text-primary);
+  }
+
+  .lg-hero__counter {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    border-top: 1px solid rgba(240, 237, 230, 0.08);
+    margin-top: 18px;
+    padding-top: 16px;
+    font-family: var(--font-heading);
+    font-size: 26px;
+    font-weight: 600;
+    color: var(--color-gold-200);
+  }
+  .lg-hero__counterLabel {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+    font-weight: 400;
+  }
+
+  .lg-hero__scroll {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin-top: 20px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #6e6e80;
+  }
+  .lg-hero__scroll:hover { color: var(--color-gold-500); }
+  .lg-hero__scrollArrow { animation: lgHint 2.4s ease-in-out infinite; display: block; }
+
+  @media (max-width: 1080px) {
+    .lg-hero__inner {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 44px;
+      padding: 72px 32px 68px;
+    }
+    .lg-hero__panel { max-width: 420px; }
+  }
+  @media (max-width: 560px) {
+    .lg-hero__inner { padding: 56px 18px 56px; }
+    .lg-hero__actions > * { width: 100%; justify-content: center; }
+  }
+</style>

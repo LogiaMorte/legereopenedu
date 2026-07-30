@@ -1,0 +1,193 @@
+---
+/**
+ * 01 · Legere Nedir? — eski About + HowItWorks bölümlerinin birleşimi.
+ *
+ * İstatistik kartlarında ÜYE SAYISI bilinçli olarak yok: doğrulanamayan bir
+ * rakam yerine yalnızca kontrol edilebilir dört değer gösteriliyor. Gerçekleşen
+ * etkinlik sayısı build'de bilinemez, /api/events geldiğinde istemci doldurur
+ * (bkz. events-client.ts → #lg-stat-past).
+ */
+import { useTranslations } from '../../i18n/utils';
+import type { Lang } from '../../i18n/languages';
+import { disciplines } from '../../i18n/disciplines';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const audience = [t('lp.about.aud1'), t('lp.about.aud2'), t('lp.about.aud3'), t('lp.about.aud4')];
+const steps = [
+  { num: '01', title: t('lp.step1.title'), body: t('lp.step1.body') },
+  { num: '02', title: t('lp.step2.title'), body: t('lp.step2.body') },
+  { num: '03', title: t('lp.step3.title'), body: t('lp.step3.body') },
+  { num: '04', title: t('lp.step4.title'), body: t('lp.step4.body') },
+];
+---
+
+<section id="about" data-reveal class="lg-sec lg-about">
+  <div class="lg-sec__head">
+    <span class="lg-sec__num">01</span>
+    <h2 class="lg-sec__title">{t('about.title')}</h2>
+    <span class="lg-sec__kicker">{t('lp.about.kicker')}</span>
+  </div>
+
+  <div class="lg-about__grid">
+    <div class="lg-about__text">
+      <p class="lg-about__lede">{t('lp.about.lede')}</p>
+      <p class="lg-about__p">
+        {t('lp.about.p1a')} <em>legere</em> {t('lp.about.p1b')}
+      </p>
+      <p class="lg-about__p">{t('lp.about.p2')}</p>
+      <div class="lg-about__tags">
+        {audience.map((a) => <span class="lg-about__tag">{a}</span>)}
+      </div>
+    </div>
+
+    <div data-stagger class="lg-about__steps">
+      {steps.map((s) => (
+        <div class="lg-about__step">
+          <span class="lg-about__stepNum">{s.num}</span>
+          <div>
+            <h3 class="lg-about__stepTitle">{s.title}</h3>
+            <p class="lg-about__stepBody">{s.body}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <div data-stagger class="lg-about__stats">
+    <div class="lg-about__stat">
+      <div class="lg-about__statValue">2026</div>
+      <div class="lg-about__statLabel">{t('lp.stat.founded')}</div>
+    </div>
+    <div class="lg-about__stat">
+      <div class="lg-about__statValue" id="lg-stat-past">—</div>
+      <div class="lg-about__statLabel">{t('lp.stat.pastEvents')}</div>
+    </div>
+    <div class="lg-about__stat">
+      <div class="lg-about__statValue">{disciplines.length}</div>
+      <div class="lg-about__statLabel">{t('lp.stat.fields')}</div>
+    </div>
+    <div class="lg-about__stat">
+      <div class="lg-about__statValue">50</div>
+      <div class="lg-about__statLabel">{t('lp.stat.capacity')}</div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .lg-about__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(300px, 0.95fr);
+    gap: 56px;
+    padding-top: 40px;
+  }
+
+  .lg-about__text { display: flex; flex-direction: column; gap: 20px; max-width: 60ch; }
+
+  .lg-about__lede {
+    font-family: var(--font-heading);
+    font-size: 23px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--color-text-primary);
+    text-wrap: pretty;
+  }
+  .lg-about__p {
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--color-text-secondary);
+    text-wrap: pretty;
+  }
+  .lg-about__p em { color: var(--color-gold-500); font-style: italic; }
+
+  .lg-about__tags { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 4px; }
+  .lg-about__tag {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    color: var(--color-gold-300);
+    background: rgba(212, 168, 67, 0.1);
+    border: 1px solid rgba(212, 168, 67, 0.2);
+    border-radius: 999px;
+    padding: 7px 12px;
+  }
+
+  .lg-about__steps { display: flex; flex-direction: column; gap: 12px; }
+  .lg-about__step {
+    display: flex;
+    gap: 18px;
+    background: rgba(255, 255, 255, 0.022);
+    border: 1px solid rgba(240, 237, 230, 0.06);
+    border-radius: 13px;
+    padding: 20px 22px;
+    transition: border-color 240ms ease, background 240ms ease,
+                transform 240ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .lg-about__step:hover {
+    border-color: rgba(212, 168, 67, 0.3);
+    background: rgba(212, 168, 67, 0.05);
+    transform: translateY(-3px);
+  }
+  .lg-about__stepNum {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-gold-500);
+    padding-top: 4px;
+    flex: none;
+  }
+  .lg-about__stepTitle {
+    font-family: var(--font-heading);
+    font-size: 19px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+  }
+  .lg-about__stepBody {
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--color-text-secondary);
+    margin-top: 6px;
+    text-wrap: pretty;
+  }
+
+  .lg-about__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 14px;
+    margin-top: 52px;
+  }
+  .lg-about__stat {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(212, 168, 67, 0.11);
+    border-radius: 14px;
+    padding: 24px 22px;
+    transition: border-color 240ms ease, box-shadow 240ms ease;
+  }
+  .lg-about__stat:hover {
+    border-color: rgba(212, 168, 67, 0.32);
+    box-shadow: 0 0 26px rgba(212, 168, 67, 0.1);
+  }
+  .lg-about__statValue {
+    font-family: var(--font-heading);
+    font-size: 42px;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--color-gold-200);
+  }
+  .lg-about__statLabel {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #6e6e80;
+    margin-top: 11px;
+  }
+
+  @media (max-width: 1080px) {
+    .lg-about__grid { grid-template-columns: minmax(0, 1fr); gap: 36px; }
+  }
+</style>

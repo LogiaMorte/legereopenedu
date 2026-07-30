@@ -1,0 +1,185 @@
+---
+/**
+ * 02 · Programlar — dört program türü + kurum bloğu.
+ *
+ * Kurum bloğundaki yanıp sönen yeşil "aktif" noktası kaldırıldı: veri o iddiayı
+ * desteklemiyordu. Yerine "kurum bağı beyana dayalıdır" notu var. Bölüm
+ * tamamen kapatılmak istenirse `showUniversities`ı false yapmak yeterli.
+ */
+import { useTranslations } from '../../i18n/utils';
+import type { Lang } from '../../i18n/languages';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const showUniversities = true;
+
+const programs = [
+  { code: 'OWL', title: t('lp.prog1.title'), cadence: t('lp.prog1.cadence'), body: t('lp.prog1.body'), platform: 'Google Classroom' },
+  { code: 'SEM', title: t('lp.prog2.title'), cadence: t('lp.prog2.cadence'), body: t('lp.prog2.body'), platform: 'Google Meet' },
+  { code: 'COL', title: t('lp.prog3.title'), cadence: t('lp.prog3.cadence'), body: t('lp.prog3.body'), platform: 'Google Meet' },
+  { code: 'RDG', title: t('lp.prog4.title'), cadence: t('lp.prog4.cadence'), body: t('lp.prog4.body'), platform: 'Microsoft Teams' },
+];
+
+const universities = [
+  'Boğaziçi Üniversitesi',
+  'Galatasaray Üniversitesi',
+  'MSGSÜ',
+  'Marmara Üniversitesi',
+  'Polis Akademisi',
+];
+---
+
+<section id="programs" data-reveal class="lg-sec">
+  <div class="lg-sec__head">
+    <span class="lg-sec__num">02</span>
+    <h2 class="lg-sec__title">{t('programs.title')}</h2>
+    <span class="lg-sec__kicker">{t('lp.programs.kicker')}</span>
+  </div>
+
+  <div data-stagger class="lg-prog__grid">
+    {programs.map((p) => (
+      <div class="lg-prog__card">
+        <div class="lg-prog__top">
+          <span class="lg-prog__code">{p.code}</span>
+          <span class="lg-prog__cadence">{p.cadence}</span>
+        </div>
+        <h3 class="lg-prog__title">{p.title}</h3>
+        <p class="lg-prog__body">{p.body}</p>
+        <div class="lg-prog__platform">{p.platform}</div>
+      </div>
+    ))}
+  </div>
+
+  {showUniversities && (
+    <div class="lg-uni">
+      <div class="lg-uni__head">
+        <span class="lg-uni__label">{t('lp.uni.label')}</span>
+        <span class="lg-uni__note">{t('lp.uni.note')}</span>
+      </div>
+      <div class="lg-uni__list">
+        {universities.map((u) => <span class="lg-uni__chip">{u}</span>)}
+      </div>
+    </div>
+  )}
+</section>
+
+<style>
+  .lg-prog__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 14px;
+    padding-top: 40px;
+  }
+
+  .lg-prog__card {
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.028);
+    border: 1px solid rgba(240, 237, 230, 0.07);
+    border-radius: 15px;
+    padding: 26px 24px 28px;
+    display: flex;
+    flex-direction: column;
+    min-height: 246px;
+    transition: border-color 260ms ease, background 260ms ease,
+                transform 260ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 260ms ease;
+  }
+  .lg-prog__card:hover {
+    border-color: rgba(212, 168, 67, 0.34);
+    background: rgba(212, 168, 67, 0.055);
+    transform: translateY(-4px);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45);
+  }
+
+  .lg-prog__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .lg-prog__code {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    color: var(--color-gold-500);
+    border: 1px solid rgba(212, 168, 67, 0.26);
+    border-radius: 5px;
+    padding: 5px 7px;
+  }
+  .lg-prog__cadence {
+    font-family: var(--font-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.1em;
+    color: #6e6e80;
+  }
+  .lg-prog__title {
+    font-family: var(--font-heading);
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--color-text-primary);
+    margin-top: 22px;
+  }
+  .lg-prog__body {
+    font-size: 14.5px;
+    line-height: 1.66;
+    color: var(--color-text-secondary);
+    margin-top: 9px;
+    text-wrap: pretty;
+  }
+  .lg-prog__platform {
+    margin-top: auto;
+    padding-top: 18px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #6e6e80;
+  }
+
+  .lg-uni {
+    margin-top: 22px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(240, 237, 230, 0.06);
+    border-radius: 15px;
+    padding: 24px 26px;
+  }
+  .lg-uni__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .lg-uni__label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #6e6e80;
+  }
+  .lg-uni__note {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: #4a4a58;
+  }
+  .lg-uni__list { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .lg-uni__chip {
+    font-family: var(--font-heading);
+    font-size: 14.5px;
+    color: #c9c6be;
+    border: 1px solid rgba(240, 237, 230, 0.09);
+    border-radius: 8px;
+    padding: 9px 14px;
+    transition: color 220ms ease, border-color 220ms ease;
+  }
+  .lg-uni__chip:hover {
+    color: var(--color-gold-200);
+    border-color: rgba(212, 168, 67, 0.3);
+  }
+</style>

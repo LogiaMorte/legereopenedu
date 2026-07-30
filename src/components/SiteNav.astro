@@ -1,0 +1,237 @@
+---
+/**
+ * Yapışkan navigasyon — one-pager tasarımı.
+ *
+ * Eski Header.astro'nun yerini alır. Farkları: üstte kaydırma ilerleme çubuğu,
+ * 5 bölüm bağlantısı (13 değil), her zaman görünen altın CTA, mobilde tam ekran
+ * menü. CTA mobilde de görünür kalır — dönüşüm yolu hiçbir genişlikte gizlenmez.
+ */
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/languages';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const base = lang === 'en' ? '/en' : '';
+const signupPath = `${base}/signup`;
+// Mutlak yol: nav her sayfada var, alt sayfalardan da ana sayfadaki bölüme gitmeli
+const home = lang === 'en' ? '/en/' : '/';
+const links = [
+  { href: `${home}#about`, label: t('nav.about') },
+  { href: `${home}#programs`, label: t('nav.programs') },
+  { href: `${home}#events`, label: t('nav.events') },
+  { href: `${home}#fields`, label: t('nav.fields') },
+  { href: `${home}#join`, label: t('nav.join') },
+];
+---
+
+<nav class="lg-nav">
+  <div id="lg-progress" class="lg-nav__progress"></div>
+  <div class="lg-nav__inner">
+    <a href={home} class="lg-nav__brand">
+      <svg width="27" height="27" viewBox="0 0 64 64" fill="none" class="lg-nav__mark" aria-hidden="true">
+        <path d="M32 4L56 18V46L32 60L8 46V18L32 4Z" stroke="#D4A843" stroke-width="2" fill="#0A0A0F" />
+        <path d="M24 18V46H42" stroke="#D4A843" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+      </svg>
+      <span class="lg-nav__wordmark">
+        <span class="lg-nav__name">LEGERE</span>
+        <span class="lg-nav__sub">OPEN EDU</span>
+      </span>
+    </a>
+
+    <div class="lg-nav__links">
+      {links.map((l) => <a href={l.href}>{l.label}</a>)}
+    </div>
+
+    <div class="lg-nav__right">
+      <div class="lg-nav__lang">
+        {lang === 'tr'
+          ? <><span class="is-active">TR</span><a href="/en/">EN</a></>
+          : <><a href="/">TR</a><span class="is-active">EN</span></>}
+      </div>
+      <a href={signupPath} class="lg-nav__cta">{t('nav.cta')} <span class="lg-nav__arrow">→</span></a>
+      <button id="lg-menu-toggle" class="lg-nav__burger" type="button" aria-expanded="false" aria-controls="lg-menu" aria-label={t('nav.menu')}>
+        <span></span><span></span>
+      </button>
+    </div>
+  </div>
+
+  <div id="lg-menu" class="lg-menu">
+    {links.map((l) => <a href={l.href}>{l.label}</a>)}
+  </div>
+</nav>
+
+<style>
+  .lg-nav {
+    position: sticky;
+    top: 0;
+    z-index: 60;
+    background: rgba(10, 10, 15, 0.82);
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(212, 168, 67, 0.14);
+  }
+
+  .lg-nav__progress {
+    height: 2px;
+    width: 0;
+    background: linear-gradient(90deg, #b8922e, #ffd54f);
+    transition: width 80ms linear;
+  }
+
+  .lg-nav__inner {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 32px;
+    height: 68px;
+    display: flex;
+    align-items: center;
+    gap: 28px;
+  }
+
+  .lg-nav__brand {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+    color: var(--color-text-primary);
+    flex: none;
+  }
+  .lg-nav__mark { animation: lgGold 5s ease-in-out infinite; }
+  .lg-nav__wordmark { display: flex; flex-direction: column; line-height: 1.1; }
+  .lg-nav__name {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+  }
+  .lg-nav__sub {
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.24em;
+    color: var(--color-text-secondary);
+  }
+
+  .lg-nav__links {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: nowrap;
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+  }
+  .lg-nav__links a {
+    color: var(--color-text-secondary);
+    padding: 6px 0;
+    border-bottom: 1px solid transparent;
+    white-space: nowrap;
+    flex: none;
+    transition: color 220ms ease, border-color 220ms ease;
+  }
+  .lg-nav__links a:hover {
+    color: var(--color-text-primary);
+    border-bottom-color: var(--color-gold-500);
+  }
+
+  .lg-nav__right { display: flex; align-items: center; gap: 16px; margin-left: auto; }
+
+  .lg-nav__lang {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    border: 1px solid rgba(240, 237, 230, 0.14);
+    border-radius: 5px;
+    padding: 3px;
+  }
+  .lg-nav__lang .is-active {
+    background: rgba(212, 168, 67, 0.16);
+    color: var(--color-gold-200);
+    padding: 4px 7px;
+    border-radius: 3px;
+  }
+  .lg-nav__lang a { color: var(--color-text-secondary); padding: 4px 7px; }
+  .lg-nav__lang a:hover { color: var(--color-text-primary); }
+
+  .lg-nav__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #b8922e, #d4a843);
+    color: var(--color-bg-primary);
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 11px 20px;
+    border-radius: 8px;
+    white-space: nowrap;
+    flex: none;
+    transition: box-shadow 240ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .lg-nav__cta:hover {
+    color: var(--color-bg-primary);
+    box-shadow: 0 0 30px rgba(212, 168, 67, 0.34);
+    transform: translateY(-2px);
+  }
+  .lg-nav__cta:active { transform: translateY(0) scale(0.97); }
+  .lg-nav__arrow { font-family: var(--font-mono); font-size: 11px; }
+
+  /* ── Mobil ── */
+
+  .lg-nav__burger {
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 38px;
+    height: 38px;
+    padding: 0 9px;
+    background: transparent;
+    border: 1px solid rgba(240, 237, 230, 0.14);
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .lg-nav__burger span {
+    display: block;
+    height: 1.5px;
+    background: var(--color-text-primary);
+    border-radius: 2px;
+  }
+
+  .lg-menu {
+    display: none;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px 24px 22px;
+    border-top: 1px solid rgba(240, 237, 230, 0.06);
+  }
+  .lg-menu.is-open { display: flex; }
+  .lg-menu a {
+    font-family: var(--font-heading);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(240, 237, 230, 0.05);
+  }
+  .lg-menu a:hover { color: var(--color-gold-200); }
+
+  @media (max-width: 1080px) {
+    .lg-nav__links { display: none; }
+    .lg-nav__burger { display: flex; }
+  }
+
+  @media (max-width: 560px) {
+    .lg-nav__inner { padding: 0 18px; gap: 14px; }
+    .lg-nav__cta { padding: 10px 14px; font-size: 12px; }
+    .lg-nav__lang { display: none; }
+  }
+</style>

@@ -339,3 +339,420 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ============================================
+   One-pager tasarımı (2026 revizyonu) — animasyonlar
+   Kaynak: Claude Design "Legereo one page design" handoff'u.
+   Mevcut keyframe'ler korundu; bunlar yeni bölümlerin kullandıkları.
+   ============================================ */
+
+@keyframes lgUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes lgIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Boş durumdaki hexagon — "beklemede" hissi veren nefes */
+@keyframes lgBreathe {
+  0%, 100% { transform: scale(1); opacity: 0.55; }
+  50% { transform: scale(1.06); opacity: 1; }
+}
+
+@keyframes lgGold {
+  0%, 100% { filter: drop-shadow(0 0 8px rgba(212, 168, 67, 0.3)); }
+  50% { filter: drop-shadow(0 0 22px rgba(212, 168, 67, 0.6)); }
+}
+
+/* İskelet kartların parıltısı */
+@keyframes lgShimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes lgHint {
+  0% { opacity: 1; transform: translateY(0); }
+  50% { opacity: 0.4; transform: translateY(7px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+/* Boş durumdaki hexagon çevresinde dönen altın yay */
+@keyframes lgDash {
+  to { stroke-dashoffset: -185; }
+}
+
+/* Hero'daki dikey disiplin şeridi */
+@keyframes lgTicker {
+  from { transform: translateY(0); }
+  to { transform: translateY(-50%); }
+}
+
+/* ---- Bölüm giriş animasyonları (IntersectionObserver ile tetiklenir) ---- */
+
+[data-reveal],
+[data-stagger] > * {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.62s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.62s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[data-reveal].lg-in,
+[data-stagger] > .lg-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/*
+  JS kapalıysa içerik gizli kalmasın: reveal yalnızca script yüklendiğinde
+  devreye girer. Script `lg-js` sınıfını <html>'e ekler.
+*/
+html:not(.lg-js) [data-reveal],
+html:not(.lg-js) [data-stagger] > * {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  [data-stagger] > * {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* ============================================
+   One-pager — bölümler arası paylaşılan desenler
+   Beş bölümde birebir tekrar ettikleri için burada; her .astro dosyasında
+   ayrı ayrı tanımlansalar bir renk değişiminde biri unutulurdu.
+   ============================================ */
+
+.lg-btn-gold {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  background: linear-gradient(135deg, #B8922E, #D4A843);
+  color: var(--color-bg-primary);
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 600;
+  padding: 16px 28px;
+  border-radius: 9px;
+  white-space: nowrap;
+  border: none;
+  cursor: pointer;
+  transition: box-shadow 240ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lg-btn-gold:hover {
+  color: var(--color-bg-primary);
+  box-shadow: 0 0 36px rgba(212, 168, 67, 0.36);
+  transform: translateY(-2px);
+}
+/* Basım geri bildirimi — brief'in "eksik" dediği dokunsal his */
+.lg-btn-gold:active { transform: translateY(0) scale(0.975); }
+.lg-btn-gold__arrow { font-family: var(--font-mono); font-size: 13px; }
+
+.lg-btn-outline {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--color-gold-500);
+  background: transparent;
+  font-family: var(--font-heading);
+  font-size: 15px;
+  font-weight: 500;
+  padding: 16px 26px;
+  border: 1px solid rgba(212, 168, 67, 0.36);
+  border-radius: 9px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 220ms ease, border-color 220ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lg-btn-outline:hover {
+  color: var(--color-gold-500);
+  background: rgba(212, 168, 67, 0.1);
+  border-color: var(--color-gold-500);
+}
+.lg-btn-outline:active { transform: scale(0.975); }
+
+/* ---- Bölüm kabuğu ve başlık deseni (01 · Başlık · altyazı) ---- */
+
+.lg-sec {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 100px 32px 0;
+}
+
+.lg-sec__head {
+  display: flex;
+  align-items: flex-end;
+  gap: 20px;
+  border-bottom: 1px solid rgba(240, 237, 230, 0.1);
+  border-image: linear-gradient(90deg, rgba(212, 168, 67, 0.5), rgba(240, 237, 230, 0.08) 42%) 1;
+  padding-bottom: 18px;
+}
+.lg-sec__num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  color: var(--color-gold-500);
+}
+.lg-sec__title {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  font-size: clamp(32px, 3.6vw, 44px);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.lg-sec__kicker {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #6E6E80;
+  margin-left: auto;
+  padding-bottom: 5px;
+}
+
+@media (max-width: 560px) {
+  .lg-sec { padding: 68px 18px 0; }
+  .lg-sec__head { flex-wrap: wrap; gap: 10px; }
+  .lg-sec__kicker { margin-left: 0; width: 100%; padding-bottom: 0; }
+}
+
+/* ============================================
+   Etkinlik kartı ve boş durum
+   GLOBAL olmak ZORUNDA: bu düğümler events-client.ts tarafından çalışma
+   zamanında üretiliyor, Astro'nun kapsam (scoped) öznitelikleri onlara
+   uygulanmıyor. Bir .astro dosyasına konsaydı stiller hiç tutmazdı.
+   ============================================ */
+
+.lg-card {
+  position: relative;
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.026);
+  border: 1px solid rgba(240, 237, 230, 0.07);
+  border-radius: 15px;
+  padding: 24px 24px 26px;
+  display: flex;
+  flex-direction: column;
+  transition: border-color 260ms ease, background 260ms ease,
+              transform 260ms cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 260ms ease, opacity 260ms ease;
+}
+/* Tamamlananlar soluk durur ama hover'da tam görünür — arşiv okunabilir kalsın */
+.lg-card.is-done { opacity: 0.78; }
+.lg-card:hover {
+  border-color: rgba(212, 168, 67, 0.34);
+  background: rgba(212, 168, 67, 0.05);
+  transform: translateY(-4px);
+  box-shadow: 0 16px 44px rgba(0, 0, 0, 0.5);
+  opacity: 1;
+}
+
+.lg-card__top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.lg-card__type {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+  border: 1px solid rgba(240, 237, 230, 0.12);
+  border-radius: 999px;
+  padding: 5px 10px;
+}
+.lg-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 5px 11px;
+  white-space: nowrap;
+}
+.lg-card__statusDot { width: 5px; height: 5px; border-radius: 999px; display: block; }
+
+.lg-card__title {
+  font-family: var(--font-heading);
+  font-size: 21px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--color-text-primary);
+  margin-top: 20px;
+}
+.lg-card__date {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--color-gold-500);
+  margin-top: 10px;
+}
+.lg-card__body {
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  margin-top: 11px;
+  text-wrap: pretty;
+}
+.lg-card__tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 16px; }
+.lg-card__tag {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.04em;
+  color: var(--color-gold-300);
+  background: rgba(212, 168, 67, 0.1);
+  border: 1px solid rgba(212, 168, 67, 0.18);
+  border-radius: 999px;
+  padding: 5px 9px;
+}
+
+.lg-card__foot { margin-top: auto; padding-top: 22px; }
+.lg-card__seatRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6E6E80;
+}
+.lg-card__seatVal { color: var(--color-text-primary); }
+.lg-card__track {
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(240, 237, 230, 0.1);
+  margin-top: 9px;
+  overflow: hidden;
+}
+.lg-card__fill {
+  height: 3px;
+  border-radius: 999px;
+  transition: width 900ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.lg-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 16px;
+}
+.lg-card__platform {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #6E6E80;
+}
+.lg-card__cta {
+  font-family: var(--font-heading);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-gold-500);
+  background: transparent;
+  border: 1px solid rgba(212, 168, 67, 0.34);
+  border-radius: 8px;
+  padding: 10px 16px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms ease;
+}
+.lg-card__cta.is-solid {
+  background: linear-gradient(135deg, #B8922E, #D4A843);
+  color: var(--color-bg-primary);
+  border-color: transparent;
+}
+.lg-card__cta:hover { transform: translateY(-2px); box-shadow: 0 0 24px rgba(212, 168, 67, 0.22); }
+.lg-card__cta:active { transform: translateY(0) scale(0.97); }
+
+/* ---- Boş durum: bugünün gerçek hâli, en önemli ekran ---- */
+
+.lg-empty {
+  position: relative;
+  overflow: hidden;
+  margin-top: 22px;
+  background: rgba(255, 255, 255, 0.022);
+  border: 1px solid rgba(212, 168, 67, 0.14);
+  border-radius: 18px;
+  padding: 56px 44px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 40px;
+  align-items: center;
+}
+.lg-empty__mark {
+  position: relative;
+  width: 112px;
+  height: 112px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+}
+.lg-empty__mark > svg { position: absolute; inset: 0; }
+.lg-empty__mark > .lg-empty__l { position: relative; }
+.lg-empty__breathe { animation: lgBreathe 4.6s ease-in-out infinite; }
+.lg-empty__dash { animation: lgDash 6s linear infinite; }
+
+.lg-empty__kicker {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-gold-500);
+}
+.lg-empty__title {
+  font-family: var(--font-heading);
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin-top: 12px;
+  letter-spacing: -0.01em;
+}
+.lg-empty__body {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  margin-top: 10px;
+  max-width: 56ch;
+  text-wrap: pretty;
+}
+.lg-empty__meta {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  color: #6E6E80;
+}
+.lg-empty__sep { color: #3A3A46; }
+.lg-empty__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  align-items: stretch;
+  min-width: 216px;
+}
+.lg-empty__cta1,
+.lg-empty__cta2 { justify-content: center; text-align: center; font-size: 14.5px; padding: 15px 22px; }
+
+@media (max-width: 900px) {
+  .lg-empty {
+    grid-template-columns: 1fr;
+    justify-items: start;
+    gap: 24px;
+    padding: 40px 26px;
+  }
+  .lg-empty__actions { min-width: 0; width: 100%; }
+}

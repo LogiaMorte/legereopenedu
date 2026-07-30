@@ -1,0 +1,180 @@
+---
+/**
+ * 03 · Etkinlikler — eski Workshops + Calendar bölümlerinin birleşimi.
+ *
+ * Üç durumu vardır ve üçü de tasarlanmıştır: iskelet (yüklenirken), boş durum
+ * (bugünün gerçek hâli) ve kart ızgarası. Bu dosya yalnızca KABUĞU basar;
+ * içerik src/scripts/events-client.ts tarafından /api/events'ten doldurulur.
+ *
+ * İskelet build'de basılır ki ilk boyada boşluk görünmesin ve kart geldiğinde
+ * sayfa zıplamasın (iskelet yüksekliği gerçek kartla aynı).
+ */
+import { useTranslations } from '../../i18n/utils';
+import type { Lang } from '../../i18n/languages';
+import { buildEventLabels } from '../../scripts/events-client';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const labels = buildEventLabels(lang, t);
+---
+
+<section id="events" data-reveal class="lg-sec">
+  <div class="lg-sec__head">
+    <span class="lg-sec__num">03</span>
+    <h2 class="lg-sec__title">{t('nav.events')}</h2>
+    <span class="lg-sec__kicker">{t('lp.events.kicker')}</span>
+  </div>
+
+  <div class="lg-ev__bar">
+    <div class="lg-ev__tabs" role="tablist">
+      <button id="lg-tab-upcoming" class="lg-ev__tab is-active" role="tab" aria-selected="true" type="button">
+        {t('lp.events.tabUpcoming')}
+        <span class="lg-ev__pill" id="lg-count-upcoming">0</span>
+      </button>
+      <button id="lg-tab-past" class="lg-ev__tab" role="tab" aria-selected="false" type="button">
+        {t('lp.events.tabPast')}
+        <span class="lg-ev__pill" id="lg-count-past">0</span>
+      </button>
+    </div>
+
+    <div class="lg-ev__feed">
+      <span id="lg-feed-dot" class="lg-ev__feedDot is-loading"></span>
+      <span id="lg-feed-label">{t('lp.events.feedLoading')}</span>
+    </div>
+  </div>
+
+  <!-- İskelet: gerçek kartla aynı yükseklikte, içerik gelince kaybolur -->
+  <div id="lg-ev-skeleton" class="lg-ev__grid">
+    {[0, 1, 2].map(() => (
+      <div class="lg-sk">
+        <div class="lg-sk__pill"></div>
+        <div class="lg-sk__line lg-sk__line--a"></div>
+        <div class="lg-sk__line lg-sk__line--b"></div>
+        <div class="lg-sk__flat lg-sk__flat--a"></div>
+        <div class="lg-sk__flat lg-sk__flat--b"></div>
+        <div class="lg-sk__btn"></div>
+      </div>
+    ))}
+  </div>
+
+  <!-- Kartlar ve boş durum buraya yazılır -->
+  <div id="lg-ev-list" class="lg-ev__grid" hidden></div>
+  <div id="lg-ev-empty" hidden></div>
+
+  <script type="application/json" id="lg-ev-labels" set:html={JSON.stringify(labels)}></script>
+</section>
+
+<style>
+  .lg-ev__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding-top: 28px;
+  }
+
+  .lg-ev__tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(240, 237, 230, 0.07);
+    border-radius: 11px;
+    padding: 4px;
+  }
+  .lg-ev__tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    background: transparent;
+    color: var(--color-text-secondary);
+    border: none;
+    cursor: pointer;
+    font-family: var(--font-heading);
+    font-size: 13.5px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 10px 18px;
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: background 220ms ease, color 220ms ease;
+  }
+  .lg-ev__tab.is-active {
+    background: rgba(212, 168, 67, 0.15);
+    color: var(--color-gold-200);
+  }
+  .lg-ev__tab:active { transform: scale(0.97); }
+  .lg-ev__pill {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    background: rgba(240, 237, 230, 0.07);
+    color: #8e8e9e;
+    border-radius: 999px;
+    padding: 2px 7px;
+  }
+  .lg-ev__tab.is-active .lg-ev__pill {
+    background: rgba(212, 168, 67, 0.22);
+    color: var(--color-gold-200);
+  }
+
+  .lg-ev__feed {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #6e6e80;
+  }
+  .lg-ev__feedDot {
+    width: 6px;
+    height: 6px;
+    border-radius: 999px;
+    background: var(--color-status-open);
+    display: block;
+  }
+  .lg-ev__feedDot.is-loading { background: var(--color-status-upcoming); }
+  .lg-ev__feedDot.is-error { background: var(--color-status-closed); }
+
+  .lg-ev__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 16px;
+    margin-top: 22px;
+  }
+
+  /* ── İskelet ── */
+
+  .lg-sk {
+    background: rgba(255, 255, 255, 0.022);
+    border: 1px solid rgba(240, 237, 230, 0.06);
+    border-radius: 15px;
+    padding: 24px;
+    min-height: 290px;
+  }
+  .lg-sk__pill,
+  .lg-sk__line,
+  .lg-sk__btn {
+    background: linear-gradient(90deg, rgba(240, 237, 230, 0.04), rgba(240, 237, 230, 0.12), rgba(240, 237, 230, 0.04));
+    background-size: 200% 100%;
+    animation: lgShimmer 1.5s linear infinite;
+  }
+  .lg-sk__pill { height: 22px; width: 34%; border-radius: 999px; }
+  .lg-sk__line { height: 26px; border-radius: 7px; }
+  .lg-sk__line--a { width: 88%; margin-top: 26px; animation-delay: 0.1s; }
+  .lg-sk__line--b { width: 62%; margin-top: 9px; animation-delay: 0.15s; }
+  .lg-sk__flat { height: 14px; border-radius: 5px; background: rgba(240, 237, 230, 0.05); }
+  .lg-sk__flat--a { width: 100%; margin-top: 24px; }
+  .lg-sk__flat--b { width: 80%; margin-top: 8px; }
+  .lg-sk__btn { height: 42px; width: 100%; border-radius: 9px; margin-top: 34px; animation-delay: 0.2s; }
+</style>
+
+<script>
+  import { initEvents } from '../../scripts/events-client';
+  initEvents();
+</script>
