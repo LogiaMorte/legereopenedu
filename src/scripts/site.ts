@@ -211,10 +211,50 @@ function initCounter(): void {
   step();
 }
 
+// ── Nav: üye durumu ──
+
+/**
+ * Site statik build alıyor, yani sunucu tarafında kimin girişli olduğunu
+ * bilemeyiz. `legere_logged_in` çerezi tam da bunun için HttpOnly DEĞİL
+ * (bkz. functions/_shared.ts buildLoginCookies) — yalnızca "birisi girişli"
+ * sinyali taşır, kimlik doğrulaması hâlâ HttpOnly token ile sunucuda yapılır.
+ *
+ * Admin bağlantısı çereze göre değil, /api/auth/me yanıtına göre açılır:
+ * çerez herkes tarafından elle yazılabilir, sunucu yanıtı yazılamaz. Zaten
+ * /admin'in kendisi de sunucuda ADMIN_EMAILS ile korunuyor; buradaki gizleme
+ * yalnızca arayüz düzeni, güvenlik sınırı değil.
+ */
+function initMemberNav(): void {
+  const isLoggedIn = document.cookie.split(';').some((c) => c.trim().startsWith('legere_logged_in='));
+  if (!isLoggedIn) return;
+
+  const guest = document.getElementById('lg-cta-guest');
+  const member = document.getElementById('lg-cta-member');
+  const menuProfile = document.getElementById('lg-menu-profile');
+  if (guest) guest.hidden = true;
+  if (member) member.hidden = false;
+  if (menuProfile) menuProfile.hidden = false;
+
+  // Admin rozetini yalnızca sunucu doğrularsa göster.
+  fetch('/api/auth/me', { credentials: 'same-origin' })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => {
+      if (!d?._nav?.admin) return;
+      const a = document.getElementById('lg-nav-admin');
+      const m = document.getElementById('lg-menu-admin');
+      if (a) a.hidden = false;
+      if (m) m.hidden = false;
+    })
+    .catch(() => {
+      /* admin rozeti gösterilmez; kritik değil */
+    });
+}
+
 export function initSite(): void {
   markJsReady();
   initScrollProgress();
   initMobileMenu();
+  initMemberNav();
   initReveal();
   initParticles();
   initSpotlight();

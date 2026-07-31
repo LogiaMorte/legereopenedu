@@ -18,6 +18,7 @@ const t = useTranslations(lang);
 
 const base = lang === 'en' ? '/en' : '';
 const signupPath = `${base}/signup`;
+const profilePath = `${base}/profile`;
 // Mutlak yol: nav her sayfada var, alt sayfalardan da ana sayfadaki bölüme gitmeli
 const home = lang === 'en' ? '/en/' : '/';
 const links = [
@@ -53,7 +54,24 @@ const links = [
           ? <><span class="is-active">TR</span><a href="/en/">EN</a></>
           : <><a href="/">TR</a><span class="is-active">EN</span></>}
       </div>
-      <a href={signupPath} class="lg-nav__cta">{t('nav.cta')} <span class="lg-nav__arrow">→</span></a>
+      {/*
+        İki durum da HTML'de basılır, biri gizli. Site statik build aldığı için
+        girişli olup olmadığımızı sunucuda bilemeyiz; istemci `legere_logged_in`
+        çerezine bakıp doğru olanı açar (çerez bilerek HttpOnly değil, tam da
+        bu amaçla — bkz. functions/_shared.ts buildLoginCookies).
+        Varsayılan çıkış yapmış hâli: ziyaretçilerin çoğu öyle.
+      */}
+      <a href={signupPath} id="lg-cta-guest" class="lg-nav__cta">{t('nav.cta')} <span class="lg-nav__arrow">→</span></a>
+      <div id="lg-cta-member" class="lg-nav__member" hidden>
+        <a href={`${base}/admin`} id="lg-nav-admin" class="lg-nav__adminLink" hidden>{t('nav.admin')}</a>
+        <a href={profilePath} class="lg-nav__profile">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          {t('nav.profile')}
+        </a>
+      </div>
       <button id="lg-menu-toggle" class="lg-nav__burger" type="button" aria-expanded="false" aria-controls="lg-menu" aria-label={t('nav.menu')}>
         <span></span><span></span>
       </button>
@@ -62,6 +80,8 @@ const links = [
 
   <div id="lg-menu" class="lg-menu">
     {links.map((l) => <a href={l.href}>{l.label}</a>)}
+    <a href={profilePath} id="lg-menu-profile" hidden>{t('nav.profile')}</a>
+    <a href={`${base}/admin`} id="lg-menu-admin" hidden>{t('nav.admin')}</a>
   </div>
 </nav>
 
@@ -183,6 +203,39 @@ const links = [
   }
   .lg-nav__cta:active { transform: translateY(0) scale(0.97); }
   .lg-nav__arrow { font-family: var(--font-mono); font-size: 11px; }
+
+  .lg-nav__member { display: flex; align-items: center; gap: 10px; }
+  .lg-nav__profile {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--color-text-primary);
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 9px 14px;
+    border: 1px solid rgba(240, 237, 230, 0.14);
+    border-radius: 8px;
+    white-space: nowrap;
+    transition: border-color 220ms ease, background 220ms ease;
+  }
+  .lg-nav__profile:hover {
+    color: var(--color-text-primary);
+    border-color: rgba(212, 168, 67, 0.34);
+    background: rgba(212, 168, 67, 0.06);
+  }
+  .lg-nav__adminLink {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-gold-500);
+    border: 1px solid rgba(212, 168, 67, 0.28);
+    border-radius: 6px;
+    padding: 7px 10px;
+    white-space: nowrap;
+  }
+  .lg-nav__adminLink:hover { background: rgba(212, 168, 67, 0.1); }
 
   /* ── Mobil ── */
 

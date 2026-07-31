@@ -253,6 +253,7 @@ export const ui = {
     // Login & Auth
     'nav.login': 'Giriş',
     'nav.profile': 'Profilim',
+    'nav.admin': 'Panel',
     'login.title': 'Üye Girişi',
     'login.desc': 'Google veya LinkedIn hesabınızla giriş yapın.',
     'login.error': 'Giriş başarısız. Lütfen tekrar deneyin.',
@@ -503,6 +504,7 @@ export const ui = {
     'lp.empty.pastBody': 'Tamamlanan etkinlikler burada birikir. İlk oturumdan sonra burayı çıktılarla dolduracağız.',
     'lp.card.seats': 'Kontenjan',
     'lp.card.attendees': 'Katılımcı',
+    'lp.card.full': 'Kontenjan doldu',
     'lp.card.ctaOpen': 'Kayıt Ol',
     'lp.card.ctaUpcoming': 'Haber Ver',
     'lp.card.ctaOngoing': 'Programı Gör',
@@ -795,6 +797,7 @@ export const ui = {
     // Login & Auth
     'nav.login': 'Login',
     'nav.profile': 'My Profile',
+    'nav.admin': 'Panel',
     'login.title': 'Member Login',
     'login.desc': 'Sign in with your Google or LinkedIn account.',
     'login.error': 'Login failed. Please try again.',
@@ -1045,6 +1048,7 @@ export const ui = {
     'lp.empty.pastBody': 'Completed events collect here. After the first session we will fill this with outputs.',
     'lp.card.seats': 'Capacity',
     'lp.card.attendees': 'Participants',
+    'lp.card.full': 'Fully booked',
     'lp.card.ctaOpen': 'Register',
     'lp.card.ctaUpcoming': 'Notify Me',
     'lp.card.ctaOngoing': 'View Programme',
