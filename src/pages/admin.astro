@@ -249,6 +249,13 @@ const seedData = [
                 class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
             </label>
             <label class="block">
+              <span class="block text-xs text-text-secondary mb-1.5">
+                Katılımcı sayısı <span class="text-gold-500/70">(tamamlanan etkinlikler için)</span>
+              </span>
+              <input id="ev-attendees" type="number" min="0" placeholder="boş = gösterme"
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
+            </label>
+            <label class="block">
               <span class="block text-xs text-text-secondary mb-1.5">Platform (serbest metin)</span>
               <input id="ev-platform" type="text" placeholder="Google Classroom"
                 class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm focus:outline-none focus:border-gold-500/50" />
@@ -523,7 +530,8 @@ const seedData = [
       }
       left.appendChild(titleRow);
 
-      var cap = ev.maxParticipants > 0 ? n + '/' + ev.maxParticipants : n + ' başvuru';
+      var shown = ev.attendees != null ? ev.attendees : n;
+      var cap = ev.maxParticipants > 0 ? shown + '/' + ev.maxParticipants : shown + ' kişi';
       var whenTxt = ev.dateStart + (ev.dateEnd !== ev.dateStart ? ' → ' + ev.dateEnd : '');
       if (ev.timeStart) whenTxt += ' ' + ev.timeStart + (ev.timeEnd ? '-' + ev.timeEnd : '');
       left.appendChild(el('p', 'text-xs text-text-secondary font-mono',
@@ -586,6 +594,7 @@ const seedData = [
     setVal('ev-time-start', ev ? (ev.timeStart || '') : '');
     setVal('ev-time-end', ev ? (ev.timeEnd || '') : '');
     setVal('ev-max', ev ? ev.maxParticipants : 50);
+    setVal('ev-attendees', ev && ev.attendees != null ? ev.attendees : '');
     setVal('ev-platform', ev ? (ev.platform || '') : '');
     setVal('ev-disciplines', ev && ev.disciplines ? ev.disciplines.join(', ') : '');
     document.getElementById('ev-open').checked = !!(ev && ev.registrationOpen);
@@ -641,6 +650,8 @@ const seedData = [
       timeStart: document.getElementById('ev-time-start').value,
       timeEnd: document.getElementById('ev-time-end').value,
       maxParticipants: parseInt(document.getElementById('ev-max').value, 10),
+      attendees: document.getElementById('ev-attendees').value === ''
+        ? null : parseInt(document.getElementById('ev-attendees').value, 10),
       platform: document.getElementById('ev-platform').value,
       disciplines: document.getElementById('ev-disciplines').value
         .split(',').map(function (s) { return s.trim(); }).filter(Boolean),

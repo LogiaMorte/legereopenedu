@@ -50,6 +50,16 @@ export interface LegereEvent {
   disciplines: string[];
   /** 0 = kontenjan sınırsız / gösterilmiyor (ör. halka açık seminer) */
   maxParticipants: number;
+  /**
+   * Tamamlanmış etkinliğin GERÇEK katılımcı sayısı.
+   *
+   * Site üzerinden kayıt almamış etkinlikler (site açılmadan önce yapılanlar)
+   * KV'de sıfır başvuruyla görünüyor ve arşivde "0/50" olarak çıkıyordu —
+   * "kimse gelmemiş" algısı yaratıyordu. Bu alan yalnızca tamamlanmış
+   * etkinliklerde, gerçekte kaç kişi katıldıysa onu göstermek için.
+   * Boş bırakılırsa katılımcı satırı hiç gösterilmez (0 yazmaktan iyidir).
+   */
+  attendees?: number;
   /** Elle kontrol edilen TEK zamansal olmayan alan: başvuru alıyor muyuz. */
   registrationOpen: boolean;
   platform?: string;
@@ -143,6 +153,13 @@ function sanitize(input: any): { ok: true; value: LegereEvent } | { ok: false; e
     return { ok: false, error: 'Kontenjan 0 (sınırsız) ile 100000 arasında bir tam sayı olmalı.' };
   }
 
+  // Tamamlanmış etkinlikler için elle girilen gerçek katılımcı sayısı.
+  const attRaw = input?.attendees;
+  const attendees = attRaw === '' || attRaw == null ? undefined : Number(attRaw);
+  if (attendees !== undefined && (!Number.isInteger(attendees) || attendees < 0 || attendees > 100000)) {
+    return { ok: false, error: 'Katılımcı sayısı 0 ile 100000 arasında bir tam sayı olmalı.' };
+  }
+
   const disciplines = Array.isArray(input?.disciplines)
     ? input.disciplines.map((d: any) => text(d, 40)).filter(Boolean).slice(0, 12)
     : [];
@@ -170,6 +187,7 @@ function sanitize(input: any): { ok: true; value: LegereEvent } | { ok: false; e
       endsAt: timeEnd ? `${dateEnd}T${timeEnd}:00${TR_OFFSET}` : undefined,
       disciplines,
       maxParticipants,
+      attendees,
       registrationOpen: input?.registrationOpen === true,
       platform: text(input?.platform, 40) || undefined,
       location: locTr || locEn ? { tr: locTr, en: locEn } : undefined,
