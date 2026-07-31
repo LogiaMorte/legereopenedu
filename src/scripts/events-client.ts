@@ -16,8 +16,6 @@ import {
   deriveStatus,
   sortForDisplay,
   formatEventDate,
-  participantsText,
-  fillPercent,
   type EventStatus,
 } from '../utils/events';
 import { disciplineLabel } from '../i18n/disciplines';
@@ -50,6 +48,7 @@ export interface EventLabels {
   cta: Record<EventStatus, string>;
   seats: string;
   attendees: string;
+  full: string;
   feedLive: string;
   feedOffline: string;
   empty: {
@@ -91,6 +90,7 @@ export function buildEventLabels(lang: string, t: (k: any) => string): EventLabe
     },
     seats: t('lp.card.seats'),
     attendees: t('lp.card.attendees'),
+    full: t('lp.card.full'),
     feedLive: t('lp.events.feedLive'),
     feedOffline: t('lp.events.feedOffline'),
     empty: {
@@ -200,44 +200,34 @@ function card(ev: ApiEvent, count: number, L: EventLabels): HTMLElement {
   const foot = h('div', 'lg-card__foot');
 
   /*
-   * Kaç kişi gösterilecek:
-   * - Tamamlanmış etkinlikte panelden girilen GERÇEK katılımcı sayısı (attendees)
-   *   önceliklidir. Site açılmadan önce yapılan etkinliklerin KV'de kaydı yok;
-   *   oradaki 0'ı göstermek "kimse gelmemiş" algısı yaratıyordu.
-   * - Diğer durumlarda KV'deki gerçek başvuru sayısı.
+   * Katılımcı/kontenjan sayısı ZİYARETÇİYE GÖSTERİLMEZ.
+   *
+   * Gerekçe (kurucu kararı): sayı kimseye bir şey anlatmıyor ama çok şey ima
+   * ediyor. Yeni bir oluşumda "3/50" caydırıcı, geçmiş etkinlikte "0/50"
+   * ise "kimse gelmemiş" gibi okunuyor. Sayıyı kaldırmak hem bu algıyı hem de
+   * rakamı şişirme ihtimalini birden ortadan kaldırıyor. Gerçek sayılar
+   * admin panelinde duruyor.
+   *
+   * TEK istisna: kontenjanı dolmuş açık etkinlik. Bunu göstermezsek ziyaretçi
+   * "Kayıt Ol"a basıp sunucudan 409 yiyor — bilgi değil, çıkmaz sokak olurdu.
    */
-  const shown = isDone && typeof ev.attendees === 'number' ? ev.attendees : count;
-
-  // Tamamlanmış ve katılımcı bilgisi hiç yoksa satırı hiç gösterme: "0" yazmak
-  // yanlış bilgi verir, boş bırakmak dürüsttür.
-  const hideSeats = isDone && typeof ev.attendees !== 'number' && count === 0;
-
-  if (!hideSeats) {
-    const seatRow = h('div', 'lg-card__seatRow');
-    // Kontenjan sınırsızsa (maxParticipants 0) "Kontenjan: 0" yazmak "sıfır
-    // kişilik" gibi okunur; orada gösterilen şey aslında katılımcı sayısıdır.
-    const unlimited = ev.maxParticipants === 0;
-    seatRow.appendChild(h('span', undefined, isDone || unlimited ? L.attendees : L.seats));
-    seatRow.appendChild(h('span', 'lg-card__seatVal', participantsText(shown, ev.maxParticipants)));
-    foot.appendChild(seatRow);
-
-    if (ev.maxParticipants > 0) {
-      const track = h('div', 'lg-card__track');
-      const fill = h('div', 'lg-card__fill');
-      fill.style.background = color.fg;
-      fill.style.width = `${fillPercent(shown, ev.maxParticipants)}%`;
-      track.appendChild(fill);
-      foot.appendChild(track);
-    }
+  const capacity = ev.maxParticipants;
+  const isFull = status === 'open' && capacity > 0 && count >= capacity;
+  if (isFull) {
+    foot.appendChild(h('div', 'lg-card__full', L.full));
   }
 
   const actions = h('div', 'lg-card__actions');
   actions.appendChild(h('span', 'lg-card__platform', ev.platform ?? ''));
 
-  const cta = h('button', `lg-card__cta${status === 'open' ? ' is-solid' : ''}`, L.cta[status]);
+  const cta = h('button', `lg-card__cta${status === 'open' && !isFull ? ' is-solid' : ''}`, L.cta[status]);
   cta.setAttribute('type', 'button');
   cta.setAttribute('aria-label', `${L.cta[status]} — ${ev.title?.[lang] ?? ev.id}`);
-  if (status === 'open') {
+  if (isFull) {
+    // Dolu: kayıt akışına sokmanın anlamı yok, sunucu zaten reddeder.
+    (cta as HTMLButtonElement).disabled = true;
+    cta.classList.add('is-disabled');
+  } else if (status === 'open') {
     cta.addEventListener('click', () => {
       const open = (window as any).openRegistration;
       if (typeof open === 'function') open(ev.title?.[lang] ?? ev.id, ev.id);
