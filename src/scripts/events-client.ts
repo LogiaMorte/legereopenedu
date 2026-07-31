@@ -36,6 +36,8 @@ export interface ApiEvent {
   endsAt?: string;
   disciplines: string[];
   maxParticipants: number;
+  /** Tamamlanmış etkinliğin panelden girilen gerçek katılımcı sayısı. */
+  attendees?: number;
   registrationOpen: boolean;
   platform?: string;
   location?: Record<string, string>;
@@ -197,23 +199,36 @@ function card(ev: ApiEvent, count: number, L: EventLabels): HTMLElement {
 
   const foot = h('div', 'lg-card__foot');
 
-  // Kontenjan satırı yalnızca sınırlı etkinliklerde anlamlı; sınırsızda
-  // (halka açık seminer) sadece katılımcı sayısı gösterilir, çubuk çizilmez.
-  const seatRow = h('div', 'lg-card__seatRow');
-  // Kontenjan sınırsızsa (maxParticipants 0) "Kontenjan: 0" yazmak "sıfır kişilik"
-  // gibi okunur; orada gösterilen şey aslında katılımcı sayısıdır.
-  const unlimited = ev.maxParticipants === 0;
-  seatRow.appendChild(h('span', undefined, isDone || unlimited ? L.attendees : L.seats));
-  seatRow.appendChild(h('span', 'lg-card__seatVal', participantsText(count, ev.maxParticipants)));
-  foot.appendChild(seatRow);
+  /*
+   * Kaç kişi gösterilecek:
+   * - Tamamlanmış etkinlikte panelden girilen GERÇEK katılımcı sayısı (attendees)
+   *   önceliklidir. Site açılmadan önce yapılan etkinliklerin KV'de kaydı yok;
+   *   oradaki 0'ı göstermek "kimse gelmemiş" algısı yaratıyordu.
+   * - Diğer durumlarda KV'deki gerçek başvuru sayısı.
+   */
+  const shown = isDone && typeof ev.attendees === 'number' ? ev.attendees : count;
 
-  if (ev.maxParticipants > 0) {
-    const track = h('div', 'lg-card__track');
-    const fill = h('div', 'lg-card__fill');
-    fill.style.background = color.fg;
-    fill.style.width = `${fillPercent(count, ev.maxParticipants)}%`;
-    track.appendChild(fill);
-    foot.appendChild(track);
+  // Tamamlanmış ve katılımcı bilgisi hiç yoksa satırı hiç gösterme: "0" yazmak
+  // yanlış bilgi verir, boş bırakmak dürüsttür.
+  const hideSeats = isDone && typeof ev.attendees !== 'number' && count === 0;
+
+  if (!hideSeats) {
+    const seatRow = h('div', 'lg-card__seatRow');
+    // Kontenjan sınırsızsa (maxParticipants 0) "Kontenjan: 0" yazmak "sıfır
+    // kişilik" gibi okunur; orada gösterilen şey aslında katılımcı sayısıdır.
+    const unlimited = ev.maxParticipants === 0;
+    seatRow.appendChild(h('span', undefined, isDone || unlimited ? L.attendees : L.seats));
+    seatRow.appendChild(h('span', 'lg-card__seatVal', participantsText(shown, ev.maxParticipants)));
+    foot.appendChild(seatRow);
+
+    if (ev.maxParticipants > 0) {
+      const track = h('div', 'lg-card__track');
+      const fill = h('div', 'lg-card__fill');
+      fill.style.background = color.fg;
+      fill.style.width = `${fillPercent(shown, ev.maxParticipants)}%`;
+      track.appendChild(fill);
+      foot.appendChild(track);
+    }
   }
 
   const actions = h('div', 'lg-card__actions');
