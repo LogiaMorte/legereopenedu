@@ -1,17 +1,27 @@
 ---
 import '../styles/global.css';
-import '@fontsource/space-grotesk/400.css';
-import '@fontsource/space-grotesk/500.css';
-// 600 tasarımda başlık/buton/kart başlıklarının ana ağırlığı — eksikti, 700'e
-// yuvarlanıyordu. Fontlar @fontsource ile self-hosted (CSP dış font'a kapalı).
-import '@fontsource/space-grotesk/600.css';
-import '@fontsource/space-grotesk/700.css';
-import '@fontsource/inter/300.css';
-import '@fontsource/inter/400.css';
-import '@fontsource/inter/500.css';
-import '@fontsource/inter/600.css';
-import '@fontsource/jetbrains-mono/400.css';
-import '@fontsource/jetbrains-mono/500.css';
+/*
+ * Fontlar self-hosted (CSP dış font'a kapalı) ve DEĞİŞKEN (variable) sürüm:
+ * tek dosya 100–900 arası bütün ağırlıkları taşıyor.
+ *
+ * Önceden her ağırlık ayrı statik dosyaydı — Türkçe sayfa hem `latin` hem
+ * `latin-ext` alt kümesini indirdiği için 9 ağırlık 390 KB tutuyordu. Üstelik
+ * Inter 700 hiç yüklenmiyordu; gövdedeki `font-bold` (93 kullanım) tarayıcı
+ * tarafından sahte kalınlaştırılıyordu. Değişken sürüm 230 KB'a iniyor ve 700
+ * gerçek çizimiyle geliyor.
+ */
+import '@fontsource-variable/space-grotesk';
+import '@fontsource-variable/inter';
+import '@fontsource-variable/jetbrains-mono';
+/*
+ * Hero başlığı LCP öğesi ve başlık fontuyla çiziliyor. Font normalde ancak CSS
+ * indirilip ayrıştırıldıktan sonra keşfedilir — bir gidiş-dönüş geç kalır.
+ * Bu iki dosya (toplam ~41 KB) baştan istenirse başlık ilk boyada doğru
+ * fontuyla geliyor. Türkçe başlıklardaki ı/ş/ğ `latin-ext` alt kümesinde, o
+ * yüzden ikisi de gerekli.
+ */
+import headingLatin from '@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2?url';
+import headingLatinExt from '@fontsource-variable/space-grotesk/files/space-grotesk-latin-ext-wght-normal.woff2?url';
 import { ClientRouter } from 'astro:transitions';
 import SiteNav from '../components/SiteNav.astro';
 import SiteFooter from '../components/SiteFooter.astro';
@@ -53,6 +63,8 @@ const showAlternates = !noindex;
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preload" href={headingLatin} as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href={headingLatinExt} as="font" type="font/woff2" crossorigin />
   <link rel="canonical" href={canonicalUrl} />
   {showAlternates && (
     <>
