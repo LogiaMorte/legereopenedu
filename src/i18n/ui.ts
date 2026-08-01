@@ -1,8 +1,6 @@
 export const ui = {
   tr: {
     // Nav
-    'nav.about': 'Hakkımızda',
-    'nav.programs': 'Programlar',
 
     // Hero
 
@@ -378,8 +376,6 @@ export const ui = {
 
   en: {
     // Nav
-    'nav.about': 'About',
-    'nav.programs': 'Programs',
 
     // Hero
 
