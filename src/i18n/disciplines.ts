@@ -124,8 +124,3 @@ export function disciplineLabel(code: string, lang: string): string {
   const d = bySlug.get(code);
   return d ? (lang === 'en' ? d.label.en : d.label.tr) : code;
 }
-
-/** Hero'daki dikey şerit ve ızgara için kısa kod. */
-export function disciplineCode(slug: string): string {
-  return bySlug.get(slug)?.code ?? slug.slice(0, 3).toUpperCase();
-}

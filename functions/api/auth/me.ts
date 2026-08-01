@@ -15,18 +15,22 @@ import {
   buildLogoutCookies,
   jsonResponseWithCookies,
 } from '../../_shared';
+import badgesData from '../../../src/data/badges.json';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
   ADMIN_EMAILS?: string;
 }
 
-const AUTO_BADGES = [
-  { id: 'first-workshop', criteria: { completedWorkshops: 1 } },
-  { id: 'three-workshops', criteria: { completedWorkshops: 3 } },
-  { id: 'five-workshops', criteria: { completedWorkshops: 5 } },
-  { id: 'multi-discipline', criteria: { uniqueDisciplines: 3 } },
-];
+/*
+ * Otomatik rozet ölçütleri src/data/badges.json'dan gelir.
+ * Eskiden burada elle tutulan bir kopya vardı ve "keep in sync" yorumuyla
+ * işaretlenmişti — iki listenin ayrışması an meselesiydi. Pages Functions
+ * src/ altından import edebiliyor, o yüzden kopyaya gerek yok.
+ */
+const AUTO_BADGES = (badgesData as Array<{ id: string; type: string; criteria?: Record<string, number> }>)
+  .filter((b) => b.type === 'auto' && b.criteria)
+  .map((b) => ({ id: b.id, criteria: b.criteria as Record<string, number> }));
 
 function getMethods() {
   return 'GET, POST, DELETE, OPTIONS';
