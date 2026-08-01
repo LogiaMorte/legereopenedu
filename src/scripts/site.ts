@@ -17,6 +17,33 @@ function markJsReady(): void {
   document.documentElement.classList.add('lg-js');
 }
 
+/*
+ * initSite() her sayfa geçişinde (astro:after-swap) yeniden çalışır çünkü
+ * ClientRouter DOM'u değiştiriyor ve yeni düğümlerin bağlanması gerekiyor.
+ * Ama window/document üzerindeki dinleyiciler düğümle birlikte ölmez —
+ * temizlenmezse her gezinmede birikir. Ölçtüm: tek bir gidiş-dönüşte dört
+ * fazladan scroll dinleyicisi ekleniyordu.
+ *
+ * Bu yüzden global dinleyiciler burada tutuluyor ve yeniden bağlanmadan önce
+ * kaldırılıyor.
+ */
+let teardown: Array<() => void> = [];
+
+function on<K extends keyof WindowEventMap>(
+  target: Window | Document,
+  type: K | string,
+  fn: EventListenerOrEventListenerObject,
+  opts?: AddEventListenerOptions,
+): void {
+  target.addEventListener(type, fn, opts);
+  teardown.push(() => target.removeEventListener(type, fn, opts));
+}
+
+function cleanup(): void {
+  teardown.forEach((fn) => fn());
+  teardown = [];
+}
+
 // ── Nav: kaydırma ilerleme çubuğu ──
 
 function initScrollProgress(): void {
@@ -28,8 +55,8 @@ function initScrollProgress(): void {
     const pct = max > 0 ? (el.scrollTop / max) * 100 : 0;
     bar.style.width = `${pct}%`;
   };
-  addEventListener('scroll', update, { passive: true });
-  addEventListener('resize', update, { passive: true });
+  on(window, 'scroll', update, { passive: true });
+  on(window, 'resize', update, { passive: true });
   update();
 }
 
@@ -53,18 +80,45 @@ function initMobileMenu(): void {
   // Bir bağlantıya tıklanınca kapansın — aynı sayfa içi çapa olduğu için
   // navigasyon olayı tetiklenmiyor.
   panel.querySelectorAll('a').forEach((a) => a.addEventListener('click', () => setOpen(false)));
-  addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') setOpen(false);
+  on(window, 'keydown', (e) => {
+    if ((e as KeyboardEvent).key === 'Escape') setOpen(false);
   });
 }
 
 // ── Bölüm girişleri ──
 
 /**
- * [data-reveal] tek öğeyi, [data-stagger] çocuklarını sırayla açar.
- * Bir kez tetiklenir; tekrar tekrar animasyon rahatsız edici olurdu.
+ * Bölüm/öğe giriş animasyonları. İKİ sözleşmeyi birden yürütür:
+ *
+ * - `[data-reveal]` / `[data-stagger]` → `.lg-in`  (one-pager bölümleri)
+ * - `[data-animate]`                   → `.visible` (yasal sayfalar, giriş,
+ *   kayıt, profil — tasarım öncesinden kalan ve hâlâ kullanılan sözleşme)
+ *
+ * İkincisi kritik: global.css'te `[data-animate] { opacity: 0 }` kuralı var ve
+ * `.visible` eklenmezse içerik KALICI OLARAK GÖRÜNMEZ kalıyor. One-pager
+ * geçişinde eski gözlemciyi Layout'tan kaldırdığımda tam bu oldu — etik,
+ * KVKK, çerez, kullanım koşulları ve gizlilik sayfaları (TR+EN, 10 sayfa)
+ * boş göründü.
+ *
+ * Her öğe bir kez tetiklenir; tekrar tekrar animasyon rahatsız edici olurdu.
  */
 function initReveal(root: ParentNode = document): void {
+  /*
+   * `[data-animate]` (yasal sayfalar) GÖZLEMCİYE BAĞLANMAZ, hemen açılır.
+   *
+   * global.css'te `[data-animate] { opacity: 0 }` var ve görünürlük yalnızca
+   * `.visible` sınıfıyla geri geliyor. Bu sınıfı bir IntersectionObserver'a
+   * bağlamak, gözlemci herhangi bir nedenle çalışmazsa etik kod / KVKK /
+   * kullanım koşulları metninin tamamen görünmez kalması demek — bir kez
+   * yaşandı. Bu sayfalarda kaydırma animasyonunun getirisi yok, riski büyük;
+   * geçiş CSS'te tanımlı olduğu için içerik yine yumuşakça beliriyor.
+   */
+  const instant = Array.from(root.querySelectorAll<HTMLElement>('[data-animate]'));
+  instant.forEach((el, i) => {
+    el.style.transitionDelay = `${Math.min(i, 6) * 60}ms`;
+    el.classList.add('visible');
+  });
+
   const targets = Array.from(root.querySelectorAll<HTMLElement>('[data-reveal],[data-stagger]'));
   if (!targets.length) return;
 
@@ -162,14 +216,25 @@ function initParticles(): void {
   };
 
   resize();
-  if ('ResizeObserver' in window) new ResizeObserver(resize).observe(canvas);
-  else addEventListener('resize', resize);
+  let ro: ResizeObserver | null = null;
+  if ('ResizeObserver' in window) {
+    ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+  } else {
+    on(window, 'resize', resize);
+  }
   tick();
 
   // Sekme arkadayken boşuna çizme
-  document.addEventListener('visibilitychange', () => {
+  on(document, 'visibilitychange', () => {
     if (document.hidden) cancelAnimationFrame(raf);
     else raf = requestAnimationFrame(tick);
+  });
+
+  // Sayfa değişince döngüyü durdur: yoksa her gezinmede bir RAF daha koşar
+  teardown.push(() => {
+    cancelAnimationFrame(raf);
+    ro?.disconnect();
   });
 }
 
@@ -250,7 +315,24 @@ function initMemberNav(): void {
     });
 }
 
+// ── Yukarı çık düğmesi ──
+
+function initBackToTop(): void {
+  const btn = document.getElementById('back-to-top');
+  if (!btn) return;
+  const toggle = () => {
+    const on = window.scrollY > 600;
+    btn.style.opacity = on ? '1' : '0';
+    btn.style.pointerEvents = on ? 'auto' : 'none';
+  };
+  on(window, 'scroll', toggle, { passive: true });
+  btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+  toggle();
+}
+
 export function initSite(): void {
+  // Önceki sayfanın global dinleyicilerini ve animasyon döngüsünü bırak
+  cleanup();
   markJsReady();
   initScrollProgress();
   initMobileMenu();
@@ -259,4 +341,5 @@ export function initSite(): void {
   initParticles();
   initSpotlight();
   initCounter();
+  initBackToTop();
 }

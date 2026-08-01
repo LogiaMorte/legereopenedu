@@ -176,7 +176,15 @@ const labels = buildEventLabels(lang, t);
 
 <script>
   import { initEvents } from '../../scripts/events-client';
+
   initEvents();
+  /*
+   * ClientRouter (view transitions) açık: sayfalar arası gezinince DOM
+   * değişiyor ama modül script'i yeniden çalışmıyor. Bu satır olmadan
+   * başka bir sayfaya gidip geri dönüldüğünde etkinlik bölümü iskelette
+   * kalıyordu — ölçtüm: 0 kart, sekmeler 0/0.
+   */
+  document.addEventListener('astro:after-swap', initEvents);
 </script>
 
 <!--

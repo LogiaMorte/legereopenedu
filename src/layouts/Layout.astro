@@ -134,23 +134,11 @@ const showAlternates = !noindex;
     import { initSite } from '../scripts/site';
 
     initSite();
+    // ClientRouter DOM'u değiştirdiği için her geçişte yeniden bağlanmalı.
+    // initSite kendi dinleyicilerini önce temizler; burada ikinci bir kurulum
+    // fonksiyonu TUTMA — "yukarı çık" da site.ts içinde, aynı temizlik
+    // mekanizmasına bağlı (yoksa her gezinmede bir scroll dinleyicisi kalıyordu).
     document.addEventListener('astro:after-swap', initSite);
-
-    const initBackToTop = () => {
-      const btn = document.getElementById('back-to-top');
-      if (!btn) return;
-      const toggle = () => {
-        const on = window.scrollY > 600;
-        btn.style.opacity = on ? '1' : '0';
-        btn.style.pointerEvents = on ? 'auto' : 'none';
-      };
-      window.addEventListener('scroll', toggle, { passive: true });
-      btn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
-      toggle();
-    };
-
-    initBackToTop();
-    document.addEventListener('astro:after-swap', initBackToTop);
   </script>
 </body>
 </html>
