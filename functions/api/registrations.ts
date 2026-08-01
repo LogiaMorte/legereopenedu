@@ -21,6 +21,7 @@ import {
   verifyAdmin,
 } from '../_shared';
 import { findEvent } from './events';
+import siteConfig from '../../src/data/config.json';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
@@ -308,7 +309,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
                 : `Katilim baglantisi${safePlatform ? ` (${safePlatform})` : ''} etkinlik oncesinde ayrica gonderilecektir.`
             }</p>
             <div style="text-align:center;margin:24px 0;">
-              <a href="https://teams.live.com/l/community/FEApfJqwPQhu1UpbAI" style="display:inline-block;background:linear-gradient(135deg,#B8922E,#D4A843);color:#0A0A0F;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Teams Topluluguna Katil</a>
+              <a href="${siteConfig.social.teams}" style="display:inline-block;background:linear-gradient(135deg,#B8922E,#D4A843);color:#0A0A0F;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:600;">Teams Topluluguna Katil</a>
             </div>
             ${memberPassword ? `
             <div style="background:rgba(212,168,67,0.05);border:1px solid rgba(212,168,67,0.2);border-radius:8px;padding:16px;margin:16px 0;text-align:center;">

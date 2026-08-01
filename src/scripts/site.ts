@@ -64,7 +64,7 @@ function initMobileMenu(): void {
  * [data-reveal] tek öğeyi, [data-stagger] çocuklarını sırayla açar.
  * Bir kez tetiklenir; tekrar tekrar animasyon rahatsız edici olurdu.
  */
-export function initReveal(root: ParentNode = document): void {
+function initReveal(root: ParentNode = document): void {
   const targets = Array.from(root.querySelectorAll<HTMLElement>('[data-reveal],[data-stagger]'));
   if (!targets.length) return;
 

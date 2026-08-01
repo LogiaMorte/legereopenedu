@@ -36,7 +36,7 @@ function startOfDay(d: Date): Date {
 }
 
 /** Başvuru alınıyor mu — eski `status: 'open'` biçimini de kabul eder. */
-export function acceptsRegistration(ev: EventLike): boolean {
+function acceptsRegistration(ev: EventLike): boolean {
   if (typeof ev.registrationOpen === 'boolean') return ev.registrationOpen;
   return ev.status === 'open';
 }
@@ -61,18 +61,6 @@ export function deriveStatus(ev: EventLike, now: Date = new Date()): EventStatus
   return acceptsRegistration(ev) ? 'open' : 'upcoming';
 }
 
-/**
- * Rozet CSS sınıfı. Burada duruyor çünkü hem build (WorkshopCard.astro) hem
- * tarayıcı (events-client.ts) hem admin paneli aynı eşlemeyi kullanıyor;
- * üç kopya tuttuğumuzda global.css'te bir sınıf adı değişince biri sessizce
- * eski sınıfta kalıyordu.
- */
-export const STATUS_CLASS: Record<EventStatus, string> = {
-  open: 'badge-open',
-  ongoing: 'badge-open',
-  upcoming: 'badge-upcoming',
-  completed: 'badge-closed',
-};
 
 /**
  * Etkinlik tarihini yerelleştirir.
@@ -89,16 +77,6 @@ export function formatEventDate(iso: string, lang: string, long = false): string
     month: long ? 'long' : 'short',
     year: 'numeric',
   });
-}
-
-/** Katılımcı sayacı metni — kontenjan 0 ise sadece sayı gösterilir. */
-export function participantsText(count: number, max: number): string {
-  return max > 0 ? `${count}/${max}` : String(count);
-}
-
-/** Doluluk çubuğu yüzdesi. Kontenjan 0 (sınırsız) ise çubuk boş kalır. */
-export function fillPercent(count: number, max: number): number {
-  return max > 0 ? Math.min(100, Math.round((count / max) * 100)) : 0;
 }
 
 /**

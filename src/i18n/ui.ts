@@ -3,123 +3,29 @@ export const ui = {
     // Nav
     'nav.about': 'Hakkımızda',
     'nav.programs': 'Programlar',
-    'nav.disciplines': 'Disiplinler',
-    'nav.workshops': 'Atölyeler',
-    'nav.community': 'Topluluk',
-    'nav.calendar': 'Takvim',
-    'nav.publications': 'Çıktılar',
-    'nav.contact': 'İletişim',
 
     // Hero
-    'hero.badge': 'Bağımsız Akademik Araştırma Ağı',
-    'hero.title': 'LEGERE',
-    'hero.subtitle': 'Yüksek lisans, doktora ve bağımsız araştırmacılar için açık ve iş birlikçi bir akademik platform.',
-    'hero.legere': 'Legere — Okumak, Seçmek, Bir Araya Getirmek',
-    'hero.tagline': 'Atölyeler, seminerler, kolokyumlar ve yayın odaklı iş birliğiyle tartışmayı ürüne dönüştüren sanal-öncelikli bir akademik ortam.',
-    'hero.cta': 'Programları Keşfedin',
-    'hero.ctaJoin': 'Topluluğa Katıl',
-    'hero.ctaNote': 'Google veya LinkedIn ile saniyeler içinde.',
 
     // About
     'about.title': 'Legere Nedir?',
-    'about.p1': 'Legere Open Edu, yüksek lisans ve doktora düzeyindeki araştırmacılar, doktora sonrası araştırmacılar ve bağımsız akademisyenlerin iş birlikçi öğrenme, üretim ve kamusal bilgi paylaşımı için bir araya geldiği dijital öncelikli, açık bir akademik iş birliği platformudur.',
-    'about.p2': 'Sadece bir kurs web sitesi değildir. Çevrimiçi başlayan, atölyeler, seminerler ve kolokyumlarla süreklilik inşa eden ve seçici biçimde yüz yüze entelektüel topluluklara, festivallere ve ortak yayın süreçlerine evrilen yaşayan bir akademik ağdır.',
-    'about.p3': 'Adımızı Latince "legere" kelimesinden alıyoruz: okumak, seçmek ve bir araya getirmek. Bu üç eylem, araştırma sürecimizin özünü oluşturuyor.',
-    'about.vision': 'Sanal Araştırma Köyü',
-    'about.visionDesc': 'Matematik, sanat ve felsefe köylerinin ruhuyla ilham alan; ancak çağdaş dijital yaşamın gerçeklikleri için tasarlanmış bir model: dağıtık, hibrit, dikkatle kayıt altına alınan ve çevrimiçi iş birliğinden fiziksel buluşmalara ölçeklenebilen.',
-    'about.stat.disciplines': 'Disiplin',
-    'about.stat.members': 'Üye Akademisyen',
-    'about.stat.period': 'Haftalık Periyot',
-    'about.stat.researchers': 'Atölye Kapasitesi',
-    'about.ethicsLink': 'Etik ilkelerimizi ve manifestomuzu inceleyin →',
 
     // How It Works
-    'howItWorks.title': 'Nasıl İşler?',
-    'howItWorks.subtitle': 'Tartışmadan ürüne: dört adımlı sürecimiz.',
-    'howItWorks.step1.title': 'Katıl',
-    'howItWorks.step1.desc': 'Bir atölyeye, seminere veya etkinliğe başvurun.',
-    'howItWorks.step2.title': 'Katılım Göster',
-    'howItWorks.step2.desc': 'Rehberli tartışma ve disiplinlerarası diyaloğa katılın.',
-    'howItWorks.step3.title': 'Üret',
-    'howItWorks.step3.desc': 'Somut bir entelektüel çıktı geliştirin.',
-    'howItWorks.step4.title': 'Yayımla',
-    'howItWorks.step4.desc': 'Kamusal veya akademik yayın için rafine edin.',
 
     // Programs
     'programs.title': 'Programlar',
-    'programs.subtitle': 'Yapılandırılmış üretimden kamusal bilgi paylaşımına kadar uzanan program yelpazesi.',
-    'programs.owl.title': 'OWL — Open Workshop Lab',
-    'programs.owl.subtitle': 'Legere Atölye Modülü',
-    'programs.owl.desc': 'Küçük gruplarla, üretim odaklı, 3 haftalık yoğun atölye döngüleri. Google Classroom üzerinden yürütülür. Her atölye somut entelektüel çıktı üretmek üzere tasarlanmıştır.',
-    'programs.owl.outputs': 'Olası çıktılar: kısa makaleler, açıklamalı bibliyografyalar, kavram notları, sunum dosyaları, ortak muhtıralar, yayına hazır taslaklar.',
-    'programs.seminars.title': 'Halka Açık Seminerler',
-    'programs.seminars.desc': 'Dışa dönük, herkesin erişimine açık etkinlikler. Davetli konuşmalar, paneller ve konu bilgilendirmeleri. Google Meet üzerinden gerçekleştirilir.',
-    'programs.colloquia.title': 'Kolokyumlar',
-    'programs.colloquia.desc': 'Araştırma odaklı, daha yoğun akademik buluşmalar. Devam eden araştırma sunumları, tartışmacı temelli değişim ve akran geri bildirimi. Microsoft Teams üzerinden yürütülür.',
-    'programs.publications.title': 'Yayın Hattı',
-    'programs.publications.desc': 'Atölye, seminer ve kolokyum çıktıları akademik dergiler, derleme kitaplar ve dijital yayın platformları için rafine edilir ve hazırlanır.',
 
     // Community
-    'community.title': 'Topluluk',
-    'community.subtitle': 'Programların ötesinde, sürekli bir akademik diyalog ortamı.',
-    'community.desc': 'Atölyeler dışında kalan tüm entelektüel yaşam Microsoft Teams topluluğumuz üzerinden yürütülür. Akademik sohbetler, fikir alışverişi, güncel tartışmalar ve programlar arası süreklilik için araştırmacılarımızın buluşma noktasıdır.',
-    'community.bookclub.title': 'Kitap Kulüpleri',
-    'community.bookclub.desc': 'Hem akademik hem de sanatsal okuma grupları. Temel disiplin metinleri, teori okuma çevreleri, edebiyat ve sanat okuma grupları ile karşılaştırmalı disiplinlerarası okuma dizileri.',
-    'community.chat.title': 'Akademik Sohbetler',
-    'community.chat.desc': 'Disiplinlerarası fikir alışverişi, yeni makalelerin tartışılması, araştırma sorularının paylaşılması ve fikirlerinizi informel olarak test etme imkânı.',
-    'community.join': 'Topluluğa Katıl',
-    'community.joinNote': 'Katıldıktan sonra lütfen kendinizi e-posta ile tanıtınız.',
-    'community.teams': 'Microsoft Teams Topluluğu',
-    'community.active': 'Aktif Topluluk',
 
     // Universities
-    'universities.title': 'Aktif Katılımcı Üniversiteler',
-    'universities.active': 'aktif',
 
     // Disciplines
     'disciplines.title': 'Araştırma Alanları',
-    'disciplines.subtitle': 'On iki disiplinin kesişiminde, geleceğin araştırma sorularını keşfediyoruz.',
-    'disciplines.criminology': 'Kriminoloji',
-    'disciplines.criminology.desc': 'Suç olgusunu dijital çağın dinamikleriyle yeniden ele alıyor, veri odaklı suç analizi ve adalet sistemleri üzerine çalışıyoruz.',
-    'disciplines.sociology': 'Sosyoloji',
-    'disciplines.sociology.desc': 'Toplumsal yapıları, dijital dönüşümü ve kolektif davranış örüntülerini disiplinlerarası bir perspektifle inceliyoruz.',
-    'disciplines.philosophy': 'Felsefe',
-    'disciplines.philosophy.desc': 'Etik, epistemoloji ve teknoloji felsefesi alanlarında güncel tartışmalara eleştirel düşünce ile katkıda bulunuyoruz.',
-    'disciplines.datascience': 'Veri Bilimi',
-    'disciplines.datascience.desc': 'Nicel araştırma yöntemleri, makine öğrenimi ve veri görselleştirme ile sosyal bilimlere yeni bir boyut katıyoruz.',
-    'disciplines.law': 'Hukuk',
-    'disciplines.law.desc': 'Dijital hukuk, siber suç mevzuatı ve insan hakları bağlamında teknolojinin hukuki boyutlarını araştırıyoruz.',
-    'disciplines.psychology': 'Psikoloji',
-    'disciplines.psychology.desc': 'Bilişsel süreçler, dijital davranış psikolojisi ve suç psikolojisi alanlarında disiplinlerarası çalışmalar yürütüyoruz.',
-    'disciplines.anthropology': 'Antropoloji',
-    'disciplines.anthropology.desc': 'Kültürel örüntüler, dijital antropoloji ve topluluk dinamikleri üzerine etnografik araştırmalar gerçekleştiriyoruz.',
-    'disciplines.polsci': 'Siyaset Bilimi',
-    'disciplines.polsci.desc': 'Yönetişim, kamusal politika ve dijital demokrasi süreçlerini eleştirel bir perspektifle analiz ediyoruz.',
-    'disciplines.communication': 'İletişim Bilimleri',
-    'disciplines.communication.desc': 'Medya ekolojisi, dezenformasyon ve dijital iletişim stratejilerini disiplinlerarası yöntemlerle inceliyoruz.',
-    'disciplines.economics': 'Ekonomi',
-    'disciplines.economics.desc': 'Davranışsal ekonomi, dijital ekonomi ve sosyo-ekonomik eşitsizlik konularında veri odaklı araştırmalar üretiyoruz.',
-    'disciplines.ai': 'Yapay Zeka',
-    'disciplines.ai.desc': 'Makine öğrenimi, doğal dil işleme ve yapay zeka etiği konularında sosyal bilimlerle entegre çalışmalar yürütüyoruz.',
-    'disciplines.intrelations': 'Uluslararası İlişkiler',
-    'disciplines.intrelations.desc': 'Küresel güvenlik, siber diplomasi ve uluslararası hukuk çerçevesinde dijital çağın dinamiklerini araştırıyoruz.',
 
     // Workshops
-    'workshops.title': 'Atölyeler',
-    'workshops.subtitle': 'Üç haftalık yoğun araştırma periyotlarıyla bilgi üretiyoruz.',
-    'workshops.capacity': 'Maks. 50 Katılımcı',
-    'workshops.free': 'Katılım ücretsizdir. Kabul durumu konu ve çalışma alanına göre değişkenlik gösterebilir.',
-    'workshops.register': 'Ön Kayıt',
-    'workshops.participants': 'Katılımcı',
     'workshops.status.open': 'Kayıt Açık',
     'workshops.status.upcoming': 'Yakında',
     'workshops.status.ongoing': 'Devam Ediyor',
     'workshops.status.completed': 'Tamamlandı',
-    'workshops.empty': 'Yeni atölyeler yakında duyurulacaktır.',
-    'workshops.howItWorks': 'Nasıl İşler?',
-    'workshops.howItWorksDesc': 'Atölyeler Google Classroom üzerinden 3 haftalık periyotlarla yürütülür. Kabul edildiğinizde sınıf kodu ve katılım daveti gönderilir. Her atölyenin programı, katılımcıların uzmanlık alanlarına göre revize edilir ve uygun akademisyen ile uzmanların daveti ile şekillenir.',
-    'workshops.workgroups': 'Atölyede ortaya konan eserler çalışma gruplarına ayrılarak kısa ve uzun vadede planlanıp gerçekleştirilir.',
-    'workshops.classroom': 'Google Classroom',
 
     // Registration Form
     'reg.title': 'Etkinlik Ön Kaydı',
@@ -139,62 +45,19 @@ export const ui = {
     'reg.errorCapacity': 'Bu etkinlik için kontenjan dolmuştur.',
     'reg.errorValidation': 'Lütfen tüm zorunlu alanları doldurun.',
     'reg.close': 'Kapat',
-    'reg.required': 'Zorunlu alan',
-    'reg.namePlaceholder': 'Adınız Soyadınız',
-    'reg.emailPlaceholder': 'ornek@universiteadi.edu.tr',
 
     // Calendar
-    'calendar.title': 'Etkinlik Takvimi',
-    'calendar.subtitle': 'Seminerler, kolokyumlar ve atölye takvimleri tek bir havuzda.',
     'calendar.type.workshop': 'Atölye',
     'calendar.type.seminar': 'Seminer',
     'calendar.type.congress': 'Kongre',
     'calendar.type.colloquium': 'Kolokyum',
     'calendar.type.course': 'Ders',
-    'calendar.empty': 'Yaklaşan etkinlikler yakında duyurulacaktır.',
-    'calendar.meetNote': 'Seminerler halka açık olarak Google Meet üzerinden gerçekleştirilir. Kolokyumlar Microsoft Teams üzerinden yürütülür. Katılım linkleri etkinlik öncesinde duyurulur.',
 
     // Publications / Outputs
-    'publications.title': 'Çıktılar & Yayınlar',
-    'publications.subtitle': 'Tartışmadan yayına: disiplinlerarası araştırma çıktılarımız.',
-    'publications.empty': 'Araştırma çıktıları yakında bu bölümde paylaşılacaktır.',
-    'publications.comingSoon': 'Yakında',
-    'publications.pipeline.title': 'Yayın Hattı',
-    'publications.pipeline.layer1': 'Dahili Çıktı',
-    'publications.pipeline.layer1.desc': 'Notlar, muhtıralar, özetler, atölye özetleri',
-    'publications.pipeline.layer2': 'Kamusal Paylaşım',
-    'publications.pipeline.layer2.desc': 'Blog yazıları, görsel özetler, klipler, sosyal medya paylaşımları',
-    'publications.pipeline.layer3': 'Resmi Yayın',
-    'publications.pipeline.layer3.desc': 'Dergi gönderileri, editörlü dosyalar, ortak yayın sunumları',
-    'publications.status.development': 'Geliştirme Aşamasında',
-    'publications.status.submitted': 'Gönderildi',
-    'publications.status.accepted': 'Kabul Edildi',
-    'publications.status.published': 'Yayımlandı',
 
     // Toward 2027
-    'toward2027.title': '2027 Vizyonu',
-    'toward2027.subtitle': 'Dijital öncelikli modelden fiziksel kamusal katılıma.',
-    'toward2027.desc': 'Legere Open Edu, 2027 yılında Ankara ve İstanbul\'da planlanan bilim ve kamusal bilgi festivalleri için ilk adımlarını atıyor. Bu girişim, dijital öncelikli akademik iş birliğini daha geniş yüz yüze kamusal katılımla buluşturmayı hedefliyor.',
-    'toward2027.ankara': 'Ankara Bilim Festivali',
-    'toward2027.istanbul': 'İstanbul Bilim Festivali',
-    'toward2027.planned': '2027 Planlanıyor',
 
     // Contact
-    'contact.title': 'İletişim',
-    'contact.subtitle': 'Katılmak, iş birliği yapmak veya etkinliklerimizi takip etmek için bize ulaşın.',
-    'contact.email': 'E-posta',
-    'contact.emailCopied': 'Kopyalandı!',
-    'contact.formCta': 'Genel Başvuru Formu',
-    'contact.workshop.title': 'Atölye Kurmak İstiyorum',
-    'contact.workshop.desc': 'Kendi araştırma atölyenizi tasarlayın, Legere altyapısıyla hayata geçirin.',
-    'contact.seminar.title': 'Seminer / Kolokyum Önerisi',
-    'contact.seminar.desc': 'Bir seminer veya kolokyum başlığı önermek istiyorsanız bize yazın.',
-    'contact.publication.title': 'Yayın Projesi',
-    'contact.publication.desc': 'Yayınlamak istediğiniz ya da devam eden yayın projeleriniz için iş birliği yapalım.',
-    'contact.invite.title': 'Bizi Davet Edin',
-    'contact.invite.desc': 'Kurumunuzda Legere\'yi misafir etmek istiyorsanız detayları konuşalım.',
-    'contact.cta': 'Bize Yazın',
-    'contact.orEmail': 'veya doğrudan e-posta gönderin',
 
     // Ethics & Manifesto
     'ethics.title': 'Etik Kod & Manifesto',
@@ -231,10 +94,8 @@ export const ui = {
     'ethics.lastUpdated': 'Son güncelleme',
 
     // Signup
-    'nav.signup': 'Kayıt Ol',
     'signup.title': 'Topluluğa Katıl',
     'signup.desc': 'Google veya LinkedIn hesabınızla güvenli bir şekilde kayıt olun. Kayıt sonrası profilinizi tamamlayabilir, eğitim bilgilerinizi ekleyebilir ve atölyelere başvurabilirsiniz.',
-    'signup.socialOnly': 'Akademik kimliğinizi doğrulamak için sosyal hesap ile giriş yapmanız gerekmektedir.',
     'signup.linkedinBenefit': 'LinkedIn ile kayıt olduğunuzda eğitim ve kariyer bilgileriniz otomatik olarak profilinize aktarılır.',
     'signup.orLinkedin': 'veya',
     'signup.linkedinBtn': 'LinkedIn ile Kayıt Ol',
@@ -242,21 +103,16 @@ export const ui = {
     'signup.successDesc': 'Profiliniz oluşturuldu. Şimdi eğitim bilgilerinizi ve ilgi alanlarınızı ekleyerek profilinizi tamamlayabilirsiniz.',
     'signup.successEmailNote': 'Katılmak istediğiniz programlar ve fikirleriniz hakkında bize info@legereopenedu.com adresinden de yazabilirsiniz.',
     'signup.goProfile': 'Profilimi Tamamla',
-    'signup.error': 'Bir hata oluştu. Lütfen tekrar deneyin.',
-    'signup.errorExists': 'Bu e-posta adresi ile zaten kayıt yapılmış.',
-    'signup.consent': '{privacy} ve {terms} belgelerini okudum, kabul ediyorum.',
     'signup.consentPrivacy': 'Gizlilik Politikası',
     'signup.consentTerms': 'Kullanım Koşulları',
     'signup.hasAccount': 'Zaten hesabınız var mı?',
     'signup.goLogin': 'Giriş Yap',
 
     // Login & Auth
-    'nav.login': 'Giriş',
     'nav.profile': 'Profilim',
     'nav.admin': 'Panel',
     'login.title': 'Üye Girişi',
     'login.desc': 'Google veya LinkedIn hesabınızla giriş yapın.',
-    'login.error': 'Giriş başarısız. Lütfen tekrar deneyin.',
     'login.orLinkedin': 'veya',
     'login.linkedinBtn': 'LinkedIn ile Giriş Yap',
     'login.back': 'Ana Sayfaya Dön',
@@ -267,25 +123,14 @@ export const ui = {
     'login.termsLink': 'Kullanım Koşulları',
 
     // Homepage Trust Section
-    'trust.title': 'Veri Güvenliği & Gizlilik',
-    'trust.desc': 'Legere Open Edu, akademisyenlerin kişisel verilerini yalnızca üyelik yönetimi ve program organizasyonu amacıyla işler. Verileriniz üçüncü taraflarla paylaşılmaz. Giriş işlemleri Google ve LinkedIn üzerinden güvenli OAuth protokolü ile gerçekleştirilir.',
-    'trust.googleData': 'Google ile giriş yapıldığında yalnızca adınız, e-posta adresiniz ve profil fotoğrafınız alınır. Bu bilgiler üyelik profilinizi oluşturmak için kullanılır, başka bir amaçla paylaşılmaz veya işlenmez.',
-    'trust.privacyLink': 'Gizlilik Politikamızı İnceleyin',
-    'trust.termsLink': 'Kullanım Koşulları',
 
     // Profile
-    'profile.title': 'Profilim',
     'profile.workshops': 'Atölyelerim',
     'profile.certificates': 'Sertifikalarım',
     'profile.badges': 'Rozetlerim',
-    'profile.completed': 'Tamamlandı',
-    'profile.accepted': 'Kabul Edildi',
-    'profile.pending': 'Beklemede',
-    'profile.downloadCert': 'Sertifika İndir',
     'profile.logout': 'Çıkış Yap',
     'profile.noCerts': 'Henüz sertifikanız bulunmuyor.',
     'profile.noBadges': 'Henüz rozetiniz bulunmuyor.',
-    'profile.noWorkshops': 'Henüz atölye kaydınız bulunmuyor.',
     'profile.showFullName': 'Tam adımı göster',
     'profile.showEmail': 'E-postamı göster',
     'profile.notLoggedIn': 'Giriş yapmanız gerekiyor.',
@@ -293,9 +138,6 @@ export const ui = {
     'profile.joinDate': 'Katılım',
 
     // Certificate types
-    'cert.participation': 'Katılım Sertifikası',
-    'cert.achievement': 'Başarı Sertifikası',
-    'cert.contribution': 'Katkı Sertifikası',
 
     // Verify
     'verify.title': 'Sertifika Doğrulama',
@@ -306,7 +148,6 @@ export const ui = {
     'verify.type': 'Tip',
     'verify.participant': 'Katılımcı',
     'verify.workshop': 'Atölye',
-    'verify.dates': 'Tarih',
     'verify.issued': 'Düzenlenme',
 
     // Privacy Policy
@@ -420,13 +261,6 @@ export const ui = {
     'cookies.lastUpdated': 'Son güncelleme',
 
     // Footer
-    'footer.rights': 'Tüm hakları saklıdır.',
-    'footer.tagline': 'Legere — Okumak, Seçmek, Bir Araya Getirmek',
-    'footer.ethics': 'Etik Kod & Manifesto',
-    'footer.privacy': 'Gizlilik Politikası',
-    'footer.terms': 'Kullanım Koşulları',
-    'footer.kvkk': 'KVKK Aydınlatma',
-    'footer.cookies': 'Çerez Politikası',
 
     // ── One-pager (2026 revizyonu) ──
     'nav.about': 'Legere Nedir?',
@@ -436,7 +270,6 @@ export const ui = {
     'nav.join': 'Katıl',
     'nav.cta': 'Topluluğa Katıl',
     'nav.menu': 'Menü',
-    'nav.close': 'Kapat',
 
     'lp.hero.eyebrow': 'Disiplinlerarası Araştırma Ağı · 2026',
     'lp.hero.tagline1': 'Okumak, seçmek,',
@@ -547,123 +380,29 @@ export const ui = {
     // Nav
     'nav.about': 'About',
     'nav.programs': 'Programs',
-    'nav.disciplines': 'Disciplines',
-    'nav.workshops': 'Workshops',
-    'nav.community': 'Community',
-    'nav.calendar': 'Calendar',
-    'nav.publications': 'Outputs',
-    'nav.contact': 'Contact',
 
     // Hero
-    'hero.badge': 'Independent Academic Research Network',
-    'hero.title': 'LEGERE',
-    'hero.subtitle': 'A digital academic commons for graduate researchers, postdocs, and independent scholars.',
-    'hero.legere': 'Legere — To Read, To Select, To Bring Together',
-    'hero.tagline': 'A virtual-first academic environment that turns discussion into output through workshops, seminars, colloquia, and publication-oriented collaboration.',
-    'hero.cta': 'Explore Programs',
-    'hero.ctaJoin': 'Join the Community',
-    'hero.ctaNote': 'With Google or LinkedIn, in seconds.',
 
     // About
     'about.title': 'What is Legere?',
-    'about.p1': 'Legere Open Edu is a digital-first scholarly commons designed to bring together graduate students, postdoctoral researchers, and independent scholars for collaborative learning, production, and public knowledge sharing.',
-    'about.p2': 'It is not merely a course website. It is a living academic network that starts online, builds continuity through workshops, seminars, and colloquia, and selectively evolves into in-person intellectual communities, festivals, and collaborative publication pipelines.',
-    'about.p3': 'Our name comes from the Latin word "legere": to read, to select, and to bring together. These three actions form the essence of our research process.',
-    'about.vision': 'Virtual Research Village',
-    'about.visionDesc': 'Inspired by the spirit of places like mathematics, arts, and philosophy villages — but designed for the realities of contemporary digital life: distributed, hybrid, recorded carefully, and capable of scaling from online collaboration to physical gatherings.',
-    'about.stat.disciplines': 'Disciplines',
-    'about.stat.members': 'Member Academics',
-    'about.stat.period': 'Week Periods',
-    'about.stat.researchers': 'Workshop Capacity',
-    'about.ethicsLink': 'Review our ethical principles and manifesto →',
 
     // How It Works
-    'howItWorks.title': 'How It Works',
-    'howItWorks.subtitle': 'From discussion to output: our four-step process.',
-    'howItWorks.step1.title': 'Join',
-    'howItWorks.step1.desc': 'Apply to a workshop, seminar, or event.',
-    'howItWorks.step2.title': 'Participate',
-    'howItWorks.step2.desc': 'Engage in guided discussion and interdisciplinary dialogue.',
-    'howItWorks.step3.title': 'Produce',
-    'howItWorks.step3.desc': 'Develop a concrete intellectual output.',
-    'howItWorks.step4.title': 'Disseminate',
-    'howItWorks.step4.desc': 'Refine for public or scholarly publication.',
 
     // Programs
     'programs.title': 'Programs',
-    'programs.subtitle': 'From structured production to public knowledge sharing — our full program range.',
-    'programs.owl.title': 'OWL — Open Workshop Lab',
-    'programs.owl.subtitle': 'Legere Workshop Module',
-    'programs.owl.desc': 'Small-group, production-oriented, intensive 3-week workshop cycles conducted via Google Classroom. Each workshop is designed to generate concrete intellectual output.',
-    'programs.owl.outputs': 'Possible outputs: short papers, annotated bibliographies, concept notes, presentation decks, collaborative memos, submission-ready draft sections.',
-    'programs.seminars.title': 'Public Seminars',
-    'programs.seminars.desc': 'Outward-facing, publicly accessible events. Invited talks, panels, and issue briefings. Held via Google Meet with open participation.',
-    'programs.colloquia.title': 'Colloquia',
-    'programs.colloquia.desc': 'Focused, research-oriented gatherings. Research-in-progress presentations, discussant-based exchange, and peer feedback. Conducted via Microsoft Teams.',
-    'programs.publications.title': 'Publication Pipeline',
-    'programs.publications.desc': 'Workshop, seminar, and colloquium outputs are refined and prepared for academic journals, edited collections, and digital publishing platforms.',
 
     // Community
-    'community.title': 'Community',
-    'community.subtitle': 'A continuous academic dialogue beyond programs.',
-    'community.desc': 'Outside workshops, the broader intellectual life of Legere Open Edu is carried through the Microsoft Teams community. It serves as the meeting point for academic conversations, idea exchange, current debates, and continuity between programs.',
-    'community.bookclub.title': 'Book Clubs',
-    'community.bookclub.desc': 'Both academic and literary reading groups. Foundational disciplinary texts, theory reading circles, literature and arts reading groups, and comparative interdisciplinary reading sequences.',
-    'community.chat.title': 'Academic Conversations',
-    'community.chat.desc': 'Open channels for interdisciplinary idea exchange, discussing new papers, sharing emerging research questions, and testing ideas informally.',
-    'community.join': 'Join the Community',
-    'community.joinNote': 'After joining, please introduce yourself via email.',
-    'community.teams': 'Microsoft Teams Community',
-    'community.active': 'Active Community',
 
     // Universities
-    'universities.title': 'Participating Universities',
-    'universities.active': 'active',
 
     // Disciplines
     'disciplines.title': 'Research Areas',
-    'disciplines.subtitle': 'At the intersection of twelve disciplines, we explore the research questions of the future.',
-    'disciplines.criminology': 'Criminology',
-    'disciplines.criminology.desc': 'We re-examine crime through the dynamics of the digital age, working on data-driven crime analysis and justice systems.',
-    'disciplines.sociology': 'Sociology',
-    'disciplines.sociology.desc': 'We study social structures, digital transformation, and collective behavior patterns from an interdisciplinary perspective.',
-    'disciplines.philosophy': 'Philosophy',
-    'disciplines.philosophy.desc': 'We contribute to contemporary debates in ethics, epistemology, and philosophy of technology through critical thinking.',
-    'disciplines.datascience': 'Data Science',
-    'disciplines.datascience.desc': 'We bring a new dimension to social sciences with quantitative research methods, machine learning, and data visualization.',
-    'disciplines.law': 'Law',
-    'disciplines.law.desc': 'We research the legal dimensions of technology in the context of digital law, cybercrime legislation, and human rights.',
-    'disciplines.psychology': 'Psychology',
-    'disciplines.psychology.desc': 'We conduct interdisciplinary studies in cognitive processes, digital behavioral psychology, and criminal psychology.',
-    'disciplines.anthropology': 'Anthropology',
-    'disciplines.anthropology.desc': 'We conduct ethnographic research on cultural patterns, digital anthropology, and community dynamics.',
-    'disciplines.polsci': 'Political Science',
-    'disciplines.polsci.desc': 'We critically analyze governance, public policy, and digital democracy processes.',
-    'disciplines.communication': 'Communication Sciences',
-    'disciplines.communication.desc': 'We examine media ecology, disinformation, and digital communication strategies through interdisciplinary methods.',
-    'disciplines.economics': 'Economics',
-    'disciplines.economics.desc': 'We produce data-driven research on behavioral economics, digital economy, and socio-economic inequality.',
-    'disciplines.ai': 'Artificial Intelligence',
-    'disciplines.ai.desc': 'We conduct studies integrating machine learning, natural language processing, and AI ethics with social sciences.',
-    'disciplines.intrelations': 'International Relations',
-    'disciplines.intrelations.desc': 'We research the dynamics of the digital age within the framework of global security, cyber diplomacy, and international law.',
 
     // Workshops
-    'workshops.title': 'Workshops',
-    'workshops.subtitle': 'We produce knowledge through intensive three-week research periods.',
-    'workshops.capacity': 'Max. 50 Participants',
-    'workshops.free': 'Participation is free. Acceptance may vary based on topic and field of study.',
-    'workshops.register': 'Pre-Register',
-    'workshops.participants': 'Participants',
     'workshops.status.open': 'Registration Open',
     'workshops.status.upcoming': 'Coming Soon',
     'workshops.status.ongoing': 'Ongoing',
     'workshops.status.completed': 'Completed',
-    'workshops.empty': 'New workshops will be announced soon.',
-    'workshops.howItWorks': 'How It Works',
-    'workshops.howItWorksDesc': 'Workshops are conducted over 3-week periods via Google Classroom. Once accepted, you will receive a class code and join invitation. Each workshop program is shaped by revising participant expertise areas and inviting relevant academics and specialists.',
-    'workshops.workgroups': 'Outputs from workshops are divided into working groups and planned for short and long-term realization.',
-    'workshops.classroom': 'Google Classroom',
 
     // Registration Form
     'reg.title': 'Event Pre-Registration',
@@ -683,62 +422,19 @@ export const ui = {
     'reg.errorCapacity': 'This event has reached full capacity.',
     'reg.errorValidation': 'Please fill in all required fields.',
     'reg.close': 'Close',
-    'reg.required': 'Required field',
-    'reg.namePlaceholder': 'Your Full Name',
-    'reg.emailPlaceholder': 'example@university.edu',
 
     // Calendar
-    'calendar.title': 'Event Calendar',
-    'calendar.subtitle': 'Seminars, colloquia, and workshop schedules in one place.',
     'calendar.type.workshop': 'Workshop',
     'calendar.type.seminar': 'Seminar',
     'calendar.type.congress': 'Congress',
     'calendar.type.colloquium': 'Colloquium',
     'calendar.type.course': 'Course',
-    'calendar.empty': 'Upcoming events will be announced soon.',
-    'calendar.meetNote': 'Public seminars are held via Google Meet. Colloquia are conducted through Microsoft Teams. Participation links are announced before each event.',
 
     // Publications / Outputs
-    'publications.title': 'Outputs & Publications',
-    'publications.subtitle': 'From discussion to publication: our interdisciplinary research outputs.',
-    'publications.empty': 'Research outputs will be shared in this section soon.',
-    'publications.comingSoon': 'Coming Soon',
-    'publications.pipeline.title': 'Publication Pipeline',
-    'publications.pipeline.layer1': 'Internal Output',
-    'publications.pipeline.layer1.desc': 'Notes, memos, abstracts, workshop summaries',
-    'publications.pipeline.layer2': 'Public Dissemination',
-    'publications.pipeline.layer2.desc': 'Blog essays, visual summaries, clips, social posts',
-    'publications.pipeline.layer3': 'Formal Publication',
-    'publications.pipeline.layer3.desc': 'Journal submissions, edited dossiers, partner publication pitches',
-    'publications.status.development': 'In Development',
-    'publications.status.submitted': 'Submitted',
-    'publications.status.accepted': 'Accepted',
-    'publications.status.published': 'Published',
 
     // Toward 2027
-    'toward2027.title': 'Toward 2027',
-    'toward2027.subtitle': 'From digital-first model to physical public engagement.',
-    'toward2027.desc': 'Legere Open Edu is taking initial steps toward science and public knowledge festivals planned for 2027 in Ankara and Istanbul, connecting digital-first scholarly collaboration with broader in-person public engagement.',
-    'toward2027.ankara': 'Ankara Science Festival',
-    'toward2027.istanbul': 'Istanbul Science Festival',
-    'toward2027.planned': 'Planned 2027',
 
     // Contact
-    'contact.title': 'Contact',
-    'contact.subtitle': 'To participate, collaborate, or follow upcoming activities, get in touch.',
-    'contact.email': 'Email',
-    'contact.emailCopied': 'Copied!',
-    'contact.formCta': 'General Application Form',
-    'contact.workshop.title': 'I Want to Create a Workshop',
-    'contact.workshop.desc': 'Design your own research workshop and bring it to life with Legere infrastructure.',
-    'contact.seminar.title': 'Seminar / Colloquium Proposal',
-    'contact.seminar.desc': 'Suggest a seminar or colloquium topic for our academic calendar.',
-    'contact.publication.title': 'Publication Project',
-    'contact.publication.desc': 'Collaborate on your publication projects or ongoing research outputs.',
-    'contact.invite.title': 'Invite Us',
-    'contact.invite.desc': 'Host Legere at your institution — let\'s discuss the details.',
-    'contact.cta': 'Get in Touch',
-    'contact.orEmail': 'or email us directly',
 
     // Ethics & Manifesto
     'ethics.title': 'Code of Ethics & Manifesto',
@@ -775,10 +471,8 @@ export const ui = {
     'ethics.lastUpdated': 'Last updated',
 
     // Signup
-    'nav.signup': 'Sign Up',
     'signup.title': 'Join the Community',
     'signup.desc': 'Sign up securely with your Google or LinkedIn account. After registration, you can complete your profile, add your education details, and apply to workshops.',
-    'signup.socialOnly': 'Social account login is required to verify your academic identity.',
     'signup.linkedinBenefit': 'When you sign up with LinkedIn, your education and career information is automatically imported to your profile.',
     'signup.orLinkedin': 'or',
     'signup.linkedinBtn': 'Sign Up with LinkedIn',
@@ -786,21 +480,16 @@ export const ui = {
     'signup.successDesc': 'Your profile has been created. You can now complete your profile by adding your education details and interests.',
     'signup.successEmailNote': 'You can also write to us at info@legereopenedu.com about programs you want to join and your ideas.',
     'signup.goProfile': 'Complete My Profile',
-    'signup.error': 'An error occurred. Please try again.',
-    'signup.errorExists': 'An account with this email already exists.',
-    'signup.consent': 'I have read and accept the {privacy} and {terms}.',
     'signup.consentPrivacy': 'Privacy Policy',
     'signup.consentTerms': 'Terms of Service',
     'signup.hasAccount': 'Already have an account?',
     'signup.goLogin': 'Log In',
 
     // Login & Auth
-    'nav.login': 'Login',
     'nav.profile': 'My Profile',
     'nav.admin': 'Panel',
     'login.title': 'Member Login',
     'login.desc': 'Sign in with your Google or LinkedIn account.',
-    'login.error': 'Login failed. Please try again.',
     'login.orLinkedin': 'or',
     'login.linkedinBtn': 'Sign In with LinkedIn',
     'login.back': 'Back to Home',
@@ -811,25 +500,14 @@ export const ui = {
     'login.termsLink': 'Terms of Service',
 
     // Homepage Trust Section
-    'trust.title': 'Data Security & Privacy',
-    'trust.desc': 'Legere Open Edu processes academics\' personal data solely for membership management and program organization. Your data is not shared with third parties. Login is handled securely via Google and LinkedIn OAuth protocols.',
-    'trust.googleData': 'When you sign in with Google, we only access your name, email address, and profile picture. This information is used solely to create your membership profile and is not shared or processed for any other purpose.',
-    'trust.privacyLink': 'Review Our Privacy Policy',
-    'trust.termsLink': 'Terms of Service',
 
     // Profile
-    'profile.title': 'My Profile',
     'profile.workshops': 'My Workshops',
     'profile.certificates': 'My Certificates',
     'profile.badges': 'My Badges',
-    'profile.completed': 'Completed',
-    'profile.accepted': 'Accepted',
-    'profile.pending': 'Pending',
-    'profile.downloadCert': 'Download Certificate',
     'profile.logout': 'Log Out',
     'profile.noCerts': 'No certificates yet.',
     'profile.noBadges': 'No badges yet.',
-    'profile.noWorkshops': 'No workshop registrations yet.',
     'profile.showFullName': 'Show my full name',
     'profile.showEmail': 'Show my email',
     'profile.notLoggedIn': 'You need to log in.',
@@ -837,9 +515,6 @@ export const ui = {
     'profile.joinDate': 'Joined',
 
     // Certificate types
-    'cert.participation': 'Certificate of Participation',
-    'cert.achievement': 'Certificate of Achievement',
-    'cert.contribution': 'Certificate of Contribution',
 
     // Verify
     'verify.title': 'Certificate Verification',
@@ -850,7 +525,6 @@ export const ui = {
     'verify.type': 'Type',
     'verify.participant': 'Participant',
     'verify.workshop': 'Workshop',
-    'verify.dates': 'Dates',
     'verify.issued': 'Issued',
 
     // Privacy Policy
@@ -964,13 +638,6 @@ export const ui = {
     'cookies.lastUpdated': 'Last updated',
 
     // Footer
-    'footer.rights': 'All rights reserved.',
-    'footer.tagline': 'Legere — To Read, To Select, To Bring Together',
-    'footer.ethics': 'Code of Ethics & Manifesto',
-    'footer.privacy': 'Privacy Policy',
-    'footer.terms': 'Terms of Service',
-    'footer.kvkk': 'Data Protection (KVKK)',
-    'footer.cookies': 'Cookie Policy',
 
     // ── One-pager (2026 revision) ──
     'nav.about': 'What is Legere?',
@@ -980,7 +647,6 @@ export const ui = {
     'nav.join': 'Join',
     'nav.cta': 'Join the Community',
     'nav.menu': 'Menu',
-    'nav.close': 'Close',
 
     'lp.hero.eyebrow': 'Interdisciplinary Research Network · 2026',
     'lp.hero.tagline1': 'To read, to select,',
