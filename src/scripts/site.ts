@@ -14,7 +14,7 @@
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 /** Deploy cache-bust — DOM'a yazılır ki tree-shake olmasın */
-const SITE_BUILD_ID = '2026-08-10-login-cache-fix';
+const SITE_BUILD_ID = '2026-08-10-cookie-loop-fix';
 
 /** Reveal'lar yalnızca JS varken gizlenir; aksi halde içerik hiç görünmezdi. */
 function markJsReady(): void {

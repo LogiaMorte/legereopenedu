@@ -30,6 +30,8 @@ export function corsHeaders(request: Request, methods = 'POST, OPTIONS'): Record
   };
   if (origin) {
     headers['Access-Control-Allow-Origin'] = origin;
+    // Credentialed fetch (cookies) — Origin varsa tarayıcı bunu ister
+    headers['Access-Control-Allow-Credentials'] = 'true';
   }
   return headers;
 }
@@ -122,71 +124,90 @@ export function generatePassword(): string {
 
 // ── Cookie Parsing ──
 
-export function parseSessionCookie(request: Request): { email: string; token: string } | null {
+/** Cookie header'daki tüm legere_token değerlerini (yeniden eskiye) döndür. */
+export function listSessionTokenCandidates(
+  request: Request,
+): Array<{ email: string; token: string }> {
   try {
     const cookieHeader = request.headers.get('Cookie') || '';
-    const tokenCookie = cookieHeader.split(';').find(c => c.trim().startsWith('legere_token='));
-    if (!tokenCookie) return null;
+    const candidates = cookieHeader
+      .split(';')
+      .map((c) => c.trim())
+      .filter((c) => c.startsWith('legere_token='))
+      .map((c) => c.slice('legere_token='.length));
 
-    const cookieValue = tokenCookie.split('=').slice(1).join('=').trim();
-    const separatorIndex = cookieValue.lastIndexOf(':');
-    if (separatorIndex === -1) return null;
-
-    const email = decodeURIComponent(cookieValue.substring(0, separatorIndex));
-    const token = cookieValue.substring(separatorIndex + 1);
-
-    if (!email || !token || !/^[0-9a-f]{64}$/.test(token)) return null;
-
-    return { email, token };
+    const out: Array<{ email: string; token: string }> = [];
+    for (let i = candidates.length - 1; i >= 0; i--) {
+      const parsed = parseTokenValue(candidates[i]);
+      if (parsed) out.push(parsed);
+    }
+    return out;
   } catch {
-    return null;
+    return [];
   }
+}
+
+export function parseSessionCookie(request: Request): { email: string; token: string } | null {
+  const list = listSessionTokenCandidates(request);
+  return list[0] || null;
+}
+
+function parseTokenValue(cookieValue: string): { email: string; token: string } | null {
+  const separatorIndex = cookieValue.lastIndexOf(':');
+  if (separatorIndex === -1) return null;
+
+  let email: string;
+  try {
+    email = decodeURIComponent(cookieValue.substring(0, separatorIndex));
+  } catch {
+    email = cookieValue.substring(0, separatorIndex);
+  }
+  const token = cookieValue.substring(separatorIndex + 1);
+
+  if (!email || !token || !/^[0-9a-f]{64}$/.test(token)) return null;
+  return { email: email.toLowerCase(), token };
 }
 
 // ── Cookie Helpers ──
 
 /**
  * Build Set-Cookie headers for login.
- * - legere_token: HttpOnly, Secure — actual auth token (not readable by JS)
- * - legere_logged_in: non-HttpOnly — presence flag for Header UI detection
- * - Domain=.legereopenedu.com when on production host (www ↔ apex)
+ *
+ * Host-only cookie kullanırız (Domain YOK): www zaten apex'e 301.
+ * Eski Domain=.legereopenedu.com çerezlerini Max-Age=0 ile temizleriz —
+ * aksi halde tarayıcı iki legere_token gönderir; ilki eski/bozuk token
+ * olunca /api/auth/me 401 döner ve "giriş yapmanız gerekiyor" döngüsü oluşur.
  */
 export function buildLoginCookies(
   email: string,
   token: string,
   maxAge = 30 * 24 * 60 * 60,
-  requestUrl?: string,
+  _requestUrl?: string,
 ): string[] {
-  const cookieValue = `${encodeURIComponent(email)}:${token}`;
-  const domain = productionCookieDomain(requestUrl);
+  const cookieValue = `${encodeURIComponent(email.toLowerCase())}:${token}`;
   return [
-    `legere_token=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}${domain}`,
-    `legere_logged_in=1; Path=/; Secure; SameSite=Lax; Max-Age=${maxAge}${domain}`,
+    // Eski Domain= çerezlerini sil (host-only silme bunları temizlemez)
+    'legere_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Domain=.legereopenedu.com',
+    'legere_logged_in=; Path=/; Secure; SameSite=Lax; Max-Age=0; Domain=.legereopenedu.com',
+    // Eski host-only kalıntı
+    'legere_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+    'legere_logged_in=; Path=/; Secure; SameSite=Lax; Max-Age=0',
+    // Yeni oturum (host-only)
+    `legere_token=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,
+    `legere_logged_in=1; Path=/; Secure; SameSite=Lax; Max-Age=${maxAge}`,
   ];
 }
 
 /**
- * Build Set-Cookie headers for logout (clear both cookies).
+ * Build Set-Cookie headers for logout (clear host-only + Domain= kalıntıları).
  */
-export function buildLogoutCookies(requestUrl?: string): string[] {
-  const domain = productionCookieDomain(requestUrl);
+export function buildLogoutCookies(_requestUrl?: string): string[] {
   return [
-    `legere_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0${domain}`,
-    `legere_logged_in=; Path=/; Secure; SameSite=Lax; Max-Age=0${domain}`,
+    'legere_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Domain=.legereopenedu.com',
+    'legere_logged_in=; Path=/; Secure; SameSite=Lax; Max-Age=0; Domain=.legereopenedu.com',
+    'legere_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
+    'legere_logged_in=; Path=/; Secure; SameSite=Lax; Max-Age=0',
   ];
-}
-
-function productionCookieDomain(requestUrl?: string): string {
-  if (!requestUrl) return '; Domain=.legereopenedu.com';
-  try {
-    const host = new URL(requestUrl).hostname.toLowerCase();
-    if (host === 'legereopenedu.com' || host === 'www.legereopenedu.com' || host.endsWith('.legereopenedu.com')) {
-      return '; Domain=.legereopenedu.com';
-    }
-  } catch {
-    /* ignore */
-  }
-  return '';
 }
 
 // ── Response Helper ──
