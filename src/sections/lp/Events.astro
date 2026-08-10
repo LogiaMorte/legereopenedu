@@ -172,6 +172,13 @@ const labels = buildEventLabels(lang, t);
   .lg-sk__flat--a { width: 100%; margin-top: 24px; }
   .lg-sk__flat--b { width: 80%; margin-top: 8px; }
   .lg-sk__btn { height: 42px; width: 100%; border-radius: 9px; margin-top: 34px; animation-delay: 0.2s; }
+
+  .lg-ev-list--in {
+    animation: lgIn 0.35s ease both;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .lg-ev-list--in { animation: none; }
+  }
 </style>
 
 <script>

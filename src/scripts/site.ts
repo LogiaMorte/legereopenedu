@@ -173,8 +173,9 @@ function initParticles(): void {
     canvas.width = Math.round(w * dpr);
     canvas.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    // Yoğunluk alana bağlı: geniş ekranda kalabalıklaşmasın, dar ekranda boş kalmasın
-    const count = Math.min(52, Math.round((w * h) / 26000));
+    // Yoğunluk alana bağlı; mobilde üst sınır düşük (CPU / pil)
+    const isNarrow = w < 768;
+    const count = Math.min(isNarrow ? 20 : 52, Math.round((w * h) / (isNarrow ? 32000 : 26000)));
     dots = Array.from({ length: count }, () => ({
       x: Math.random() * w,
       y: Math.random() * h,

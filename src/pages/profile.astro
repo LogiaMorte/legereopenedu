@@ -30,19 +30,57 @@ const t = useTranslations(lang);
         </div>
       </div>
 
-      <!-- Loading State -->
-      <div id="profile-loading" class="text-center py-20">
-        <div class="inline-flex items-center gap-3 text-text-secondary font-heading text-sm">
-          <svg class="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
-            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
-          </svg>
-          Yükleniyor...
+      <!-- Loading State (skeleton — layout shift azaltır) -->
+      <div id="profile-loading" class="space-y-6" aria-busy="true" aria-live="polite">
+        <div class="glass rounded-2xl p-6 sm:p-8">
+          <div class="flex gap-6 items-start">
+            <div class="w-20 h-20 rounded-full bg-white/5 animate-pulse shrink-0"></div>
+            <div class="flex-1 space-y-3 pt-1">
+              <div class="h-6 w-40 rounded bg-white/5 animate-pulse"></div>
+              <div class="h-3 w-56 rounded bg-white/[0.04] animate-pulse"></div>
+              <div class="h-3 w-32 rounded bg-white/[0.04] animate-pulse"></div>
+            </div>
+          </div>
         </div>
+        <div class="grid grid-cols-3 gap-4">
+          <div class="glass rounded-xl h-20 animate-pulse bg-white/[0.02]"></div>
+          <div class="glass rounded-xl h-20 animate-pulse bg-white/[0.02]"></div>
+          <div class="glass rounded-xl h-20 animate-pulse bg-white/[0.02]"></div>
+        </div>
+        <p class="text-center text-text-secondary font-heading text-sm">Yükleniyor...</p>
       </div>
 
       <!-- Profile Content -->
       <div id="profile-content" class="hidden space-y-6">
+
+        <!-- New-member onboarding -->
+        <div id="profile-onboarding" class="hidden glass gold-glow rounded-2xl p-6 sm:p-8">
+          <p class="text-xs font-heading font-semibold text-gold-500 tracking-wide uppercase mb-2">{t('profile.onboarding.title')}</p>
+          <h2 class="text-xl font-heading font-bold text-text-primary mb-2">{t('profile.onboarding.desc')}</h2>
+          <ol class="mt-5 space-y-3">
+            <li class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 justify-between">
+              <span class="flex items-start gap-3 text-sm text-text-secondary">
+                <span class="shrink-0 w-5 h-5 rounded-full bg-gold-500/15 border border-gold-500/25 text-gold-500 text-[11px] font-mono flex items-center justify-center mt-0.5">1</span>
+                {t('profile.onboarding.step1')}
+              </span>
+              <button type="button" id="onboard-edit" class="btn-outline text-xs py-2 px-4 shrink-0">{t('profile.onboarding.step1Cta')}</button>
+            </li>
+            <li class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 justify-between">
+              <span class="flex items-start gap-3 text-sm text-text-secondary">
+                <span class="shrink-0 w-5 h-5 rounded-full bg-gold-500/15 border border-gold-500/25 text-gold-500 text-[11px] font-mono flex items-center justify-center mt-0.5">2</span>
+                {t('profile.onboarding.step2')}
+              </span>
+              <a href="/#events" class="btn-outline text-xs py-2 px-4 shrink-0 inline-flex justify-center">{t('profile.onboarding.step2Cta')}</a>
+            </li>
+            <li class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 justify-between">
+              <span class="flex items-start gap-3 text-sm text-text-secondary">
+                <span class="shrink-0 w-5 h-5 rounded-full bg-gold-500/15 border border-gold-500/25 text-gold-500 text-[11px] font-mono flex items-center justify-center mt-0.5">3</span>
+                {t('profile.onboarding.step3')}
+              </span>
+              <a href="mailto:info@legereopenedu.com" class="btn-outline text-xs py-2 px-4 shrink-0 inline-flex justify-center">{t('profile.onboarding.step3Cta')}</a>
+            </li>
+          </ol>
+        </div>
 
         <!-- User Info Card -->
         <div class="glass gold-glow rounded-2xl p-6 sm:p-8">
@@ -302,7 +340,7 @@ const t = useTranslations(lang);
 
           <!-- Browse events CTA -->
           <div class="text-center">
-            <a href="/#workshops" class="btn-outline text-sm py-2.5 px-6 inline-flex items-center gap-2">
+            <a href="/#events" class="btn-outline text-sm py-2.5 px-6 inline-flex items-center gap-2">
               <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 0 0 6 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 0 1 6 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 0 1 6-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0 0 18 18a8.967 8.967 0 0 0-6 2.292m0-14.25v14.25" />
               </svg>
@@ -323,6 +361,8 @@ const t = useTranslations(lang);
       </div>
     </div>
   </div>
+
+  <div id="profile-toast" class="lg-toast" role="status" aria-live="polite"></div>
 </Layout>
 
 <script data-cfasync="false" is:inline>
@@ -400,6 +440,77 @@ document.addEventListener('astro:page-load', function() {
       notLoggedEl.classList.remove('hidden');
     }
   }, 10000);
+
+  function showToast(msg, kind) {
+    var el = document.getElementById('profile-toast');
+    if (!el) return;
+    el.textContent = msg;
+    el.className = 'lg-toast is-on ' + (kind === 'err' ? 'is-err' : 'is-ok');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(function() {
+      el.classList.remove('is-on');
+    }, 2800);
+  }
+
+  function openEditForm() {
+    var editContainer = document.getElementById('edit-form-container');
+    var editChevron = document.getElementById('edit-chevron');
+    if (!editContainer) return;
+    editContainer.classList.remove('hidden');
+    if (editChevron) editChevron.style.transform = 'rotate(180deg)';
+    editContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function updateShareLink(publicProfileId) {
+    var shareContainer = document.getElementById('public-profile-share');
+    var shareLink = document.getElementById('public-profile-link');
+    if (!shareContainer || !shareLink) return;
+    if (publicProfileId) {
+      var publicUrl = window.location.origin + '/m?id=' + publicProfileId;
+      shareContainer.classList.remove('hidden');
+      shareLink.href = publicUrl;
+      shareLink.textContent = publicUrl;
+    } else {
+      shareContainer.classList.add('hidden');
+      shareLink.href = '#';
+      shareLink.textContent = '';
+    }
+  }
+
+  function refreshContribution(university, department, schoolEmail, linkedin, ideas, interests) {
+    document.getElementById('profile-uni-text').textContent = university || '-';
+    document.getElementById('profile-dept-text').textContent = department || '-';
+    var schoolWrap = document.getElementById('profile-school-email');
+    if (schoolEmail) {
+      schoolWrap.classList.remove('hidden');
+      document.getElementById('profile-school-email-text').textContent = schoolEmail;
+    } else {
+      schoolWrap.classList.add('hidden');
+    }
+
+    var contSection = document.getElementById('contribution-section');
+    if ((interests && interests.length > 0) || ideas || linkedin) {
+      contSection.classList.remove('hidden');
+      if (interests && interests.length > 0) {
+        document.getElementById('contribution-interests').innerHTML = interests.map(function(i) {
+          var label = INTEREST_LABELS[i] || esc(i);
+          return '<span class="badge badge-discipline">' + esc(label) + '</span>';
+        }).join('');
+      }
+      if (ideas) {
+        document.getElementById('contribution-ideas').classList.remove('hidden');
+        document.getElementById('contribution-ideas-text').textContent = ideas;
+      }
+      if (linkedin) {
+        document.getElementById('contribution-linkedin').classList.remove('hidden');
+        document.getElementById('contribution-linkedin-link').href = linkedin;
+      }
+    }
+
+    var incomplete = !(university && university.trim()) || !(department && department.trim());
+    var onboard = document.getElementById('profile-onboarding');
+    if (onboard && !incomplete) onboard.classList.add('hidden');
+  }
 
   async function loadProfile() {
     try {
@@ -487,21 +598,16 @@ document.addEventListener('astro:page-load', function() {
     toggleFullName.addEventListener('change', function() { updatePrivacy({ showFullName: toggleFullName.checked }, toggleFullName); });
     toggleEmail.addEventListener('change', function() { updatePrivacy({ showEmail: toggleEmail.checked }, toggleEmail); });
     togglePublicProfile.addEventListener('change', function() {
-      updatePrivacy({ showPublicProfile: togglePublicProfile.checked }, togglePublicProfile, function() {
-        // On success, reload to get updated publicProfileId
-        setTimeout(function() { window.location.reload(); }, 800);
+      updatePrivacy({ showPublicProfile: togglePublicProfile.checked }, togglePublicProfile, function(data) {
+        updateShareLink(data && data.publicProfileId ? data.publicProfileId : null);
       });
     });
 
     // Public profile share link
     if (user.showPublicProfile && user.publicProfileId) {
-      var shareContainer = document.getElementById('public-profile-share');
-      var shareLink = document.getElementById('public-profile-link');
-      var publicUrl = window.location.origin + '/m?id=' + user.publicProfileId;
-      shareContainer.classList.remove('hidden');
-      shareLink.href = publicUrl;
-      shareLink.textContent = publicUrl;
+      updateShareLink(user.publicProfileId);
       document.getElementById('copy-public-link').addEventListener('click', function() {
+        var publicUrl = window.location.origin + '/m?id=' + user.publicProfileId;
         navigator.clipboard.writeText(publicUrl).then(function() {
           var btn = document.getElementById('copy-public-link');
           btn.innerHTML = '<svg class="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>';
@@ -601,9 +707,20 @@ document.addEventListener('astro:page-load', function() {
     if (past.length > 0) {
       document.getElementById('events-past').innerHTML = past.map(renderEventCard).join('');
     }
+
+    // Yeni üye / eksik profil → onboarding
+    var incomplete = !(user.university && String(user.university).trim()) || !(user.department && String(user.department).trim());
+    var wantWelcome = new URLSearchParams(window.location.search).get('welcome') === '1';
+    var onboard = document.getElementById('profile-onboarding');
+    if (onboard && (incomplete || wantWelcome)) {
+      onboard.classList.remove('hidden');
+      if (incomplete) openEditForm();
+    }
+    var onboardEdit = document.getElementById('onboard-edit');
+    if (onboardEdit) onboardEdit.addEventListener('click', openEditForm);
   }
 
-  // Privacy toggle with rollback on failure
+  // Privacy toggle with rollback + toast
   async function updatePrivacy(settings, toggleEl, onSuccess) {
     var prevState = !toggleEl.checked;
     try {
@@ -615,11 +732,15 @@ document.addEventListener('astro:page-load', function() {
       });
       if (!res.ok) {
         toggleEl.checked = prevState;
-      } else if (onSuccess) {
-        onSuccess();
+        showToast('Ayar kaydedilemedi — eski haline alındı', 'err');
+      } else {
+        var data = await res.json().catch(function() { return {}; });
+        showToast('Gizlilik ayarı kaydedildi', 'ok');
+        if (onSuccess) onSuccess(data);
       }
     } catch (err) {
       toggleEl.checked = prevState;
+      showToast('Ayar kaydedilemedi — eski haline alındı', 'err');
     }
   }
 
@@ -649,22 +770,28 @@ document.addEventListener('astro:page-load', function() {
     document.querySelectorAll('input[name="edit-interests"]:checked').forEach(function(cb) { interests.push(cb.value); });
 
     try {
+      var university = document.getElementById('edit-university').value.trim();
+      var department = document.getElementById('edit-department').value.trim();
+      var schoolEmail = document.getElementById('edit-school-email').value.trim();
+      var linkedin = document.getElementById('edit-linkedin').value.trim();
+      var ideas = document.getElementById('edit-ideas').value.trim();
       var res = await fetch('/api/auth/me', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'same-origin',
         body: JSON.stringify({
-          university: document.getElementById('edit-university').value.trim(),
-          department: document.getElementById('edit-department').value.trim(),
-          schoolEmail: document.getElementById('edit-school-email').value.trim(),
-          linkedin: document.getElementById('edit-linkedin').value.trim(),
-          ideas: document.getElementById('edit-ideas').value.trim(),
+          university: university,
+          department: department,
+          schoolEmail: schoolEmail,
+          linkedin: linkedin,
+          ideas: ideas,
           interests: interests,
         }),
       });
       if (res.ok) {
         editSuccess.classList.remove('hidden');
-        setTimeout(function() { window.location.reload(); }, 1200);
+        refreshContribution(university, department, schoolEmail, linkedin, ideas, interests);
+        showToast('Profil güncellendi', 'ok');
       } else {
         var result = await res.json().catch(function() { return {}; });
         editError.textContent = result.error === 'School email already in use'

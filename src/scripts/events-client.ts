@@ -361,6 +361,9 @@ export function initEvents(): void {
     if (statPast) statPast.textContent = String(past.length);
 
     render();
+    // İçerik belirirken yumuşak giriş (iskelet ani kesilmesin diye)
+    list!.classList.add('lg-ev-list--in');
+    emptyBox!.classList.add('lg-ev-list--in');
   };
 
   tabUpcoming.addEventListener('click', () => setTab('upcoming'));
