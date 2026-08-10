@@ -199,14 +199,19 @@ export function initAuth(): void {
         return;
       }
 
+      const linkedinElEarly = document.getElementById('linkedin-section');
       if (cfg.linkedinEnabled) {
-        document.getElementById('linkedin-section')?.classList.remove('hidden');
-      } else if (config.mode === 'signup') {
-        document.getElementById('info-note')?.classList.remove('hidden');
+        linkedinElEarly?.classList.remove('hidden');
+      } else {
+        // Config LinkedIn kapalıysa gizle (SSR'da görünür bırakıyoruz ki JS kırılsa giriş açılsın)
+        linkedinElEarly?.classList.add('hidden');
+        if (config.mode === 'signup') {
+          document.getElementById('info-note')?.classList.remove('hidden');
+        }
       }
 
       const googleSection = document.getElementById('google-signin-section');
-      const linkedinEl = document.getElementById('linkedin-section');
+      const linkedinEl = linkedinElEarly;
       const consentSection = document.getElementById('consent-section');
       const consentCheckbox = document.getElementById(
         'consent-checkbox',

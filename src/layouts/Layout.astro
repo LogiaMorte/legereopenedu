@@ -149,8 +149,13 @@ const showAlternates = !noindex;
     </svg>
   </button>
 
-  <!-- data-cfasync: Rocket Loader açıksa ClientRouter / initSite sırasını bozmasın -->
-  <script data-cfasync="false">
+  <!--
+    ÖNEMLİ: Bu script'e data-cfasync / başka attribute EKLEME.
+    Astro, attribute'lu <script>'i işlemez (is:inline gibi bırakır) ve
+    ham `import` SyntaxError verir — login/auth init dahil tüm site JS'i
+    etkilenir. Rocket Loader için Cloudflare dashboard'da kapatın.
+  -->
+  <script>
     import { initSite } from '../scripts/site';
 
     initSite();
