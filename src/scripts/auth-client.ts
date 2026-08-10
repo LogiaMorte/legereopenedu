@@ -1,6 +1,8 @@
 /**
  * Login / signup ortak mantığı.
  * Sayfa markup'ı Astro'da kalır; dil string'leri JSON config'ten gelir.
+ *
+ * cache-bust: 2026-08-10-login-fix — yeni /_astro hash (zehirli 404 cache bypass)
  */
 
 export type AuthMode = 'login' | 'signup';
@@ -132,9 +134,14 @@ function mapAuthError(code: string | undefined, fallback: string, S: AuthStrings
   }
 }
 
+/** Deploy cache-bust — referans verilmezse tree-shake edilir, hash değişmez */
+const AUTH_BUILD_ID = '2026-08-10-login-cache-fix';
+
 export function initAuth(): void {
   const config = readPageConfig();
   if (!config) return;
+  // Build id'yi DOM'a yaz — tree-shake olmasın + debug
+  document.documentElement.dataset.authBuild = AUTH_BUILD_ID;
 
   const holder = authAbortHolder();
   holder.controller?.abort();
@@ -311,3 +318,4 @@ export function initAuth(): void {
       errorEl.classList.remove('hidden');
     });
 }
+
