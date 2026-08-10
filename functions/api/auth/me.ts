@@ -243,7 +243,15 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       expirationTtl: 60 * 60 * 24 * 365,
     });
 
-    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+    // Client in-place güncelleme için gerekli alanları döndür (reload yok)
+    return new Response(
+      JSON.stringify({
+        success: true,
+        publicProfileId: member.publicProfileId || null,
+        showPublicProfile: member.showPublicProfile ?? false,
+      }),
+      { status: 200, headers },
+    );
   } catch (err) {
     console.error('[me:post] Error:', err instanceof Error ? err.message : err);
     return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });

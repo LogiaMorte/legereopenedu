@@ -1,6 +1,7 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import { useTranslations } from '../../i18n/utils';
+import { authStringsEn } from '../../data/profile-labels';
 const lang = 'en' as const;
 const t = useTranslations(lang);
 ---
@@ -108,18 +109,37 @@ const t = useTranslations(lang);
         </div>
 
         <!-- Success State -->
-        <div id="signup-success-state" class="hidden text-center py-8">
-          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-status-open/10 border border-status-open/25 mb-4">
+        <div id="signup-success-state" class="hidden text-center py-8 lg-signup-success">
+          <div class="lg-signup-success__mark inline-flex items-center justify-center w-16 h-16 rounded-full bg-status-open/10 border border-status-open/25 mb-4">
             <svg class="w-8 h-8 text-status-open" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
             </svg>
           </div>
           <h3 class="text-xl font-heading font-bold text-text-primary mb-2">{t('signup.success')}</h3>
-          <p class="text-text-secondary text-sm mb-4">{t('signup.successDesc')}</p>
+          <p class="text-text-secondary text-sm mb-6">{t('signup.successDesc')}</p>
+
+          <div class="text-left mb-6 px-1">
+            <p class="text-xs font-heading font-semibold text-gold-500 mb-3 tracking-wide uppercase">{t('signup.nextTitle')}</p>
+            <ol class="space-y-2.5 text-sm text-text-secondary">
+              <li class="flex gap-3 items-start">
+                <span class="shrink-0 w-5 h-5 rounded-full bg-gold-500/15 border border-gold-500/25 text-gold-500 text-[11px] font-mono flex items-center justify-center mt-0.5">1</span>
+                <span>{t('signup.next1')}</span>
+              </li>
+              <li class="flex gap-3 items-start">
+                <span class="shrink-0 w-5 h-5 rounded-full bg-gold-500/15 border border-gold-500/25 text-gold-500 text-[11px] font-mono flex items-center justify-center mt-0.5">2</span>
+                <span>{t('signup.next2')}</span>
+              </li>
+              <li class="flex gap-3 items-start">
+                <span class="shrink-0 w-5 h-5 rounded-full bg-gold-500/15 border border-gold-500/25 text-gold-500 text-[11px] font-mono flex items-center justify-center mt-0.5">3</span>
+                <span>{t('signup.next3')}</span>
+              </li>
+            </ol>
+          </div>
+
           <div class="px-4 py-3 rounded-lg bg-gold-500/5 border border-gold-500/15 text-xs text-text-secondary leading-relaxed mb-6 text-left">
             {t('signup.successEmailNote')}
           </div>
-          <a href="/en/profile" class="btn-gold justify-center text-sm py-3 inline-flex">
+          <a href="/en/profile?welcome=1" class="btn-gold justify-center text-sm py-3 inline-flex">
             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
               <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
             </svg>
@@ -131,127 +151,23 @@ const t = useTranslations(lang);
   </div>
 </Layout>
 
-<script data-cfasync="false" is:inline>
-document.addEventListener('astro:page-load', function() {
-  var loadingEl = document.getElementById('auth-loading');
-  var errorEl = document.getElementById('signup-error');
-  var formState = document.getElementById('signup-form-state');
-  var successState = document.getElementById('signup-success-state');
-  if (!loadingEl || !errorEl) return;
-
-  var params = new URLSearchParams(window.location.search);
-  if (params.get('success') === 'new') {
-    if (formState) formState.classList.add('hidden');
-    if (successState) successState.classList.remove('hidden');
-    loadingEl.classList.add('hidden');
-    return;
-  }
-  if (params.get('error')) {
-    loadingEl.classList.add('hidden');
-    errorEl.textContent = decodeURIComponent(params.get('error_description') || 'Registration failed.');
-    errorEl.classList.remove('hidden');
-  }
-
-  var loadTimeout = setTimeout(function() {
-    if (!loadingEl.classList.contains('hidden')) {
-      loadingEl.classList.add('hidden');
-      errorEl.textContent = 'Page could not load. Please refresh.';
-      errorEl.classList.remove('hidden');
-    }
-  }, 8000);
-
-  var configPromise = fetch('/api/config').then(function(r) { return r.json(); });
-  var sdkPromise = new Promise(function(resolve) {
-    if (typeof google !== 'undefined' && google.accounts) { resolve(); return; }
-    var s = document.createElement('script');
-    s.src = 'https://accounts.google.com/gsi/client';
-    s.setAttribute('data-cfasync', 'false');
-    s.onload = resolve;
-    s.onerror = resolve;
-    document.head.appendChild(s);
-  });
-
-  Promise.all([configPromise, sdkPromise]).then(function(results) {
-    clearTimeout(loadTimeout);
-    var cfg = results[0];
-
-    if (!cfg.googleClientId) {
-      loadingEl.classList.add('hidden');
-      errorEl.textContent = 'Registration system is not configured. Please contact info@legereopenedu.com.';
-      errorEl.classList.remove('hidden');
-      return;
-    }
-
-    if (cfg.linkedinEnabled) {
-      var li = document.getElementById('linkedin-section');
-      if (li) li.classList.remove('hidden');
-    } else {
-      var info = document.getElementById('info-note');
-      if (info) info.classList.remove('hidden');
-    }
-
-    var consentSection = document.getElementById('consent-section');
-    var consentCheckbox = document.getElementById('consent-checkbox');
-    var googleSection = document.getElementById('google-signin-section');
-    var linkedinEl = document.getElementById('linkedin-section');
-    if (consentSection) consentSection.classList.remove('hidden');
-
-    function updateConsentState() {
-      var accepted = consentCheckbox && consentCheckbox.checked;
-      if (googleSection) googleSection.style.opacity = accepted ? '1' : '0.4';
-      if (googleSection) googleSection.style.pointerEvents = accepted ? 'auto' : 'none';
-      if (linkedinEl) linkedinEl.style.opacity = accepted ? '1' : '0.4';
-      if (linkedinEl) linkedinEl.style.pointerEvents = accepted ? 'auto' : 'none';
-    }
-    if (consentCheckbox) consentCheckbox.addEventListener('change', updateConsentState);
-
-    if (typeof google === 'undefined' || !google.accounts) {
-      loadingEl.classList.add('hidden');
-      errorEl.textContent = 'Google service could not load. Please disable your ad blocker and refresh.';
-      errorEl.classList.remove('hidden');
-      return;
-    }
-
-    google.accounts.id.initialize({
-      client_id: cfg.googleClientId,
-      callback: function(response) {
-        errorEl.classList.add('hidden');
-        fetch('/api/auth/google', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'same-origin',
-          body: JSON.stringify({ credential: response.credential }),
-        }).then(function(res) {
-          if (res.ok) {
-            return res.json().then(function(data) {
-              if (data.isNewMember) {
-                if (formState) formState.classList.add('hidden');
-                if (successState) successState.classList.remove('hidden');
-              } else {
-                window.location.href = '/en/profile';
-              }
-            });
-          } else {
-            errorEl.textContent = 'Google sign-up failed. Please try again.';
-            errorEl.classList.remove('hidden');
-          }
-        }).catch(function() {
-          errorEl.textContent = 'Connection error. Please try again.';
-          errorEl.classList.remove('hidden');
-        });
+<script type="application/json" id="auth-client-config" set:html={JSON.stringify({ mode: 'signup', profilePath: '/en/profile', strings: { ...authStringsEn, defaultError: 'Registration failed.', googleFailed: 'Google sign-up failed. Please try again.', notConfigured: 'Registration system is not configured. Please contact info@legereopenedu.com.' } })}></script>
+<script>
+  import { initAuth } from '../../scripts/auth-client';
+  initAuth();
+  document.addEventListener('astro:after-swap', initAuth);
+</script>
+<script is:inline data-cfasync="false">
+  (function () {
+    setTimeout(function () {
+      var loading = document.getElementById('auth-loading');
+      if (!loading || loading.classList.contains('hidden')) return;
+      loading.classList.add('hidden');
+      var err = document.getElementById('login-error') || document.getElementById('signup-error');
+      if (err) {
+        err.textContent = 'Script yüklenemedi. Sayfayı yenileyin.';
+        err.classList.remove('hidden');
       }
-    });
-    google.accounts.id.renderButton(document.getElementById('google-btn'), {
-      theme: 'filled_black', size: 'large', text: 'signup_with', shape: 'rectangular', width: 320
-    });
-    loadingEl.classList.add('hidden');
-    if (googleSection) googleSection.classList.remove('hidden');
-    updateConsentState();
-  }).catch(function() {
-    clearTimeout(loadTimeout);
-    loadingEl.classList.add('hidden');
-    errorEl.textContent = 'Connection error. Please refresh.';
-    errorEl.classList.remove('hidden');
-  });
-});
+    }, 12000);
+  })();
 </script>

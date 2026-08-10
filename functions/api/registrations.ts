@@ -47,6 +47,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       message?: string;
       certType?: 'participation' | 'achievement' | 'contribution';
       badgeId?: string;
+      cursor?: string;
+      limit?: number;
     }>(request);
 
     if (!body) {
@@ -72,23 +74,38 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       });
     }
 
-    // ── LIST REGISTRATIONS ──
+    // ── LIST REGISTRATIONS (cursor pagination, max 100/page) ──
     if (body.action === 'list') {
       if (!env.REGISTRATIONS) {
         return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
       }
-      const list = await env.REGISTRATIONS.list({ prefix: 'reg_' });
+
+      const pageSize = Math.min(100, Math.max(1, Number(body.limit) || 100));
+      const list = await env.REGISTRATIONS.list({
+        prefix: 'reg_',
+        limit: pageSize,
+        cursor: body.cursor || undefined,
+      });
+
       const kvResults = await Promise.all(list.keys.map((k) => env.REGISTRATIONS.get(k.name)));
       const registrations = kvResults
         .filter((data): data is string => data !== null)
         .map((data) => JSON.parse(data))
         .filter((reg) => !body.workshop || reg.workshop === body.workshop);
       registrations.sort(
-        (a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
+        (a: { timestamp?: string }, b: { timestamp?: string }) =>
+          new Date(b.timestamp || 0).getTime() - new Date(a.timestamp || 0).getTime(),
       );
+
       const total = await env.REGISTRATIONS.get('count:total');
       return new Response(
-        JSON.stringify({ total: parseInt(total || '0'), count: registrations.length, registrations }),
+        JSON.stringify({
+          total: parseInt(total || '0', 10),
+          count: registrations.length,
+          registrations,
+          cursor: list.list_complete ? null : list.cursor,
+          list_complete: list.list_complete,
+        }),
         { status: 200, headers },
       );
     }

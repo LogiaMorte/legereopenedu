@@ -1,8 +1,6 @@
 export const ui = {
   tr: {
     // Nav
-    'nav.about': 'Hakkımızda',
-    'nav.programs': 'Programlar',
 
     // Hero
 
@@ -99,10 +97,14 @@ export const ui = {
     'signup.linkedinBenefit': 'LinkedIn ile kayıt olduğunuzda eğitim ve kariyer bilgileriniz otomatik olarak profilinize aktarılır.',
     'signup.orLinkedin': 'veya',
     'signup.linkedinBtn': 'LinkedIn ile Kayıt Ol',
-    'signup.success': 'Kayıt başarılı!',
-    'signup.successDesc': 'Profiliniz oluşturuldu. Şimdi eğitim bilgilerinizi ve ilgi alanlarınızı ekleyerek profilinizi tamamlayabilirsiniz.',
+    'signup.success': 'Hoş geldiniz.',
+    'signup.successDesc': 'Topluluğa katıldınız. Bir sonraki adımlar kısa — profilinizi tamamlayın, çağrıları izleyin.',
     'signup.successEmailNote': 'Katılmak istediğiniz programlar ve fikirleriniz hakkında bize info@legereopenedu.com adresinden de yazabilirsiniz.',
     'signup.goProfile': 'Profilimi Tamamla',
+    'signup.nextTitle': 'Sırada ne var',
+    'signup.next1': 'Üniversite ve bölüm bilgilerinizi ekleyin',
+    'signup.next2': 'Yaklaşan çağrıları etkinlikler bölümünden izleyin',
+    'signup.next3': 'Fikirlerinizi info@legereopenedu.com adresine yazın',
     'signup.consentPrivacy': 'Gizlilik Politikası',
     'signup.consentTerms': 'Kullanım Koşulları',
     'signup.hasAccount': 'Zaten hesabınız var mı?',
@@ -129,13 +131,24 @@ export const ui = {
     'profile.certificates': 'Sertifikalarım',
     'profile.badges': 'Rozetlerim',
     'profile.logout': 'Çıkış Yap',
-    'profile.noCerts': 'Henüz sertifikanız bulunmuyor.',
-    'profile.noBadges': 'Henüz rozetiniz bulunmuyor.',
+    'profile.noCerts': 'Henüz sertifikanız bulunmuyor. İlk etkinliğe katıldığınızda burada görünecek.',
+    'profile.noBadges': 'Henüz rozetiniz bulunmuyor. Katkı ve katılımla kazanılır.',
     'profile.showFullName': 'Tam adımı göster',
     'profile.showEmail': 'E-postamı göster',
     'profile.notLoggedIn': 'Giriş yapmanız gerekiyor.',
     'profile.goLogin': 'Giriş Yap',
     'profile.joinDate': 'Katılım',
+    'profile.onboarding.title': 'Sırada ne var',
+    'profile.onboarding.desc': 'Yeni üyeysiniz — üç kısa adım sizi topluluğa bağlar.',
+    'profile.onboarding.step1': 'Üniversite ve bölümünüzü ekleyin',
+    'profile.onboarding.step1Cta': 'Profili doldur',
+    'profile.onboarding.step2': 'Yaklaşan çağrıları izleyin',
+    'profile.onboarding.step2Cta': 'Etkinliklere bak',
+    'profile.onboarding.step3': 'Bir fikir veya soru yazın',
+    'profile.onboarding.step3Cta': 'E-posta gönder',
+    'profile.privacySaved': 'Gizlilik ayarı kaydedildi',
+    'profile.privacyError': 'Ayar kaydedilemedi — eski haline alındı',
+    'profile.saved': 'Profil güncellendi',
 
     // Certificate types
 
@@ -317,9 +330,6 @@ export const ui = {
     'lp.prog4.title': 'Okuma Grubu',
     'lp.prog4.cadence': 'İki haftada bir',
     'lp.prog4.body': 'Teori ve edebiyat okuma çevreleri; disiplinlerarası karşılaştırmalı dizi.',
-    'lp.uni.label': 'Katılımcıların bağlı olduğu kurumlar',
-    'lp.uni.note': 'kurum bağı beyana dayalıdır',
-
     'lp.events.kicker': 'Atölye · seminer · kolokyum',
     'lp.events.tabUpcoming': 'Yaklaşan',
     'lp.events.tabPast': 'Gerçekleşen',
@@ -378,8 +388,6 @@ export const ui = {
 
   en: {
     // Nav
-    'nav.about': 'About',
-    'nav.programs': 'Programs',
 
     // Hero
 
@@ -476,10 +484,14 @@ export const ui = {
     'signup.linkedinBenefit': 'When you sign up with LinkedIn, your education and career information is automatically imported to your profile.',
     'signup.orLinkedin': 'or',
     'signup.linkedinBtn': 'Sign Up with LinkedIn',
-    'signup.success': 'Registration successful!',
-    'signup.successDesc': 'Your profile has been created. You can now complete your profile by adding your education details and interests.',
+    'signup.success': 'Welcome.',
+    'signup.successDesc': 'You’re in. Next steps are short — complete your profile and watch for calls.',
     'signup.successEmailNote': 'You can also write to us at info@legereopenedu.com about programs you want to join and your ideas.',
     'signup.goProfile': 'Complete My Profile',
+    'signup.nextTitle': 'What’s next',
+    'signup.next1': 'Add your university and department',
+    'signup.next2': 'Watch upcoming calls in Events',
+    'signup.next3': 'Write your ideas to info@legereopenedu.com',
     'signup.consentPrivacy': 'Privacy Policy',
     'signup.consentTerms': 'Terms of Service',
     'signup.hasAccount': 'Already have an account?',
@@ -506,13 +518,24 @@ export const ui = {
     'profile.certificates': 'My Certificates',
     'profile.badges': 'My Badges',
     'profile.logout': 'Log Out',
-    'profile.noCerts': 'No certificates yet.',
-    'profile.noBadges': 'No badges yet.',
+    'profile.noCerts': 'No certificates yet. They appear here after your first event.',
+    'profile.noBadges': 'No badges yet. Earned through participation and contribution.',
     'profile.showFullName': 'Show my full name',
     'profile.showEmail': 'Show my email',
     'profile.notLoggedIn': 'You need to log in.',
     'profile.goLogin': 'Log In',
     'profile.joinDate': 'Joined',
+    'profile.onboarding.title': 'What’s next',
+    'profile.onboarding.desc': 'You’re new here — three short steps connect you to the community.',
+    'profile.onboarding.step1': 'Add your university and department',
+    'profile.onboarding.step1Cta': 'Fill profile',
+    'profile.onboarding.step2': 'Watch upcoming calls',
+    'profile.onboarding.step2Cta': 'Browse events',
+    'profile.onboarding.step3': 'Send an idea or question',
+    'profile.onboarding.step3Cta': 'Send email',
+    'profile.privacySaved': 'Privacy setting saved',
+    'profile.privacyError': 'Could not save — reverted',
+    'profile.saved': 'Profile updated',
 
     // Certificate types
 
@@ -694,9 +717,6 @@ export const ui = {
     'lp.prog4.title': 'Reading Group',
     'lp.prog4.cadence': 'Every two weeks',
     'lp.prog4.body': 'Theory and literature reading circles; a comparative interdisciplinary series.',
-    'lp.uni.label': 'Institutions participants are affiliated with',
-    'lp.uni.note': 'affiliation is self-declared',
-
     'lp.events.kicker': 'Workshop · seminar · colloquium',
     'lp.events.tabUpcoming': 'Upcoming',
     'lp.events.tabPast': 'Held',

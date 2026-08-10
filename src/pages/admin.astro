@@ -681,25 +681,45 @@ const seedData = [
 
     try {
       var fetchOpts = { method: 'POST', headers: { 'Content-Type': 'application/json' }, credentials: 'same-origin' };
-      var [regRes, memRes] = await Promise.all([
-        fetch('/api/registrations', Object.assign({}, fetchOpts, { body: JSON.stringify({ action: 'list' }) })),
+
+      // Kayıtları sayfa sayfa çek (API max 100); admin UI hâlâ tam liste ister
+      async function fetchAllRegistrations() {
+        var all = [];
+        var cursor = null;
+        var guard = 0;
+        do {
+          var payload = { action: 'list', limit: 100 };
+          if (cursor) payload.cursor = cursor;
+          var res = await fetch('/api/registrations', Object.assign({}, fetchOpts, { body: JSON.stringify(payload) }));
+          if (res.status === 401) return { unauthorized: true, res: res };
+          if (!res.ok) {
+            var errBody = await res.json().catch(function(){ return {}; });
+            throw new Error(errBody.error || ('HTTP ' + res.status));
+          }
+          var page = await res.json();
+          all = all.concat(page.registrations || []);
+          cursor = page.cursor || null;
+          guard += 1;
+        } while (cursor && guard < 50);
+        return { unauthorized: false, registrations: all };
+      }
+
+      var [regResult, memRes] = await Promise.all([
+        fetchAllRegistrations(),
         fetch('/api/auth/members', Object.assign({}, fetchOpts, { body: JSON.stringify({ action: 'list' }) }))
       ]);
 
-      if (regRes.status === 401) {
+      if (regResult.unauthorized) {
         document.getElementById('auth-loading').classList.add('hidden');
         document.getElementById('auth-denied').classList.remove('hidden');
         return;
       }
 
-      if (!regRes.ok) throw new Error((await regRes.json().catch(function(){return {};}).then(function(d){return d.error;})) || 'HTTP ' + regRes.status);
-
       // Auth OK — show admin UI
       document.getElementById('auth-loading').classList.add('hidden');
       document.getElementById('auth-ok').classList.remove('hidden');
 
-      var regData = await regRes.json();
-      allRegistrations = regData.registrations || [];
+      allRegistrations = regResult.registrations || [];
       updateStats();
       renderCards();
       document.getElementById('stats-section').classList.remove('hidden');
