@@ -8,9 +8,13 @@
  * prefers-reduced-motion açıksa canvas ve spotlight HİÇ kurulmaz (sadece
  * gizlenmez — kurulmaz ki CPU da yemesin), sayaç doğrudan son değere atlar,
  * reveal'lar baştan görünür olur.
+ *
+ * cache-bust: 2026-08-10-login-fix
  */
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** Deploy cache-bust — DOM'a yazılır ki tree-shake olmasın */
+const SITE_BUILD_ID = '2026-08-10-login-cache-fix';
 
 /** Reveal'lar yalnızca JS varken gizlenir; aksi halde içerik hiç görünmezdi. */
 function markJsReady(): void {
@@ -334,6 +338,7 @@ function initBackToTop(): void {
 export function initSite(): void {
   // Önceki sayfanın global dinleyicilerini ve animasyon döngüsünü bırak
   cleanup();
+  document.documentElement.dataset.siteBuild = SITE_BUILD_ID;
   markJsReady();
   initScrollProgress();
   initMobileMenu();
@@ -344,3 +349,4 @@ export function initSite(): void {
   initCounter();
   initBackToTop();
 }
+

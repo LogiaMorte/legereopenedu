@@ -2,7 +2,12 @@
 # Cloudflare dashboard (önerilen, kod dışı):
 # Scrape Shield → Email Address Obfuscation = Off
 # Speed → Optimization → Rocket Loader = Off
-# (HTML'de <!--email_off--> ve data-cfasync zaten yedek koruma.)
+#
+# CACHE — kritik:
+# Cloudflare Pages, eksik /_astro/* dosyasına 404.html basar ve _headers
+# kurallarını O 404 yanıtına da uygular. "immutable, 1 yıl" bir deploy
+# yarışında oluşan 404'ü bir yıllığına zehirler (login JS kırılması).
+# Bu yüzden /_astro için immutable KULLANMIYORUZ.
 #
 /*
   X-Frame-Options: DENY
@@ -11,6 +16,10 @@
   Permissions-Policy: camera=(), microphone=(), geolocation=()
   Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
   Content-Security-Policy: default-src 'none'; script-src 'self' 'unsafe-inline' https://accounts.google.com https://apis.google.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline' https://accounts.google.com; img-src 'self' data: https://*.googleusercontent.com https://*.licdn.com https://media.licdn.com; font-src 'self' data:; connect-src 'self' https://accounts.google.com https://static.cloudflareinsights.com; frame-src https://accounts.google.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self' https://www.linkedin.com
+  Cache-Control: public, max-age=0, must-revalidate
 
 /_astro/*
-  Cache-Control: public, max-age=31536000, immutable
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/404.html
+  Cache-Control: no-store
