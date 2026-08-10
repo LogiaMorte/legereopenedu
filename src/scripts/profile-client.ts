@@ -490,11 +490,15 @@ export function initProfile(): void {
 
   const loadProfile = async () => {
     try {
-      const res = await fetch('/api/auth/me', { credentials: 'same-origin' });
+      const res = await fetch('/api/auth/me', { credentials: 'include' });
       clearTimeout(loadTimeout);
       if (!res.ok) {
         loadingEl.classList.add('hidden');
         notLoggedEl.classList.remove('hidden');
+        // Bozuk/çakışan oturum çerezlerini temizle ki login döngüsü kırılsın
+        document.cookie = 'legere_logged_in=; Path=/; Max-Age=0; SameSite=Lax; Secure';
+        document.cookie =
+          'legere_logged_in=; Path=/; Max-Age=0; SameSite=Lax; Secure; Domain=.legereopenedu.com';
         return;
       }
       const data = await res.json();
@@ -580,11 +584,13 @@ export function initProfile(): void {
 
   document.getElementById('logout-btn')?.addEventListener('click', async () => {
     try {
-      await fetch('/api/auth/me', { method: 'DELETE', credentials: 'same-origin' });
+      await fetch('/api/auth/me', { method: 'DELETE', credentials: 'include' });
     } catch {
       /* ignore */
     }
-    document.cookie = 'legere_logged_in=; Path=/; Max-Age=0; SameSite=Lax';
+    document.cookie = 'legere_logged_in=; Path=/; Max-Age=0; SameSite=Lax; Secure';
+    document.cookie =
+      'legere_logged_in=; Path=/; Max-Age=0; SameSite=Lax; Secure; Domain=.legereopenedu.com';
     window.location.href = config.homePath;
   });
 

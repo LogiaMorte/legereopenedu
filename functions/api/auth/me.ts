@@ -9,7 +9,7 @@
 import {
   corsHeaders,
   optionsResponse,
-  parseSessionCookie,
+  listSessionTokenCandidates,
   parseJsonBody,
   generateToken,
   buildLogoutCookies,
@@ -36,6 +36,27 @@ function getMethods() {
   return 'GET, POST, DELETE, OPTIONS';
 }
 
+/** Birden fazla legere_token adayından KV'de eşleşen oturumu bul. */
+async function resolveSessionMember(
+  request: Request,
+  kv: KVNamespace,
+): Promise<{ email: string; token: string; member: Record<string, unknown> } | null> {
+  const candidates = listSessionTokenCandidates(request);
+  for (const session of candidates) {
+    const memberData = await kv.get(`member:${session.email}`);
+    if (!memberData) continue;
+    try {
+      const member = JSON.parse(memberData) as Record<string, unknown>;
+      if (member.token === session.token) {
+        return { email: session.email, token: session.token, member };
+      }
+    } catch {
+      /* skip */
+    }
+  }
+  return null;
+}
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
   const headers = corsHeaders(request, getMethods());
@@ -44,21 +65,13 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
   }
 
-  const session = parseSessionCookie(request);
+  const session = await resolveSessionMember(request, env.REGISTRATIONS);
   if (!session) {
     return new Response(JSON.stringify({ error: 'Not authenticated' }), { status: 401, headers });
   }
 
   try {
-    const memberData = await env.REGISTRATIONS.get(`member:${session.email}`);
-    if (!memberData) {
-      return new Response(JSON.stringify({ error: 'Member not found' }), { status: 404, headers });
-    }
-
-    const member = JSON.parse(memberData);
-    if (member.token !== session.token) {
-      return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers });
-    }
+    const member = session.member as any;
     if (member.deactivated === true) {
       return new Response(JSON.stringify({ error: 'Account deactivated', code: 'deactivated' }), {
         status: 403,
@@ -144,21 +157,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
   const headers = corsHeaders(request, getMethods());
 
-  const session = parseSessionCookie(request);
+  const session = await resolveSessionMember(request, env.REGISTRATIONS);
   if (!session) {
     return new Response(JSON.stringify({ error: 'Not authenticated' }), { status: 401, headers });
   }
 
   try {
-    const memberData = await env.REGISTRATIONS.get(`member:${session.email}`);
-    if (!memberData) {
-      return new Response(JSON.stringify({ error: 'Not found' }), { status: 404, headers });
-    }
-
-    const member = JSON.parse(memberData);
-    if (member.token !== session.token) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
-    }
+    const member = session.member as any;
     if (member.deactivated === true) {
       return new Response(JSON.stringify({ error: 'Account deactivated', code: 'deactivated' }), {
         status: 403,
@@ -271,20 +276,15 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
 
   const logoutCookies = buildLogoutCookies(request.url);
 
-  const session = parseSessionCookie(request);
+  const session = await resolveSessionMember(request, env.REGISTRATIONS);
   if (!session) {
     return jsonResponseWithCookies({ success: true }, 200, headers, logoutCookies);
   }
 
   try {
-    const memberData = await env.REGISTRATIONS.get(`member:${session.email}`);
-    if (memberData) {
-      const member = JSON.parse(memberData);
-      if (member.token === session.token) {
-        member.token = generateToken();
-        await env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member));
-      }
-    }
+    const member = session.member as { token?: string };
+    member.token = generateToken();
+    await env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member));
   } catch (err) {
     console.error('[me:delete] Error:', err instanceof Error ? err.message : err);
   }

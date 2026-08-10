@@ -135,7 +135,7 @@ function mapAuthError(code: string | undefined, fallback: string, S: AuthStrings
 }
 
 /** Deploy cache-bust — referans verilmezse tree-shake edilir, hash değişmez */
-const AUTH_BUILD_ID = '2026-08-10-login-cache-fix';
+const AUTH_BUILD_ID = '2026-08-10-cookie-loop-fix';
 
 export function initAuth(): void {
   const config = readPageConfig();
@@ -264,7 +264,7 @@ export function initAuth(): void {
           fetch('/api/auth/google', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
+            credentials: 'include',
             body: JSON.stringify({
               credential: response.credential,
               mode: config.mode,
@@ -282,12 +282,17 @@ export function initAuth(): void {
                 errorEl.classList.remove('hidden');
                 return;
               }
-              if (config.mode === 'login') {
-                window.location.href = config.profilePath;
+              // replace: geri tuşu login'e dönüp döngü yaratmasın
+              const dest =
+                config.mode === 'login' || !data.isNewMember
+                  ? config.profilePath
+                  : null;
+              if (dest) {
+                window.location.replace(dest);
                 return;
               }
               if (data.isNewMember) showSignupSuccess();
-              else window.location.href = config.profilePath;
+              else window.location.replace(config.profilePath);
             })
             .catch(() => {
               errorEl.textContent = S.connectionError;
