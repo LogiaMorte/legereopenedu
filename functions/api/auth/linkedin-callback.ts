@@ -2,23 +2,28 @@
  * LinkedIn OAuth — Step 2: Handle callback
  *
  * GET /api/auth/linkedin-callback?code=...&state=...
- *   → Exchange code for access token
- *   → Fetch user profile (name, email, picture)
- *   → Check LinkedIn verification status (identity, employment, education)
- *   → Create or login member (same logic as Google auth)
- *   → Set session cookie and redirect
- *
- * Required env vars: LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET, REGISTRATIONS (KV)
+ *   → state + nonce cookie doğrula
+ *   → mode=login + üye yok → signup'a yönlendir (hesap yok)
+ *   → mode=signup + üye yok → oluştur
+ *   → deactivated → reddet
  */
 
 import {
   generateToken,
-  generatePassword,
-  hashPassword,
   buildLoginCookies,
   redirectWithCookies,
   notifyAdmin,
 } from '../../_shared';
+import {
+  parseAndVerifyLinkedInState,
+  clearLinkedInOAuthCookie,
+  loadMemberByEmail,
+  isDeactivated,
+  createSocialMember,
+  putMember,
+  bumpMemberCount,
+  type AuthMode,
+} from '../../_auth-member';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
@@ -45,10 +50,6 @@ interface LinkedInBasicProfile {
   profileUrl?: string;
 }
 
-/**
- * Fetch LinkedIn basic profile info (headline, vanityName).
- * Requires r_profile_basicinfo scope.
- */
 async function fetchLinkedInBasicProfile(accessToken: string): Promise<LinkedInBasicProfile> {
   try {
     const res = await fetch(
@@ -59,7 +60,7 @@ async function fetchLinkedInBasicProfile(accessToken: string): Promise<LinkedInB
       console.log('[linkedin] Basic profile API status:', res.status);
       return {};
     }
-    const data = await res.json() as any;
+    const data = (await res.json()) as { localizedHeadline?: string; vanityName?: string };
     return {
       headline: data.localizedHeadline || '',
       vanityName: data.vanityName || '',
@@ -71,10 +72,6 @@ async function fetchLinkedInBasicProfile(accessToken: string): Promise<LinkedInB
   }
 }
 
-/**
- * Fetch LinkedIn verification categories for the member.
- * Returns array of verified category strings, e.g. ['IDENTITY', 'EMPLOYMENT', 'EDUCATION']
- */
 async function fetchLinkedInVerifications(accessToken: string): Promise<string[]> {
   try {
     const res = await fetch('https://api.linkedin.com/v2/memberVerifications?q=member', {
@@ -84,75 +81,83 @@ async function fetchLinkedInVerifications(accessToken: string): Promise<string[]
       console.log('[linkedin] Verification API status:', res.status);
       return [];
     }
-    const data = await res.json() as { elements?: any[] };
+    const data = (await res.json()) as { elements?: Array<Record<string, unknown>> };
     if (!data.elements || !Array.isArray(data.elements)) return [];
     return data.elements
-      .filter((v: any) => v.status === 'VERIFIED' || v.status === 'ACTIVE')
-      .map((v: any) => (v.type || v.verificationType || 'UNKNOWN').toUpperCase());
+      .filter((v) => v.status === 'VERIFIED' || v.status === 'ACTIVE')
+      .map((v) => String(v.type || v.verificationType || 'UNKNOWN').toUpperCase());
   } catch (err) {
     console.error('[linkedin] Verification check failed:', err);
     return [];
   }
 }
 
+function redirectError(
+  origin: string,
+  page: string,
+  code: string,
+  description: string,
+  clearCookie = true,
+): Response {
+  const location = `${origin}${page}?error=${encodeURIComponent(code)}&error_description=${encodeURIComponent(description)}`;
+  if (!clearCookie) return Response.redirect(location, 302);
+  const headers = new Headers({ Location: location });
+  headers.append('Set-Cookie', clearLinkedInOAuthCookie());
+  return new Response(null, { status: 302, headers });
+}
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
 
-  // Parse state to get mode and lang
-  const ALLOWED_MODES = ['login', 'signup'];
-  const ALLOWED_LANGS = ['tr', 'en'];
-  let mode = 'login';
+  const verified = parseAndVerifyLinkedInState(url.searchParams.get('state'), request);
+  let mode: AuthMode = 'login';
   let lang = 'tr';
-  try {
-    const stateParam = url.searchParams.get('state') || '';
-    const stateJson = atob(stateParam);
-    const stateData = JSON.parse(stateJson);
-    mode = ALLOWED_MODES.includes(stateData.mode) ? stateData.mode : 'login';
-    lang = ALLOWED_LANGS.includes(stateData.lang) ? stateData.lang : 'tr';
-  } catch {
-    // Default values already set
+  if (verified.ok) {
+    mode = verified.mode;
+    lang = verified.lang;
   }
 
   const langPrefix = lang === 'en' ? '/en' : '';
   const redirectPage = mode === 'signup' ? `${langPrefix}/signup` : `${langPrefix}/login`;
   const profilePage = `${langPrefix}/profile`;
+  const signupPage = `${langPrefix}/signup`;
 
-  // Check for LinkedIn error
-  const error = url.searchParams.get('error');
-  if (error) {
-    const desc = url.searchParams.get('error_description') || 'LinkedIn authorization failed';
-    return Response.redirect(
-      `${url.origin}${redirectPage}?error=${encodeURIComponent(error)}&error_description=${encodeURIComponent(desc)}`,
-      302,
+  if (!verified.ok) {
+    return redirectError(
+      url.origin,
+      redirectPage,
+      verified.reason,
+      'LinkedIn session expired or invalid. Please try again.',
     );
+  }
+
+  const oauthError = url.searchParams.get('error');
+  if (oauthError) {
+    const desc = url.searchParams.get('error_description') || 'LinkedIn authorization failed';
+    return redirectError(url.origin, redirectPage, oauthError, desc);
   }
 
   const code = url.searchParams.get('code');
   if (!code) {
-    return Response.redirect(
-      `${url.origin}${redirectPage}?error=missing_code&error_description=${encodeURIComponent('Authorization code missing')}`,
-      302,
-    );
+    return redirectError(url.origin, redirectPage, 'missing_code', 'Authorization code missing');
   }
 
   if (!env.LINKEDIN_CLIENT_ID || !env.LINKEDIN_CLIENT_SECRET) {
-    return Response.redirect(
-      `${url.origin}${redirectPage}?error=config&error_description=${encodeURIComponent('LinkedIn not configured')}`,
-      302,
-    );
+    return redirectError(url.origin, redirectPage, 'config', 'LinkedIn not configured');
   }
 
   if (!env.REGISTRATIONS) {
     console.error('[linkedin-callback] REGISTRATIONS KV binding is missing');
-    return Response.redirect(
-      `${url.origin}${redirectPage}?error=config&error_description=${encodeURIComponent('KV storage not bound. Please check Cloudflare Pages KV bindings.')}`,
-      302,
+    return redirectError(
+      url.origin,
+      redirectPage,
+      'config',
+      'KV storage not bound. Please check Cloudflare Pages KV bindings.',
     );
   }
 
   try {
-    // Exchange code for access token
     const redirectUri = `${url.origin}/api/auth/linkedin-callback`;
     const tokenRes = await fetch('https://www.linkedin.com/oauth/v2/accessToken', {
       method: 'POST',
@@ -168,16 +173,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
     if (!tokenRes.ok) {
       console.error('[linkedin] Token exchange failed:', tokenRes.status);
-      return Response.redirect(
-        `${url.origin}${redirectPage}?error=token_failed&error_description=${encodeURIComponent('LinkedIn authentication failed')}`,
-        302,
-      );
+      return redirectError(url.origin, redirectPage, 'token_failed', 'LinkedIn authentication failed');
     }
 
     const tokenData = (await tokenRes.json()) as { access_token: string };
     const accessToken = tokenData.access_token;
 
-    // Fetch user profile, basic profile, and verification status in parallel
     const [userInfoRes, basicProfile, verifications] = await Promise.all([
       fetch('https://api.linkedin.com/v2/userinfo', {
         headers: { Authorization: `Bearer ${accessToken}` },
@@ -188,133 +189,105 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
     if (!userInfoRes.ok) {
       console.error('[linkedin] UserInfo failed:', userInfoRes.status);
-      return Response.redirect(
-        `${url.origin}${redirectPage}?error=profile_failed&error_description=${encodeURIComponent('Could not fetch LinkedIn profile')}`,
-        302,
+      return redirectError(
+        url.origin,
+        redirectPage,
+        'profile_failed',
+        'Could not fetch LinkedIn profile',
       );
     }
 
     const userInfo = (await userInfoRes.json()) as LinkedInUserInfo;
 
     if (!userInfo.email) {
-      return Response.redirect(
-        `${url.origin}${redirectPage}?error=no_email&error_description=${encodeURIComponent('LinkedIn account has no email')}`,
-        302,
+      return redirectError(url.origin, redirectPage, 'no_email', 'LinkedIn account has no email');
+    }
+
+    // email_verified alanı varsa ve false ise reddet (OIDC)
+    if (userInfo.email_verified === false) {
+      return redirectError(
+        url.origin,
+        redirectPage,
+        'email_unverified',
+        'LinkedIn email is not verified',
       );
     }
 
     const email = userInfo.email.toLowerCase();
-    let isNewMember = false;
+    const linkedinVerified = verifications.length > 0;
+    const existing = await loadMemberByEmail(env.REGISTRATIONS, email);
 
-    // Check if member exists
-    let memberData = await env.REGISTRATIONS.get(`member:${email}`);
-    let member: any;
+    if (existing) {
+      if (isDeactivated(existing.member)) {
+        return redirectError(
+          url.origin,
+          redirectPage,
+          'deactivated',
+          'This account has been deactivated',
+        );
+      }
 
-    if (memberData) {
-      // Existing member — update token, verification, and LinkedIn profile data
-      member = JSON.parse(memberData);
+      const member = existing.member;
       member.token = generateToken();
-      if (!member.linkedinSub) {
-        member.linkedinSub = userInfo.sub;
-      }
-      // Update verification status — only mark verified if at least one verification exists
-      member.linkedinVerified = verifications.length > 0;
+      if (!member.linkedinSub) member.linkedinSub = userInfo.sub;
+      member.linkedinVerified = linkedinVerified;
       member.linkedinVerifications = verifications;
-      // Update picture if available
-      if (userInfo.picture) {
-        member.picture = userInfo.picture;
-      }
-      // Update LinkedIn profile data
+      if (userInfo.picture) member.picture = userInfo.picture;
       if (basicProfile.headline) member.linkedinHeadline = basicProfile.headline;
       if (basicProfile.profileUrl && !member.linkedin) member.linkedin = basicProfile.profileUrl;
-      await env.REGISTRATIONS.put(`member:${email}`, JSON.stringify(member), {
-        expirationTtl: 60 * 60 * 24 * 365,
-      });
-    } else {
-      // Check alias
-      const alias = await env.REGISTRATIONS.get(`member-alias:${email}`);
-      if (alias) {
-        memberData = await env.REGISTRATIONS.get(`member:${alias}`);
-        if (memberData) {
-          member = JSON.parse(memberData);
-          member.token = generateToken();
-          if (!member.linkedinSub) member.linkedinSub = userInfo.sub;
-          member.linkedinVerified = true;
-          member.linkedinVerifications = verifications;
-          if (userInfo.picture) member.picture = userInfo.picture;
-          if (basicProfile.headline) member.linkedinHeadline = basicProfile.headline;
-          if (basicProfile.profileUrl && !member.linkedin) member.linkedin = basicProfile.profileUrl;
-          await env.REGISTRATIONS.put(`member:${alias}`, JSON.stringify(member), {
-            expirationTtl: 60 * 60 * 24 * 365,
-          });
+      await putMember(env.REGISTRATIONS, existing.keyEmail, member);
 
-          const cookies = buildLoginCookies(alias, member.token);
-          return redirectWithCookies(`${url.origin}${profilePage}`, cookies);
-        }
-      }
+      const cookies = [...buildLoginCookies(existing.keyEmail, member.token), clearLinkedInOAuthCookie()];
+      return redirectWithCookies(`${url.origin}${profilePage}`, cookies);
+    }
 
-      // New member
-      isNewMember = true;
-      const plainPassword = generatePassword();
-      const token = generateToken();
-
-      member = {
-        email,
-        name: userInfo.name || `${userInfo.given_name || ''} ${userInfo.family_name || ''}`.trim() || '',
-        password: await hashPassword(plainPassword),
-        token,
-        university: '',
-        department: basicProfile.headline || '',
-        linkedin: basicProfile.profileUrl || '',
-        linkedinHeadline: basicProfile.headline || '',
-        picture: userInfo.picture || '',
-        joinDate: new Date().toISOString().split('T')[0],
-        showFullName: true,
-        showEmail: false,
-        certificates: [],
-        adminBadges: [],
-        regIds: [],
-        interests: [],
-        ideas: '',
-        signupSource: 'linkedin',
-        linkedinSub: userInfo.sub,
-        linkedinVerified: true,
-        linkedinVerifications: verifications,
-        signupIp: request.headers.get('CF-Connecting-IP') || 'unknown',
-        signupCountry: request.headers.get('CF-IPCountry') || 'unknown',
-      };
-
-      await env.REGISTRATIONS.put(`member:${email}`, JSON.stringify(member), {
-        expirationTtl: 60 * 60 * 24 * 365,
-      });
-
-      // Update member count
-      const countKey = 'count:members';
-      const currentCount = parseInt((await env.REGISTRATIONS.get(countKey)) || '0');
-      await env.REGISTRATIONS.put(countKey, String(currentCount + 1));
-
-      context.waitUntil(
-        notifyAdmin(env, 'Yeni üye (LinkedIn)', {
-          'Ad': member.name || '',
-          'E-posta': email,
-          'Toplam üye': String(currentCount + 1),
-        }),
+    if (mode === 'login') {
+      return redirectError(
+        url.origin,
+        signupPage,
+        'no_account',
+        lang === 'en'
+          ? 'No account found. Please sign up first.'
+          : 'Hesap bulunamadı. Lütfen önce üye olun.',
       );
     }
 
-    // Set session cookies and redirect
-    const cookies = buildLoginCookies(email, member.token);
+    const displayName =
+      userInfo.name ||
+      `${userInfo.given_name || ''} ${userInfo.family_name || ''}`.trim() ||
+      '';
 
-    const destination = isNewMember
-      ? `${url.origin}${mode === 'signup' ? `${langPrefix}/signup?success=new` : profilePage}`
-      : `${url.origin}${profilePage}`;
+    const member = createSocialMember({
+      email,
+      name: displayName,
+      picture: userInfo.picture || '',
+      signupSource: 'linkedin',
+      linkedinSub: userInfo.sub,
+      linkedinVerified,
+      linkedinVerifications: verifications,
+      linkedinHeadline: basicProfile.headline || '',
+      linkedin: basicProfile.profileUrl || '',
+      department: basicProfile.headline || '',
+      consentAt: new Date().toISOString(),
+      signupIp: request.headers.get('CF-Connecting-IP') || 'unknown',
+      signupCountry: request.headers.get('CF-IPCountry') || 'unknown',
+    });
 
-    return redirectWithCookies(destination, cookies);
+    await putMember(env.REGISTRATIONS, email, member);
+    const total = await bumpMemberCount(env.REGISTRATIONS);
+
+    context.waitUntil(
+      notifyAdmin(env, 'Yeni üye (LinkedIn)', {
+        Ad: member.name || '',
+        'E-posta': email,
+        'Toplam üye': String(total),
+      }),
+    );
+
+    const cookies = [...buildLoginCookies(email, member.token), clearLinkedInOAuthCookie()];
+    return redirectWithCookies(`${url.origin}${langPrefix}/signup?success=new`, cookies);
   } catch (err) {
     console.error('[linkedin] Error:', err instanceof Error ? err.message : err);
-    return Response.redirect(
-      `${url.origin}${redirectPage}?error=internal&error_description=${encodeURIComponent('Internal server error')}`,
-      302,
-    );
+    return redirectError(url.origin, redirectPage, 'internal', 'Internal server error');
   }
 };

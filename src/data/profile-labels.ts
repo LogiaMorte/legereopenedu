@@ -123,6 +123,10 @@ export const authStringsTr = {
   googleFailed: 'Google ile işlem başarısız. Lütfen tekrar deneyin.',
   connectionError: 'Bağlantı hatası. Lütfen tekrar deneyin.',
   connectionRefresh: 'Bağlantı hatası. Sayfayı yenileyin.',
+  noAccount: 'Hesap bulunamadı. Lütfen önce üye olun.',
+  deactivated: 'Bu hesap devre dışı bırakılmış.',
+  consentRequired: 'Devam etmek için KVKK ve kullanım koşullarını onaylayın.',
+  scriptFailed: 'Script yüklenemedi. Sayfayı yenileyin.',
 } as const;
 
 export const authStringsEn = {
@@ -133,4 +137,8 @@ export const authStringsEn = {
   googleFailed: 'Google sign-in failed. Please try again.',
   connectionError: 'Connection error. Please try again.',
   connectionRefresh: 'Connection error. Please refresh.',
+  noAccount: 'No account found. Please sign up first.',
+  deactivated: 'This account has been deactivated.',
+  consentRequired: 'Please accept the privacy notice and terms to continue.',
+  scriptFailed: 'Script failed to load. Please refresh the page.',
 } as const;

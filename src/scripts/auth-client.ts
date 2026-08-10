@@ -13,6 +13,10 @@ export interface AuthStrings {
   googleFailed: string;
   connectionError: string;
   connectionRefresh: string;
+  noAccount?: string;
+  deactivated?: string;
+  consentRequired?: string;
+  scriptFailed?: string;
 }
 
 export interface AuthConfig {
@@ -37,6 +41,14 @@ type SiteConfig = {
   googleClientId?: string;
   linkedinEnabled?: boolean;
 };
+
+type AuthAbortHolder = { controller?: AbortController };
+
+function authAbortHolder(): AuthAbortHolder {
+  const w = window as Window & { __legereAuthAbort?: AuthAbortHolder };
+  if (!w.__legereAuthAbort) w.__legereAuthAbort = {};
+  return w.__legereAuthAbort;
+}
 
 function readCachedConfig(): SiteConfig | null {
   try {
@@ -75,6 +87,16 @@ function loadGoogleSdk(): Promise<void> {
       resolve();
       return;
     }
+    const existing = document.querySelector<HTMLScriptElement>(
+      'script[src="https://accounts.google.com/gsi/client"]',
+    );
+    if (existing) {
+      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('error', () => resolve(), { once: true });
+      // Zaten yüklenmiş olabilir
+      if (typeof google !== 'undefined' && google.accounts) resolve();
+      return;
+    }
     const s = document.createElement('script');
     s.src = 'https://accounts.google.com/gsi/client';
     s.setAttribute('data-cfasync', 'false');
@@ -94,9 +116,30 @@ function readPageConfig(): AuthConfig | null {
   }
 }
 
+function mapAuthError(code: string | undefined, fallback: string, S: AuthStrings): string {
+  switch (code) {
+    case 'no_account':
+      return S.noAccount || fallback;
+    case 'deactivated':
+      return S.deactivated || fallback;
+    case 'consent_required':
+      return S.consentRequired || fallback;
+    case 'invalid_token':
+    case 'missing_credential':
+      return S.googleFailed;
+    default:
+      return fallback;
+  }
+}
+
 export function initAuth(): void {
   const config = readPageConfig();
   if (!config) return;
+
+  const holder = authAbortHolder();
+  holder.controller?.abort();
+  holder.controller = new AbortController();
+  const { signal } = holder.controller;
 
   const loadingEl = document.getElementById('auth-loading');
   const errorEl = document.getElementById(
@@ -125,13 +168,18 @@ export function initAuth(): void {
   }
   if (params.get('error')) {
     loadingEl.classList.add('hidden');
-    errorEl.textContent = decodeURIComponent(
-      params.get('error_description') || S.defaultError,
+    const code = params.get('error') || undefined;
+    const desc = params.get('error_description');
+    errorEl.textContent = mapAuthError(
+      code,
+      desc ? decodeURIComponent(desc) : S.defaultError,
+      S,
     );
     errorEl.classList.remove('hidden');
   }
 
   const loadTimeout = window.setTimeout(() => {
+    if (signal.aborted) return;
     if (!loadingEl.classList.contains('hidden')) {
       loadingEl.classList.add('hidden');
       errorEl.textContent = S.loadTimeout;
@@ -141,6 +189,7 @@ export function initAuth(): void {
 
   Promise.all([fetchConfig(), loadGoogleSdk()])
     .then(([cfg]) => {
+      if (signal.aborted) return;
       clearTimeout(loadTimeout);
 
       if (!cfg.googleClientId) {
@@ -178,29 +227,46 @@ export function initAuth(): void {
 
       if (config.mode === 'signup') {
         consentSection?.classList.remove('hidden');
-        consentCheckbox?.addEventListener('change', updateConsentState);
+        consentCheckbox?.addEventListener('change', updateConsentState, { signal });
       }
 
+      // GIS yüklenmese bile LinkedIn consent kapısı kapalı kalsın
       if (typeof google === 'undefined' || !google.accounts) {
         loadingEl.classList.add('hidden');
         errorEl.textContent = S.googleUnavailable;
         errorEl.classList.remove('hidden');
+        updateConsentState();
         return;
       }
 
       google.accounts.id.initialize({
         client_id: cfg.googleClientId,
         callback: (response: { credential: string }) => {
+          if (signal.aborted) return;
+          if (config.mode === 'signup' && consentCheckbox && !consentCheckbox.checked) {
+            errorEl.textContent = S.consentRequired || S.defaultError;
+            errorEl.classList.remove('hidden');
+            return;
+          }
           errorEl.classList.add('hidden');
           fetch('/api/auth/google', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             credentials: 'same-origin',
-            body: JSON.stringify({ credential: response.credential }),
+            body: JSON.stringify({
+              credential: response.credential,
+              mode: config.mode,
+              consent: config.mode === 'signup' ? true : undefined,
+            }),
           })
-            .then((res) => {
+            .then(async (res) => {
+              const data = (await res.json().catch(() => ({}))) as {
+                isNewMember?: boolean;
+                error?: string;
+                code?: string;
+              };
               if (!res.ok) {
-                errorEl.textContent = S.googleFailed;
+                errorEl.textContent = mapAuthError(data.code, data.error || S.googleFailed, S);
                 errorEl.classList.remove('hidden');
                 return;
               }
@@ -208,10 +274,8 @@ export function initAuth(): void {
                 window.location.href = config.profilePath;
                 return;
               }
-              return res.json().then((data: { isNewMember?: boolean }) => {
-                if (data.isNewMember) showSignupSuccess();
-                else window.location.href = config.profilePath;
-              });
+              if (data.isNewMember) showSignupSuccess();
+              else window.location.href = config.profilePath;
             })
             .catch(() => {
               errorEl.textContent = S.connectionError;
@@ -220,7 +284,9 @@ export function initAuth(): void {
         },
       });
 
-      google.accounts.id.renderButton(document.getElementById('google-btn'), {
+      const btnHost = document.getElementById('google-btn');
+      if (btnHost) btnHost.replaceChildren();
+      google.accounts.id.renderButton(btnHost, {
         theme: 'filled_black',
         size: 'large',
         text: config.mode === 'signup' ? 'signup_with' : 'signin_with',
@@ -233,6 +299,7 @@ export function initAuth(): void {
       updateConsentState();
     })
     .catch(() => {
+      if (signal.aborted) return;
       clearTimeout(loadTimeout);
       loadingEl.classList.add('hidden');
       errorEl.textContent = S.connectionRefresh;

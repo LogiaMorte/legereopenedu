@@ -2,15 +2,17 @@
  * LinkedIn OAuth — Step 1: Redirect to LinkedIn authorization
  *
  * GET /api/auth/linkedin?mode=login|signup&lang=tr|en
- *   → Redirects user to LinkedIn OAuth 2.0 authorization URL
- *   → Uses OpenID Connect scopes (openid, profile, email)
- *
- * Required env vars: LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET
+ *   → CSRF nonce cookie + signed-ish state
+ *   → openid profile email (partner scope'lar opsiyonel; yoksa OAuth kırılıyordu)
  */
+
+import { buildLinkedInOAuthState, type AuthMode } from '../../_auth-member';
 
 interface Env {
   LINKEDIN_CLIENT_ID?: string;
   LINKEDIN_CLIENT_SECRET?: string;
+  /** '1' ise r_verify + r_profile_basicinfo de istenir (LinkedIn ürünü gerekir) */
+  LINKEDIN_FULL_SCOPES?: string;
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
@@ -21,24 +23,28 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   }
 
   const url = new URL(request.url);
-  const mode = url.searchParams.get('mode') || 'login';
+  const modeParam = url.searchParams.get('mode') || 'login';
   const lang = url.searchParams.get('lang') || 'tr';
+  const mode: AuthMode = modeParam === 'signup' ? 'signup' : 'login';
 
-  // Build callback URL from request origin
   const origin = url.origin;
   const redirectUri = `${origin}/api/auth/linkedin-callback`;
 
-  // State parameter encodes mode and lang for the callback
-  const stateData = JSON.stringify({ mode, lang });
-  const stateBytes = new TextEncoder().encode(stateData);
-  const state = btoa(String.fromCharCode(...stateBytes));
+  const { state, cookie } = buildLinkedInOAuthState(mode, lang);
+
+  const scope =
+    env.LINKEDIN_FULL_SCOPES === '1'
+      ? 'openid profile email r_verify r_profile_basicinfo'
+      : 'openid profile email';
 
   const authUrl = new URL('https://www.linkedin.com/oauth/v2/authorization');
   authUrl.searchParams.set('response_type', 'code');
   authUrl.searchParams.set('client_id', env.LINKEDIN_CLIENT_ID);
   authUrl.searchParams.set('redirect_uri', redirectUri);
   authUrl.searchParams.set('state', state);
-  authUrl.searchParams.set('scope', 'openid profile email r_verify r_profile_basicinfo');
+  authUrl.searchParams.set('scope', scope);
 
-  return Response.redirect(authUrl.toString(), 302);
+  const headers = new Headers({ Location: authUrl.toString() });
+  headers.append('Set-Cookie', cookie);
+  return new Response(null, { status: 302, headers });
 };

@@ -2,11 +2,9 @@
 /**
  * 05 · Katıl — dönüşümün bittiği yer.
  *
- * OAuth akışı DEĞİŞTİRİLMEDİ:
- * - LinkedIn zaten düz bir yönlendirme bağlantısı, doğrudan kullanılıyor.
- * - Google, GIS SDK'sıyla ve KVKK onay kutusunun ARKASINDA çalışıyor; o onayı
- *   atlamamak için buton /signup sayfasına götürüyor. Onay kutusunu by-pass edip
- *   burada doğrudan GIS başlatmak yasal olarak yanlış olurdu.
+ * OAuth / KVKK:
+ * - Google ve LinkedIn butonları /signup'a gider; onay kutusu API öncesi zorunlu.
+ * - Onay atlanıp burada doğrudan OAuth başlatmak yasal olarak yanlış olurdu.
  *
  * "Kayıt altında yürütülür" metni kurucudan geldi ve birebir korunmalı.
  */
@@ -22,7 +20,8 @@ const { lang } = Astro.props;
 const t = useTranslations(lang);
 const base = lang === 'en' ? '/en' : '';
 const signupPath = `${base}/signup`;
-const linkedinPath = `/api/auth/linkedin?mode=signup&lang=${lang}`;
+// LinkedIn de Google gibi /signup'a gider — KVKK onayı API öncesi zorunlu.
+// (Doğrudan /api/auth/linkedin consent'i atlıyordu.)
 
 const afterJoin = [
   { num: '01', title: t('lp.after1.title'), body: t('lp.after1.body') },
@@ -55,7 +54,7 @@ const afterJoin = [
           {t('lp.join.google')}
         </a>
 
-        <a href={linkedinPath} class="lg-join__linkedin">
+        <a href={signupPath} class="lg-join__linkedin">
           <svg width="17" height="17" viewBox="0 0 18 18" aria-hidden="true">
             <path fill="#0A66C2" d="M15.6 0H2.4A2.4 2.4 0 000 2.4v13.2A2.4 2.4 0 002.4 18h13.2A2.4 2.4 0 0018 15.6V2.4A2.4 2.4 0 0015.6 0zM5.5 15.2H2.8V6.9h2.7v8.3zM4.1 5.7a1.6 1.6 0 110-3.2 1.6 1.6 0 010 3.2zm11.1 9.5h-2.7v-4.3c0-1.1-.4-1.8-1.4-1.8-.8 0-1.2.5-1.4 1-.1.2-.1.5-.1.7v4.4H7V6.9h2.6v1.2c.4-.6 1-1.4 2.5-1.4 1.8 0 3.1 1.2 3.1 3.7v4.8z" />
           </svg>

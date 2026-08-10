@@ -154,7 +154,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       env.REGISTRATIONS.put(registration.id, JSON.stringify(registration), { expirationTtl: YEAR }),
       env.REGISTRATIONS.put(indexKey, JSON.stringify(entries)),
       env.REGISTRATIONS.put(countKey, String(currentCount + 1)),
-      env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member), { expirationTtl: YEAR }),
+      env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member)),
     ]);
 
     // Bildirim yanıtı geciktirmesin ve hata verirse kaydı etkilemesin.

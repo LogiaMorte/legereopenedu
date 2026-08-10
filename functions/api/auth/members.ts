@@ -123,9 +123,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       member.deactivated = true;
       member.deactivatedAt = new Date().toISOString();
       member.deactivatedBy = adminEmail;
-      await env.REGISTRATIONS.put(`member:${body.email}`, JSON.stringify(member), {
-        expirationTtl: 60 * 60 * 24 * 365,
-      });
+      await env.REGISTRATIONS.put(`member:${body.email}`, JSON.stringify(member));
 
       // Audit log
       const logKey = `audit:${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
