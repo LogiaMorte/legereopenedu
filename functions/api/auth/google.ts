@@ -4,9 +4,8 @@
  * POST /api/auth/google  { credential, mode?: 'login'|'signup', consent?: boolean }
  *   → JWT doğrula (Google JWKS + cache)
  *   → deactivated üyeyi reddet
- *   → mode=login + üye yok → 404 no_account
- *   → mode=signup + üye yok → oluştur (consent zorunlu)
- *   → JSON { success: true, isNewMember: boolean }
+ *   → üye yoksa oluştur (login'de de — eski hesap TTL ile silindiyse giriş açılsın)
+ *   → mode=signup yeni üye için consent zorunlu
  */
 
 import {
@@ -167,15 +166,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       if (payload.picture) member.picture = payload.picture;
       await putMember(env.REGISTRATIONS, existing.keyEmail, member);
 
-      const cookies = buildLoginCookies(existing.keyEmail, member.token);
+      const cookies = buildLoginCookies(existing.keyEmail, member.token, undefined, request.url);
       return jsonResponseWithCookies({ success: true, isNewMember: false }, 200, headers, cookies);
     }
 
-    if (mode === 'login') {
-      return errJson(headers, 404, 'no_account', 'No account found. Please sign up first.');
-    }
-
-    if (!body.consent) {
+    // Yeni üye: signup'ta consent zorunlu; login'de (KV'den düşmüş hesaplar vb.) aç
+    if (mode === 'signup' && !body.consent) {
       return errJson(headers, 400, 'consent_required', 'Consent is required to create an account');
     }
 
@@ -185,7 +181,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       picture: payload.picture || '',
       signupSource: 'google',
       googleSub: payload.sub,
-      consentAt: new Date().toISOString(),
+      consentAt: body.consent ? new Date().toISOString() : undefined,
       signupIp: request.headers.get('CF-Connecting-IP') || 'unknown',
       signupCountry: request.headers.get('CF-IPCountry') || 'unknown',
     });
@@ -201,7 +197,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       }),
     );
 
-    const cookies = buildLoginCookies(email, member.token);
+    const cookies = buildLoginCookies(email, member.token, undefined, request.url);
     return jsonResponseWithCookies({ success: true, isNewMember: true }, 200, headers, cookies);
   } catch (err) {
     console.error('[google-auth] Error:', err instanceof Error ? err.message : err);

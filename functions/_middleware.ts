@@ -17,11 +17,13 @@
 
 const PRODUCTION_HOST = 'legereopenedu.com';
 const PAGES_HOST = 'legereopenedu.pages.dev';
+const WWW_HOST = 'www.legereopenedu.com';
 
 export const onRequest: PagesFunction = async (context) => {
   const url = new URL(context.request.url);
+  const host = url.hostname.toLowerCase();
 
-  if (url.hostname.toLowerCase() === PAGES_HOST) {
+  if (host === PAGES_HOST || host === WWW_HOST) {
     url.hostname = PRODUCTION_HOST;
     url.protocol = 'https:';
     url.port = '';

@@ -149,23 +149,44 @@ export function parseSessionCookie(request: Request): { email: string; token: st
  * Build Set-Cookie headers for login.
  * - legere_token: HttpOnly, Secure — actual auth token (not readable by JS)
  * - legere_logged_in: non-HttpOnly — presence flag for Header UI detection
+ * - Domain=.legereopenedu.com when on production host (www ↔ apex)
  */
-export function buildLoginCookies(email: string, token: string, maxAge = 30 * 24 * 60 * 60): string[] {
+export function buildLoginCookies(
+  email: string,
+  token: string,
+  maxAge = 30 * 24 * 60 * 60,
+  requestUrl?: string,
+): string[] {
   const cookieValue = `${encodeURIComponent(email)}:${token}`;
+  const domain = productionCookieDomain(requestUrl);
   return [
-    `legere_token=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}`,
-    `legere_logged_in=1; Path=/; SameSite=Lax; Max-Age=${maxAge}`,
+    `legere_token=${cookieValue}; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=${maxAge}${domain}`,
+    `legere_logged_in=1; Path=/; Secure; SameSite=Lax; Max-Age=${maxAge}${domain}`,
   ];
 }
 
 /**
  * Build Set-Cookie headers for logout (clear both cookies).
  */
-export function buildLogoutCookies(): string[] {
+export function buildLogoutCookies(requestUrl?: string): string[] {
+  const domain = productionCookieDomain(requestUrl);
   return [
-    'legere_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
-    'legere_logged_in=; Path=/; SameSite=Lax; Max-Age=0',
+    `legere_token=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0${domain}`,
+    `legere_logged_in=; Path=/; Secure; SameSite=Lax; Max-Age=0${domain}`,
   ];
+}
+
+function productionCookieDomain(requestUrl?: string): string {
+  if (!requestUrl) return '; Domain=.legereopenedu.com';
+  try {
+    const host = new URL(requestUrl).hostname.toLowerCase();
+    if (host === 'legereopenedu.com' || host === 'www.legereopenedu.com' || host.endsWith('.legereopenedu.com')) {
+      return '; Domain=.legereopenedu.com';
+    }
+  } catch {
+    /* ignore */
+  }
+  return '';
 }
 
 // ── Response Helper ──
