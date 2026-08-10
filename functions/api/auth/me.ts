@@ -269,7 +269,7 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
   const headers = corsHeaders(request, getMethods());
 
-  const logoutCookies = buildLogoutCookies();
+  const logoutCookies = buildLogoutCookies(request.url);
 
   const session = parseSessionCookie(request);
   if (!session) {

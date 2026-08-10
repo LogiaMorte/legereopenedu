@@ -2,8 +2,6 @@
  * LinkedIn OAuth — Step 1: Redirect to LinkedIn authorization
  *
  * GET /api/auth/linkedin?mode=login|signup&lang=tr|en
- *   → CSRF nonce cookie + signed-ish state
- *   → openid profile email (partner scope'lar opsiyonel; yoksa OAuth kırılıyordu)
  */
 
 import { buildLinkedInOAuthState, type AuthMode } from '../../_auth-member';
@@ -11,14 +9,13 @@ import { buildLinkedInOAuthState, type AuthMode } from '../../_auth-member';
 interface Env {
   LINKEDIN_CLIENT_ID?: string;
   LINKEDIN_CLIENT_SECRET?: string;
-  /** '1' ise r_verify + r_profile_basicinfo de istenir (LinkedIn ürünü gerekir) */
   LINKEDIN_FULL_SCOPES?: string;
 }
 
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
 
-  if (!env.LINKEDIN_CLIENT_ID) {
+  if (!env.LINKEDIN_CLIENT_ID || !env.LINKEDIN_CLIENT_SECRET) {
     return new Response('LinkedIn sign-in not configured', { status: 500 });
   }
 
@@ -30,7 +27,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const origin = url.origin;
   const redirectUri = `${origin}/api/auth/linkedin-callback`;
 
-  const { state, cookie } = buildLinkedInOAuthState(mode, lang);
+  const { state, cookie } = await buildLinkedInOAuthState(mode, lang, env.LINKEDIN_CLIENT_SECRET);
 
   const scope =
     env.LINKEDIN_FULL_SCOPES === '1'

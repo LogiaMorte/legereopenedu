@@ -2,10 +2,6 @@
  * LinkedIn OAuth — Step 2: Handle callback
  *
  * GET /api/auth/linkedin-callback?code=...&state=...
- *   → state + nonce cookie doğrula
- *   → mode=login + üye yok → signup'a yönlendir (hesap yok)
- *   → mode=signup + üye yok → oluştur
- *   → deactivated → reddet
  */
 
 import {
@@ -97,10 +93,8 @@ function redirectError(
   page: string,
   code: string,
   description: string,
-  clearCookie = true,
 ): Response {
   const location = `${origin}${page}?error=${encodeURIComponent(code)}&error_description=${encodeURIComponent(description)}`;
-  if (!clearCookie) return Response.redirect(location, 302);
   const headers = new Headers({ Location: location });
   headers.append('Set-Cookie', clearLinkedInOAuthCookie());
   return new Response(null, { status: 302, headers });
@@ -110,9 +104,18 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { request, env } = context;
   const url = new URL(request.url);
 
-  const verified = parseAndVerifyLinkedInState(url.searchParams.get('state'), request);
   let mode: AuthMode = 'login';
   let lang = 'tr';
+
+  if (!env.LINKEDIN_CLIENT_SECRET) {
+    return redirectError(url.origin, '/login', 'config', 'LinkedIn not configured');
+  }
+
+  const verified = await parseAndVerifyLinkedInState(
+    url.searchParams.get('state'),
+    request,
+    env.LINKEDIN_CLIENT_SECRET,
+  );
   if (verified.ok) {
     mode = verified.mode;
     lang = verified.lang;
@@ -121,14 +124,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   const langPrefix = lang === 'en' ? '/en' : '';
   const redirectPage = mode === 'signup' ? `${langPrefix}/signup` : `${langPrefix}/login`;
   const profilePage = `${langPrefix}/profile`;
-  const signupPage = `${langPrefix}/signup`;
 
   if (!verified.ok) {
     return redirectError(
       url.origin,
       redirectPage,
       verified.reason,
-      'LinkedIn session expired or invalid. Please try again.',
+      lang === 'en'
+        ? 'LinkedIn session expired or invalid. Please try again.'
+        : 'LinkedIn oturumu geçersiz veya süresi doldu. Lütfen tekrar deneyin.',
     );
   }
 
@@ -203,7 +207,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       return redirectError(url.origin, redirectPage, 'no_email', 'LinkedIn account has no email');
     }
 
-    // email_verified alanı varsa ve false ise reddet (OIDC)
     if (userInfo.email_verified === false) {
       return redirectError(
         url.origin,
@@ -223,7 +226,9 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           url.origin,
           redirectPage,
           'deactivated',
-          'This account has been deactivated',
+          lang === 'en'
+            ? 'This account has been deactivated'
+            : 'Bu hesap devre dışı bırakılmış',
         );
       }
 
@@ -237,21 +242,14 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       if (basicProfile.profileUrl && !member.linkedin) member.linkedin = basicProfile.profileUrl;
       await putMember(env.REGISTRATIONS, existing.keyEmail, member);
 
-      const cookies = [...buildLoginCookies(existing.keyEmail, member.token), clearLinkedInOAuthCookie()];
+      const cookies = [
+        ...buildLoginCookies(existing.keyEmail, member.token, undefined, request.url),
+        clearLinkedInOAuthCookie(),
+      ];
       return redirectWithCookies(`${url.origin}${profilePage}`, cookies);
     }
 
-    if (mode === 'login') {
-      return redirectError(
-        url.origin,
-        signupPage,
-        'no_account',
-        lang === 'en'
-          ? 'No account found. Please sign up first.'
-          : 'Hesap bulunamadı. Lütfen önce üye olun.',
-      );
-    }
-
+    // Üye yoksa oluştur (login veya signup) — TTL ile silinmiş hesaplar tekrar açılsın
     const displayName =
       userInfo.name ||
       `${userInfo.given_name || ''} ${userInfo.family_name || ''}`.trim() ||
@@ -268,7 +266,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       linkedinHeadline: basicProfile.headline || '',
       linkedin: basicProfile.profileUrl || '',
       department: basicProfile.headline || '',
-      consentAt: new Date().toISOString(),
+      consentAt: mode === 'signup' ? new Date().toISOString() : undefined,
       signupIp: request.headers.get('CF-Connecting-IP') || 'unknown',
       signupCountry: request.headers.get('CF-IPCountry') || 'unknown',
     });
@@ -284,8 +282,15 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       }),
     );
 
-    const cookies = [...buildLoginCookies(email, member.token), clearLinkedInOAuthCookie()];
-    return redirectWithCookies(`${url.origin}${langPrefix}/signup?success=new`, cookies);
+    const cookies = [
+      ...buildLoginCookies(email, member.token, undefined, request.url),
+      clearLinkedInOAuthCookie(),
+    ];
+    const destination =
+      mode === 'signup'
+        ? `${url.origin}${langPrefix}/signup?success=new`
+        : `${url.origin}${profilePage}`;
+    return redirectWithCookies(destination, cookies);
   } catch (err) {
     console.error('[linkedin] Error:', err instanceof Error ? err.message : err);
     return redirectError(url.origin, redirectPage, 'internal', 'Internal server error');
