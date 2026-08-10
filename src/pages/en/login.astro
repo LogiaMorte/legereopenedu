@@ -33,8 +33,8 @@ const t = useTranslations(lang);
           <div id="google-btn" class="flex justify-center"></div>
         </div>
 
-        <!-- LinkedIn Sign-In (shown conditionally) -->
-        <div id="linkedin-section" class="hidden">
+        <!-- LinkedIn: JS olmadan da görünür; config kapalıysa auth-client gizler -->
+        <div id="linkedin-section">
           <div class="relative my-5">
             <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
             <div class="relative flex justify-center text-xs"><span class="bg-[#12121A] px-3 text-text-secondary">{t('login.orLinkedin')}</span></div>

@@ -31,8 +31,8 @@ const t = useTranslations(lang);
             <p class="text-text-secondary text-sm leading-relaxed">{t('signup.desc')}</p>
           </div>
 
-          <!-- Consent checkbox -->
-          <div id="consent-section" class="hidden mb-4">
+          <!-- Consent checkbox — visible without JS -->
+          <div id="consent-section" class="mb-4">
             <label class="flex items-start gap-3 cursor-pointer group">
               <input type="checkbox" id="consent-checkbox" class="mt-1 w-4 h-4 rounded border-white/20 bg-white/5 text-gold-500 focus:ring-gold-500/50 focus:ring-offset-0 cursor-pointer" />
               <span class="text-xs text-text-secondary leading-relaxed">
@@ -49,8 +49,8 @@ const t = useTranslations(lang);
             <div id="google-btn" class="flex justify-center"></div>
           </div>
 
-          <!-- LinkedIn Sign-Up (shown conditionally) -->
-          <div id="linkedin-section" class="hidden">
+          <!-- LinkedIn: disabled until consent -->
+          <div id="linkedin-section" style="opacity:0.4;pointer-events:none">
             <div class="relative my-5">
               <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
               <div class="relative flex justify-center text-xs"><span class="bg-[#12121A] px-3 text-text-secondary">{t('signup.orLinkedin')}</span></div>
