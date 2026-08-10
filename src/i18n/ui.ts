@@ -330,9 +330,6 @@ export const ui = {
     'lp.prog4.title': 'Okuma Grubu',
     'lp.prog4.cadence': 'İki haftada bir',
     'lp.prog4.body': 'Teori ve edebiyat okuma çevreleri; disiplinlerarası karşılaştırmalı dizi.',
-    'lp.uni.label': 'Katılımcıların bağlı olduğu kurumlar',
-    'lp.uni.note': 'kurum bağı beyana dayalıdır',
-
     'lp.events.kicker': 'Atölye · seminer · kolokyum',
     'lp.events.tabUpcoming': 'Yaklaşan',
     'lp.events.tabPast': 'Gerçekleşen',
@@ -720,9 +717,6 @@ export const ui = {
     'lp.prog4.title': 'Reading Group',
     'lp.prog4.cadence': 'Every two weeks',
     'lp.prog4.body': 'Theory and literature reading circles; a comparative interdisciplinary series.',
-    'lp.uni.label': 'Institutions participants are affiliated with',
-    'lp.uni.note': 'affiliation is self-declared',
-
     'lp.events.kicker': 'Workshop · seminar · colloquium',
     'lp.events.tabUpcoming': 'Upcoming',
     'lp.events.tabPast': 'Held',
