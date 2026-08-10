@@ -59,6 +59,12 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
     if (member.token !== session.token) {
       return new Response(JSON.stringify({ error: 'Invalid token' }), { status: 401, headers });
     }
+    if (member.deactivated === true) {
+      return new Response(JSON.stringify({ error: 'Account deactivated', code: 'deactivated' }), {
+        status: 403,
+        headers,
+      });
+    }
 
     // Get registrations via regIds (parallel KV fetches)
     const regIds = member.regIds || [];
@@ -153,6 +159,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (member.token !== session.token) {
       return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
     }
+    if (member.deactivated === true) {
+      return new Response(JSON.stringify({ error: 'Account deactivated', code: 'deactivated' }), {
+        status: 403,
+        headers,
+      });
+    }
 
     const body = await parseJsonBody<{
       showFullName?: boolean;
@@ -181,9 +193,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       const hashHex = Array.from(new Uint8Array(hashBuffer), b => b.toString(16).padStart(2, '0')).join('');
       const profileId = hashHex.slice(0, 12);
       if (body.showPublicProfile) {
-        await env.REGISTRATIONS.put(`public-profile:${profileId}`, member.email.toLowerCase(), {
-          expirationTtl: 60 * 60 * 24 * 365,
-        });
+        await env.REGISTRATIONS.put(`public-profile:${profileId}`, member.email.toLowerCase());
         member.publicProfileId = profileId;
       } else {
         await env.REGISTRATIONS.delete(`public-profile:${profileId}`);
@@ -231,17 +241,13 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           if (existing || existingAlias) {
             return new Response(JSON.stringify({ error: 'School email already in use' }), { status: 409, headers });
           }
-          await env.REGISTRATIONS.put(`member-alias:${newSchoolEmail}`, member.email, {
-            expirationTtl: 60 * 60 * 24 * 365,
-          });
+          await env.REGISTRATIONS.put(`member-alias:${newSchoolEmail}`, member.email);
         }
         member.schoolEmail = newSchoolEmail || undefined;
       }
     }
 
-    await env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member), {
-      expirationTtl: 60 * 60 * 24 * 365,
-    });
+    await env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member));
 
     // Client in-place güncelleme için gerekli alanları döndür (reload yok)
     return new Response(
@@ -276,9 +282,7 @@ export const onRequestDelete: PagesFunction<Env> = async (context) => {
       const member = JSON.parse(memberData);
       if (member.token === session.token) {
         member.token = generateToken();
-        await env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member), {
-          expirationTtl: 60 * 60 * 24 * 365,
-        });
+        await env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member));
       }
     }
   } catch (err) {

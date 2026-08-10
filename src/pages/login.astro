@@ -102,7 +102,15 @@ const t = useTranslations(lang);
       loading.classList.add('hidden');
       var err = document.getElementById('login-error') || document.getElementById('signup-error');
       if (err) {
-        err.textContent = 'Script yüklenemedi. Sayfayı yenileyin.';
+        var msg = 'Script yüklenemedi. Sayfayı yenileyin.';
+        try {
+          var cfg = document.getElementById('auth-client-config');
+          if (cfg && cfg.textContent) {
+            var parsed = JSON.parse(cfg.textContent);
+            if (parsed.strings && parsed.strings.scriptFailed) msg = parsed.strings.scriptFailed;
+          }
+        } catch (e) {}
+        err.textContent = msg;
         err.classList.remove('hidden');
       }
     }, 12000);

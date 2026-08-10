@@ -1,10 +1,11 @@
 /**
  * Auth Google — Google Sign-In ile giriş/kayıt
  *
- * POST /api/auth/google  { credential: "google-id-token" }
- *   → JWT doğrula (Google JWKS ile signature verify)
- *   → member:{email} varsa giriş yap
- *   → Yoksa yeni üye oluştur
+ * POST /api/auth/google  { credential, mode?: 'login'|'signup', consent?: boolean }
+ *   → JWT doğrula (Google JWKS + cache)
+ *   → deactivated üyeyi reddet
+ *   → mode=login + üye yok → 404 no_account
+ *   → mode=signup + üye yok → oluştur (consent zorunlu)
  *   → JSON { success: true, isNewMember: boolean }
  */
 
@@ -13,12 +14,18 @@ import {
   optionsResponse,
   parseJsonBody,
   generateToken,
-  generatePassword,
-  hashPassword,
   buildLoginCookies,
   jsonResponseWithCookies,
   notifyAdmin,
 } from '../../_shared';
+import {
+  type AuthMode,
+  loadMemberByEmail,
+  isDeactivated,
+  createSocialMember,
+  putMember,
+  bumpMemberCount,
+} from '../../_auth-member';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
@@ -39,12 +46,32 @@ interface GooglePayload {
   exp: number;
 }
 
+type JwksCache = { keys: JsonWebKey[]; fetchedAt: number };
+let jwksCache: JwksCache | null = null;
+const JWKS_TTL_MS = 60 * 60 * 1000;
+
 function base64UrlDecode(str: string): Uint8Array {
   const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
   const pad = base64.length % 4;
   const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
   const binary = atob(padded);
-  return Uint8Array.from(binary, c => c.charCodeAt(0));
+  return Uint8Array.from(binary, (c) => c.charCodeAt(0));
+}
+
+async function fetchGoogleJwks(): Promise<JsonWebKey[]> {
+  if (jwksCache && Date.now() - jwksCache.fetchedAt < JWKS_TTL_MS) {
+    return jwksCache.keys;
+  }
+  const jwksRes = await fetch('https://www.googleapis.com/oauth2/v3/certs');
+  if (!jwksRes.ok) {
+    throw new Error(`JWKS fetch failed: ${jwksRes.status}`);
+  }
+  const jwks = (await jwksRes.json()) as { keys: JsonWebKey[] };
+  if (!Array.isArray(jwks.keys) || jwks.keys.length === 0) {
+    throw new Error('JWKS empty');
+  }
+  jwksCache = { keys: jwks.keys, fetchedAt: Date.now() };
+  return jwks.keys;
 }
 
 async function verifyGoogleToken(idToken: string, clientId: string): Promise<GooglePayload | null> {
@@ -55,20 +82,13 @@ async function verifyGoogleToken(idToken: string, clientId: string): Promise<Goo
     const header = JSON.parse(new TextDecoder().decode(base64UrlDecode(parts[0])));
     const payload = JSON.parse(new TextDecoder().decode(base64UrlDecode(parts[1])));
 
-    // Check expiration
     if (payload.exp < Date.now() / 1000) return null;
-
-    // Check issuer and audience
     if (!['accounts.google.com', 'https://accounts.google.com'].includes(payload.iss)) return null;
     if (payload.aud !== clientId) return null;
-
-    // Verify email is verified
     if (!payload.email_verified) return null;
 
-    // Fetch Google's public keys and verify signature
-    const jwksRes = await fetch('https://www.googleapis.com/oauth2/v3/certs');
-    const jwks = (await jwksRes.json()) as { keys: JsonWebKey[] };
-    const key = (jwks.keys as any[]).find(k => k.kid === header.kid);
+    const keys = await fetchGoogleJwks();
+    const key = (keys as Array<JsonWebKey & { kid?: string }>).find((k) => k.kid === header.kid);
     if (!key) return null;
 
     const cryptoKey = await crypto.subtle.importKey(
@@ -85,9 +105,19 @@ async function verifyGoogleToken(idToken: string, clientId: string): Promise<Goo
     if (!valid) return null;
 
     return payload as GooglePayload;
-  } catch {
+  } catch (err) {
+    console.error('[google-auth] verify failed:', err instanceof Error ? err.message : err);
     return null;
   }
+}
+
+function errJson(
+  headers: Record<string, string>,
+  status: number,
+  code: string,
+  message: string,
+): Response {
+  return new Response(JSON.stringify({ error: message, code }), { status, headers });
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -96,119 +126,86 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
   if (!env.REGISTRATIONS) {
     console.error('[google-auth] REGISTRATIONS KV binding is missing');
-    return new Response(JSON.stringify({ error: 'KV storage not bound. Please check Cloudflare Pages KV bindings.' }), { status: 500, headers });
+    return errJson(headers, 500, 'config', 'KV storage not bound. Please check Cloudflare Pages KV bindings.');
   }
 
   if (!env.GOOGLE_CLIENT_ID) {
-    return new Response(JSON.stringify({ error: 'Google sign-in not configured' }), { status: 500, headers });
+    return errJson(headers, 500, 'config', 'Google sign-in not configured');
   }
 
   try {
-    const body = await parseJsonBody<{ credential?: string }>(request);
+    const body = await parseJsonBody<{
+      credential?: string;
+      mode?: string;
+      consent?: boolean;
+    }>(request);
     if (!body) {
-      return new Response(JSON.stringify({ error: 'Invalid or oversized request body' }), { status: 400, headers });
+      return errJson(headers, 400, 'bad_request', 'Invalid or oversized request body');
     }
     if (!body.credential) {
-      return new Response(JSON.stringify({ error: 'Missing credential' }), { status: 400, headers });
+      return errJson(headers, 400, 'missing_credential', 'Missing credential');
     }
+
+    const mode: AuthMode = body.mode === 'signup' ? 'signup' : 'login';
 
     const payload = await verifyGoogleToken(body.credential, env.GOOGLE_CLIENT_ID);
     if (!payload) {
-      return new Response(JSON.stringify({ error: 'Invalid Google token' }), { status: 401, headers });
+      return errJson(headers, 401, 'invalid_token', 'Invalid Google token');
     }
 
     const email = payload.email.toLowerCase();
-    let isNewMember = false;
+    const existing = await loadMemberByEmail(env.REGISTRATIONS, email);
 
-    // Check if member exists
-    let memberData = await env.REGISTRATIONS.get(`member:${email}`);
-    let member: any;
+    if (existing) {
+      if (isDeactivated(existing.member)) {
+        return errJson(headers, 403, 'deactivated', 'This account has been deactivated');
+      }
 
-    if (memberData) {
-      // Existing member — update token for new session
-      member = JSON.parse(memberData);
+      const member = existing.member;
       member.token = generateToken();
-      // Link Google if not already linked
-      if (!member.googleSub) {
-        member.googleSub = payload.sub;
-      }
-      // Update picture if available
-      if (payload.picture) {
-        member.picture = payload.picture;
-      }
-      await env.REGISTRATIONS.put(`member:${email}`, JSON.stringify(member), {
-        expirationTtl: 60 * 60 * 24 * 365,
-      });
-    } else {
-      // Check if email exists as alias
-      const alias = await env.REGISTRATIONS.get(`member-alias:${email}`);
-      if (alias) {
-        memberData = await env.REGISTRATIONS.get(`member:${alias}`);
-        if (memberData) {
-          member = JSON.parse(memberData);
-          member.token = generateToken();
-          if (!member.googleSub) member.googleSub = payload.sub;
-          if (payload.picture) member.picture = payload.picture;
-          await env.REGISTRATIONS.put(`member:${alias}`, JSON.stringify(member), {
-            expirationTtl: 60 * 60 * 24 * 365,
-          });
-          // Use alias email for cookie
-          const cookies = buildLoginCookies(alias, member.token);
-          return jsonResponseWithCookies({ success: true, isNewMember: false }, 200, headers, cookies);
-        }
-      }
+      if (!member.googleSub) member.googleSub = payload.sub;
+      if (payload.picture) member.picture = payload.picture;
+      await putMember(env.REGISTRATIONS, existing.keyEmail, member);
 
-      // New member — create account
-      isNewMember = true;
-      const plainPassword = generatePassword();
-      const token = generateToken();
-
-      member = {
-        email,
-        name: payload.name || '',
-        password: await hashPassword(plainPassword),
-        token,
-        university: '',
-        department: '',
-        picture: payload.picture || '',
-        joinDate: new Date().toISOString().split('T')[0],
-        showFullName: true,
-        showEmail: false,
-        certificates: [],
-        adminBadges: [],
-        regIds: [],
-        interests: [],
-        ideas: '',
-        signupSource: 'google',
-        googleSub: payload.sub,
-        signupIp: request.headers.get('CF-Connecting-IP') || 'unknown',
-        signupCountry: request.headers.get('CF-IPCountry') || 'unknown',
-      };
-
-      await env.REGISTRATIONS.put(`member:${email}`, JSON.stringify(member), {
-        expirationTtl: 60 * 60 * 24 * 365,
-      });
-
-      // Update member count
-      const countKey = 'count:members';
-      const currentCount = parseInt((await env.REGISTRATIONS.get(countKey)) || '0');
-      await env.REGISTRATIONS.put(countKey, String(currentCount + 1));
-
-      context.waitUntil(
-        notifyAdmin(env, 'Yeni üye (Google)', {
-          'Ad': member.name || '',
-          'E-posta': email,
-          'Toplam üye': String(currentCount + 1),
-        }),
-      );
+      const cookies = buildLoginCookies(existing.keyEmail, member.token);
+      return jsonResponseWithCookies({ success: true, isNewMember: false }, 200, headers, cookies);
     }
 
-    // Set session cookies
+    if (mode === 'login') {
+      return errJson(headers, 404, 'no_account', 'No account found. Please sign up first.');
+    }
+
+    if (!body.consent) {
+      return errJson(headers, 400, 'consent_required', 'Consent is required to create an account');
+    }
+
+    const member = createSocialMember({
+      email,
+      name: payload.name || '',
+      picture: payload.picture || '',
+      signupSource: 'google',
+      googleSub: payload.sub,
+      consentAt: new Date().toISOString(),
+      signupIp: request.headers.get('CF-Connecting-IP') || 'unknown',
+      signupCountry: request.headers.get('CF-IPCountry') || 'unknown',
+    });
+
+    await putMember(env.REGISTRATIONS, email, member);
+    const total = await bumpMemberCount(env.REGISTRATIONS);
+
+    context.waitUntil(
+      notifyAdmin(env, 'Yeni üye (Google)', {
+        Ad: member.name || '',
+        'E-posta': email,
+        'Toplam üye': String(total),
+      }),
+    );
+
     const cookies = buildLoginCookies(email, member.token);
-    return jsonResponseWithCookies({ success: true, isNewMember }, 200, headers, cookies);
+    return jsonResponseWithCookies({ success: true, isNewMember: true }, 200, headers, cookies);
   } catch (err) {
     console.error('[google-auth] Error:', err instanceof Error ? err.message : err);
-    return new Response(JSON.stringify({ error: 'Internal server error' }), { status: 500, headers });
+    return errJson(headers, 500, 'internal', 'Internal server error');
   }
 };
 

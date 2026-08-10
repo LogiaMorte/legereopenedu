@@ -280,15 +280,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             adminBadges: [],
             regIds: [body.regId],
           }),
-          { expirationTtl: 60 * 60 * 24 * 365 },
         );
       } else {
         const member = JSON.parse(existingMember);
         if (!member.regIds) member.regIds = [];
         if (!member.regIds.includes(body.regId)) member.regIds.push(body.regId);
-        await env.REGISTRATIONS.put(memberKey, JSON.stringify(member), {
-          expirationTtl: 60 * 60 * 24 * 365,
-        });
+        await env.REGISTRATIONS.put(memberKey, JSON.stringify(member));
       }
     }
 
