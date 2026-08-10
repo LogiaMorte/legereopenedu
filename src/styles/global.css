@@ -389,6 +389,17 @@ html:not(.lg-js) [data-stagger] > * {
   transform: none;
 }
 
+/*
+  Yasal sayfalar `[data-animate]` kullanıyordu; JS yüklenmezse metin opacity:0
+  kalıyordu (canlıda boş sayfa gibi göründü). Script olsa da olmasa da içerik
+  okunabilir olmalı — animasyon isteğe bağlı, metin değil.
+*/
+html:not(.lg-js) [data-animate],
+html:not(.lg-js) [data-animate-stagger] > * {
+  opacity: 1;
+  transform: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   [data-reveal],
   [data-stagger] > * {
