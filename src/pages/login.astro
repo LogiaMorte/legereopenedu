@@ -85,9 +85,10 @@ const t = useTranslations(lang);
       </div>
     </div>
   </div>
+
+  <script type="application/json" id="auth-client-config" set:html={JSON.stringify({ mode: 'login', profilePath: '/profile', strings: authStringsTr })}></script>
 </Layout>
 
-<script type="application/json" id="auth-client-config" set:html={JSON.stringify({ mode: 'login', profilePath: '/profile', strings: authStringsTr })}></script>
 <script>
   import { initAuth } from '../scripts/auth-client';
   initAuth();

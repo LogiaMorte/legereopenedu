@@ -149,7 +149,8 @@ const showAlternates = !noindex;
     </svg>
   </button>
 
-  <script>
+  <!-- data-cfasync: Rocket Loader açıksa ClientRouter / initSite sırasını bozmasın -->
+  <script data-cfasync="false">
     import { initSite } from '../scripts/site';
 
     initSite();

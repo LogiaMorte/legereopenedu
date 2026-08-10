@@ -1,3 +1,9 @@
+#
+# Cloudflare dashboard (önerilen, kod dışı):
+# Scrape Shield → Email Address Obfuscation = Off
+# Speed → Optimization → Rocket Loader = Off
+# (HTML'de <!--email_off--> ve data-cfasync zaten yedek koruma.)
+#
 /*
   X-Frame-Options: DENY
   X-Content-Type-Options: nosniff
