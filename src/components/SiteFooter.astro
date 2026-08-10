@@ -8,6 +8,7 @@
  */
 import { useTranslations } from '../i18n/utils';
 import type { Lang } from '../i18n/languages';
+import ContactEmail from './ContactEmail.astro';
 
 interface Props {
   lang: Lang;
@@ -49,6 +50,9 @@ const legalLinks = [
       <div class="lg-footer__trust">
         <span class="lg-footer__dot"></span>
         <span>{t('lp.footer.trust')}</span>
+      </div>
+      <div class="lg-footer__mail">
+        <ContactEmail class="lg-footer__mailLink" />
       </div>
     </div>
 
@@ -125,6 +129,15 @@ const legalLinks = [
     background: var(--color-status-open);
     display: block;
   }
+
+  .lg-footer__mail { margin-top: 14px; }
+  .lg-footer__mailLink {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--color-gold-500);
+  }
+  .lg-footer__mailLink:hover { color: var(--color-gold-200); }
 
   .lg-footer__label {
     font-family: var(--font-mono);

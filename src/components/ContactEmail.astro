@@ -1,0 +1,25 @@
+---
+/**
+ * Görünür iletişim adresi (mailto).
+ *
+ * Cloudflare Scrape Shield e-posta gizlemesi, decode script çalışmayınca
+ * "email protected" gösterir. Sayfa genelinde koruma Layout.astro içindeki
+ * `<!--email_off-->` … `<!--email_on-->` ile sağlanır — burada tekrar
+ * email_on yazmak Layout korumasını erken kapatırdı; bu yüzden bu bileşende
+ * Cloudflare yorumları YOK.
+ */
+interface Props {
+  class?: string;
+  /** Görünen metin; varsayılan adresin kendisi */
+  label?: string;
+  address?: string;
+}
+
+const {
+  class: className = '',
+  address = 'info@legereopenedu.com',
+  label = address,
+} = Astro.props;
+---
+
+<a href={`mailto:${address}`} class={className}>{label}</a>

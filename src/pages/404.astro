@@ -16,6 +16,7 @@
  * Gerçek bir 404.html ikisini de çözer.
  */
 import Layout from '../layouts/Layout.astro';
+import ContactEmail from '../components/ContactEmail.astro';
 
 const lang = 'tr' as const;
 ---
@@ -39,6 +40,10 @@ const lang = 'tr' as const;
       <a href="/" class="lg-btn-gold">Ana sayfaya dön <span class="lg-btn-gold__arrow">→</span></a>
       <a href="/#events" class="lg-btn-outline">Etkinliklere bak</a>
     </div>
+
+    <p class="lg-404__mail">
+      Yardım için <ContactEmail class="lg-404__mailLink" /> yazın.
+    </p>
   </section>
 </Layout>
 
@@ -101,4 +106,15 @@ const lang = 'tr' as const;
     flex-wrap: wrap;
     justify-content: center;
   }
+  .lg-404__mail {
+    margin-top: 28px;
+    font-size: 13px;
+    color: var(--color-text-secondary);
+  }
+  .lg-404__mailLink {
+    color: var(--color-gold-500);
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .lg-404__mailLink:hover { color: var(--color-gold-200); }
 </style>

@@ -12,6 +12,7 @@
  */
 import { useTranslations } from '../../i18n/utils';
 import type { Lang } from '../../i18n/languages';
+import ContactEmail from '../../components/ContactEmail.astro';
 
 interface Props {
   lang: Lang;
@@ -104,7 +105,7 @@ const afterJoin = [
 
       <div class="lg-join__contact">
         <div class="lg-join__contactLabel">{t('lp.contact.kicker')}</div>
-        <a href="mailto:info@legereopenedu.com" class="lg-join__mail">info@legereopenedu.com</a>
+        <ContactEmail class="lg-join__mail" />
         <p class="lg-join__contactNote">{t('lp.contact.note')}</p>
       </div>
     </div>

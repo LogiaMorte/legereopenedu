@@ -100,18 +100,18 @@ const showAlternates = !noindex;
   <meta name="twitter:description" content={description} />
   <meta name="twitter:image" content={ogImage} />
 
-  <!-- JSON-LD -->
+  <!-- JSON-LD — e-posta @ işareti bilerek \u0040; stringify sonrası tekrar yazılır -->
   <script type="application/ld+json" set:html={JSON.stringify({
     "@context": "https://schema.org",
     "@type": "EducationalOrganization",
     "name": "Legere Open Edu",
     "alternateName": "OWL - Open Workshop Lab",
     "url": "https://legereopenedu.com",
-    "email": "info@legereopenedu.com",
+    "email": "INFO_EMAIL_PLACEHOLDER",
     "description": "Independent interdisciplinary academic research network at the intersection of criminology, sociology, philosophy, and data science.",
     "areaServed": "Global",
     "knowsAbout": ["Criminology", "Sociology", "Philosophy", "Data Science", "Law", "Psychology", "Anthropology"]
-  })} />
+  }).replace('INFO_EMAIL_PLACEHOLDER', 'info\\u0040legereopenedu.com')} />
 
   <title>{title}</title>
   <ClientRouter />
@@ -123,11 +123,18 @@ const showAlternates = !noindex;
 
     <SiteNav lang={lang} />
 
+  <!--
+    Cloudflare e-posta gizlemesi: decode script çalışmazsa adres "korumalı e-posta"
+    metnine dönüşür. email_off tüm sayfada (yasal metinler + iletişim) adresi
+    olduğu gibi bırakır.
+  -->
+  <!--email_off-->
   <main id="main-content">
     <slot />
   </main>
 
   <SiteFooter lang={lang} />
+  <!--email_on-->
   <RegistrationModal lang={lang} />
 
   <!-- Back to Top Button -->
@@ -142,7 +149,8 @@ const showAlternates = !noindex;
     </svg>
   </button>
 
-  <script>
+  <!-- data-cfasync: Rocket Loader açıksa ClientRouter / initSite sırasını bozmasın -->
+  <script data-cfasync="false">
     import { initSite } from '../scripts/site';
 
     initSite();
