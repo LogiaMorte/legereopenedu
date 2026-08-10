@@ -1,0 +1,25 @@
+---
+/**
+ * Cloudflare Scrape Shield e-posta gizlemesi, decode script'i çalışmayınca
+ * "email protected" / "[email protected]" gösterir (CSP + ClientRouter ile sık).
+ *
+ * `<!--email_off-->` … `<!--email_on-->` Cloudflare'in belgelenmiş muafiyetidir;
+ * bu bileşen tüm görünür iletişim adreslerinde onu kullanır.
+ */
+interface Props {
+  class?: string;
+  /** Görünen metin; varsayılan adresin kendisi */
+  label?: string;
+  address?: string;
+}
+
+const {
+  class: className = '',
+  address = 'info@legereopenedu.com',
+  label = address,
+} = Astro.props;
+---
+
+<!--email_off-->
+<a href={`mailto:${address}`} class={className}>{label}</a>
+<!--email_on-->

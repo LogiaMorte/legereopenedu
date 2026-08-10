@@ -2,6 +2,7 @@
 import Layout from '../layouts/Layout.astro';
 import { useTranslations } from '../i18n/utils';
 import { profileLabelsTr } from '../data/profile-labels';
+import ContactEmail from '../components/ContactEmail.astro';
 const lang = 'tr' as const;
 const t = useTranslations(lang);
 ---
@@ -78,7 +79,7 @@ const t = useTranslations(lang);
                 <span class="shrink-0 w-5 h-5 rounded-full bg-gold-500/15 border border-gold-500/25 text-gold-500 text-[11px] font-mono flex items-center justify-center mt-0.5">3</span>
                 {t('profile.onboarding.step3')}
               </span>
-              <a href="mailto:info@legereopenedu.com" class="btn-outline text-xs py-2 px-4 shrink-0 inline-flex justify-center">{t('profile.onboarding.step3Cta')}</a>
+              <ContactEmail class="btn-outline text-xs py-2 px-4 shrink-0 inline-flex justify-center" label={t('profile.onboarding.step3Cta')} />
             </li>
           </ol>
         </div>
@@ -266,8 +267,7 @@ const t = useTranslations(lang);
               </a>
             </div>
             <div class="mt-4 px-4 py-3 rounded-lg bg-gold-500/5 border border-gold-500/15 text-xs text-text-secondary leading-relaxed">
-              <span class="text-gold-500 font-heading font-medium">📬</span>
-              Katılmak istediğiniz programlar ve fikirleriniz hakkında bize <a href="mailto:info@legereopenedu.com" class="text-gold-500 hover:text-gold-300 transition-colors">info@legereopenedu.com</a> adresinden yazabilirsiniz.
+              Katılmak istediğiniz programlar ve fikirleriniz hakkında bize <ContactEmail class="text-gold-500 hover:text-gold-300 transition-colors" /> adresinden yazabilirsiniz.
             </div>
           </div>
 
