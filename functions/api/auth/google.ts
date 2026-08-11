@@ -12,10 +12,10 @@ import {
   corsHeaders,
   optionsResponse,
   parseJsonBody,
-  generateToken,
   buildLoginCookies,
   jsonResponseWithCookies,
   notifyAdmin,
+  ensureSessionToken,
 } from '../../_shared';
 import {
   type AuthMode,
@@ -161,7 +161,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       }
 
       const member = existing.member;
-      member.token = generateToken();
+      // Mevcut token korunur — bkz. ensureSessionToken (giriş döngüsü)
+      member.token = ensureSessionToken(member);
       if (!member.googleSub) member.googleSub = payload.sub;
       if (payload.picture) member.picture = payload.picture;
       await putMember(env.REGISTRATIONS, existing.keyEmail, member);
