@@ -70,6 +70,14 @@ export interface LegereEvent {
    * geleceği bilinemez. Tek doğruluk kaynağı dış form olur.
    */
   registrationUrl?: string;
+  /**
+   * Etkinlik afişi. Site içi yol (`/social/afis-....png`) ya da tam adres.
+   *
+   * Kartta SABİT YÜKSEKLİKTE bir şerit olarak kırpılarak gösterilir. Afişler
+   * dikey (4:5) oluyor; olduğu gibi basılsa kart üç katına çıkar ve ızgaradaki
+   * diğer kartlar da onunla birlikte uzar.
+   */
+  posterUrl?: string;
   platform?: string;
   location?: { tr: string; en: string };
 }
@@ -192,6 +200,31 @@ function sanitize(input: any): { ok: true; value: LegereEvent } | { ok: false; e
     registrationUrl = parsed.toString();
   }
 
+  /*
+   * Afiş adresi YALNIZCA site içi yol olabilir (`/social/afis-....png`).
+   *
+   * Dış adres kabul edilmiyor çünkü _headers'daki CSP `img-src 'self'` diyor:
+   * başka bir sunucudaki görsel tarayıcı tarafından engellenir ve kartta kırık
+   * resim çıkardı. Panelde adresi yazan kişi bunu göremeyeceği için hatayı
+   * kaydetme anında söylemek daha doğru.
+   *
+   * `//baska-site.com` protokole bağlı bir DIŞ adrestir ama site içi yol gibi
+   * görünür; o yüzden tek eğik çizgiyle başlaması şart.
+   */
+  const rawPoster = text(input?.posterUrl, 500);
+  let posterUrl: string | undefined;
+  if (rawPoster) {
+    if (!rawPoster.startsWith('/') || rawPoster.startsWith('//')) {
+      return {
+        ok: false,
+        error:
+          'Afiş adresi site içi bir yol olmalı (ör. /social/afis-2026-08-16.png). ' +
+          'Dosyayı public/social/ altına koyun; güvenlik ayarları dış sunucudaki görselleri engelliyor.',
+      };
+    }
+    posterUrl = rawPoster;
+  }
+
   return {
     ok: true,
     value: {
@@ -215,6 +248,7 @@ function sanitize(input: any): { ok: true; value: LegereEvent } | { ok: false; e
       attendees,
       registrationOpen: input?.registrationOpen === true,
       registrationUrl,
+      posterUrl,
       platform: text(input?.platform, 40) || undefined,
       location: locTr || locEn ? { tr: locTr, en: locEn } : undefined,
     },
