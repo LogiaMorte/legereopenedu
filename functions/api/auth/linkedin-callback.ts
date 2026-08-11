@@ -5,10 +5,10 @@
  */
 
 import {
-  generateToken,
   buildLoginCookies,
   redirectWithCookies,
   notifyAdmin,
+  ensureSessionToken,
 } from '../../_shared';
 import {
   parseAndVerifyLinkedInState,
@@ -233,7 +233,8 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       }
 
       const member = existing.member;
-      member.token = generateToken();
+      // Mevcut token korunur — bkz. ensureSessionToken (giriş döngüsü)
+      member.token = ensureSessionToken(member);
       if (!member.linkedinSub) member.linkedinSub = userInfo.sub;
       member.linkedinVerified = linkedinVerified;
       member.linkedinVerifications = verifications;

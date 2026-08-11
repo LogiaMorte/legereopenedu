@@ -113,6 +113,34 @@ export function generateToken(): string {
   return Array.from(bytes, b => b.toString(16).padStart(2, '0')).join('');
 }
 
+/** Oturum token'ı biçimi — çerezdeki değer de bununla doğrulanıyor. */
+const TOKEN_RE = /^[0-9a-f]{64}$/;
+
+/**
+ * Girişte kullanılacak oturum token'ı: ÜYENİN MEVCUT TOKEN'I VARSA KORUNUR.
+ *
+ * Eskiden her giriş yeni token üretiyordu ve "giriş başarılı ama profil boş"
+ * döngüsünün sebebi buydu:
+ *
+ *   1. Ziyaretçi sayfayı açar, nav üye durumu için /api/auth/me çağırır.
+ *      Bu okuma `member:{email}` kaydını Cloudflare uçta önbelleğe alır.
+ *   2. Kullanıcı giriş yapar; sunucu YENİ token üretip KV'ye yazar ve çereze
+ *      yeni token'ı koyar.
+ *   3. Profil sayfası /api/auth/me çağırır. KV okuması hâlâ önbellekteki ESKİ
+ *      kaydı dönebilir (KV eventual consistent, okumalar uçta ~60 sn tutulur).
+ *      Çerezdeki yeni token ile KV'deki eski token eşleşmez -> 401.
+ *   4. Profil "giriş yapmanız gerekiyor" der ve çerezi siler; kullanıcı yeniden
+ *      giriş yapar, yeni bir token daha üretilir — döngü kapanmaz.
+ *
+ * Token'ı korumak bu yarışı tamamen ortadan kaldırır: eski kayıt okunsa bile
+ * içindeki token çerezdekiyle AYNI olur. Oturumu geçersiz kılma yeteneği
+ * kaybolmuyor — çıkış (DELETE /api/auth/me) token'ı hâlâ döndürüyor.
+ */
+export function ensureSessionToken(member: { token?: unknown }): string {
+  const current = typeof member.token === 'string' ? member.token : '';
+  return TOKEN_RE.test(current) ? current : generateToken();
+}
+
 export function generatePassword(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   const bytes = new Uint8Array(6);
