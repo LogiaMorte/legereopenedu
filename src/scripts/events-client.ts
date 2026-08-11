@@ -37,6 +37,11 @@ export interface ApiEvent {
   /** Tamamlanmış etkinliğin panelden girilen gerçek katılımcı sayısı. */
   attendees?: number;
   registrationOpen: boolean;
+  /**
+   * Kayıt site dışında toplanıyorsa formun adresi (ör. Google Form).
+   * Doluysa kart sitenin kayıt modalını AÇMAZ, doğrudan bu adrese gider.
+   */
+  registrationUrl?: string;
   platform?: string;
   location?: Record<string, string>;
 }
@@ -219,6 +224,26 @@ function card(ev: ApiEvent, count: number, L: EventLabels): HTMLElement {
 
   const actions = h('div', 'lg-card__actions');
   actions.appendChild(h('span', 'lg-card__platform', ev.platform ?? ''));
+
+  /*
+   * Bazı etkinliklerin kaydı site dışında toplanıyor (ör. Google Form).
+   * O durumda buton yerine bağlantı basılır: sitenin kayıt modalı açılmaz,
+   * KV'ye kayıt yazılmaz — tek doğruluk kaynağı dış form olur. Karışık iki
+   * kanaldan kayıt almak, kimin geleceğini bilememek demek.
+   */
+  const external = status === 'open' && !isFull ? ev.registrationUrl?.trim() : '';
+  if (external) {
+    const link = h('a', 'lg-card__cta is-solid', L.cta.open);
+    link.setAttribute('href', external);
+    link.setAttribute('target', '_blank');
+    // noopener: dış sayfa window.opener üzerinden bu sekmeyi yönlendirebilir
+    link.setAttribute('rel', 'noopener noreferrer');
+    link.setAttribute('aria-label', `${L.cta.open} — ${ev.title?.[lang] ?? ev.id}`);
+    actions.appendChild(link);
+    foot.appendChild(actions);
+    el.appendChild(foot);
+    return el;
+  }
 
   const cta = h('button', `lg-card__cta${status === 'open' && !isFull ? ' is-solid' : ''}`, L.cta[status]);
   cta.setAttribute('type', 'button');

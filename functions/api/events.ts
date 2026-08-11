@@ -62,6 +62,14 @@ export interface LegereEvent {
   attendees?: number;
   /** Elle kontrol edilen TEK zamansal olmayan alan: başvuru alıyor muyuz. */
   registrationOpen: boolean;
+  /**
+   * Kayıt site dışında toplanıyorsa formun adresi (ör. Google Form).
+   *
+   * Doluysa kart sitenin kayıt modalını açmaz ve /api/register bu etkinliğe
+   * başvuru KABUL ETMEZ: kayıtların yarısı KV'de yarısı formda olursa kimin
+   * geleceği bilinemez. Tek doğruluk kaynağı dış form olur.
+   */
+  registrationUrl?: string;
   platform?: string;
   location?: { tr: string; en: string };
 }
@@ -167,6 +175,23 @@ function sanitize(input: any): { ok: true; value: LegereEvent } | { ok: false; e
   const locTr = text(input?.location?.tr, 200);
   const locEn = text(input?.location?.en, 200);
 
+  // Dış kayıt adresi: yalnızca http(s). Aksi hâlde panele yazılan bir
+  // `javascript:` adresi karta bağlantı olarak basılırdı.
+  const rawRegUrl = text(input?.registrationUrl, 500);
+  let registrationUrl: string | undefined;
+  if (rawRegUrl) {
+    let parsed: URL | null = null;
+    try {
+      parsed = new URL(rawRegUrl);
+    } catch {
+      parsed = null;
+    }
+    if (!parsed || (parsed.protocol !== 'https:' && parsed.protocol !== 'http:')) {
+      return { ok: false, error: 'Kayıt bağlantısı http(s) ile başlayan geçerli bir adres olmalı.' };
+    }
+    registrationUrl = parsed.toString();
+  }
+
   return {
     ok: true,
     value: {
@@ -189,6 +214,7 @@ function sanitize(input: any): { ok: true; value: LegereEvent } | { ok: false; e
       maxParticipants,
       attendees,
       registrationOpen: input?.registrationOpen === true,
+      registrationUrl,
       platform: text(input?.platform, 40) || undefined,
       location: locTr || locEn ? { tr: locTr, en: locEn } : undefined,
     },
