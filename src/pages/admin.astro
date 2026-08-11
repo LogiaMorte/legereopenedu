@@ -174,7 +174,7 @@ const seedData = [
           <div>
             <h2 class="text-lg font-heading font-bold text-text-primary">Etkinlikler</h2>
             <p class="text-xs text-text-secondary mt-1">
-              Atölye, seminer, ders, kolokyum ve kongreler. Durum tarihten otomatik hesaplanır —
+              Atölye, seminer, ders, kolokyum ve kongreler. Durum tarihten otomatik hesaplanır;
               elle ayarladığınız tek şey başvurunun açık olup olmadığı.
             </p>
           </div>
@@ -196,7 +196,7 @@ const seedData = [
           <h3 id="event-form-title" class="font-heading font-bold text-text-primary mb-5">Yeni Etkinlik</h3>
           <div class="grid md:grid-cols-2 gap-4">
             <label class="block">
-              <span class="block text-xs text-text-secondary mb-1.5">Kısa ad (URL/id) — sonradan değiştirilemez</span>
+              <span class="block text-xs text-text-secondary mb-1.5">Kısa ad (URL/id), sonradan değiştirilemez</span>
               <input id="ev-id" type="text" placeholder="ws-2026-guz-kriminoloji"
                 class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
             </label>
@@ -233,7 +233,7 @@ const seedData = [
             </label>
             <label class="block">
               <span class="block text-xs text-text-secondary mb-1.5">
-                Başlangıç saati <span class="text-gold-500/70">(Türkiye saati)</span> — boş = tüm gün
+                Başlangıç saati <span class="text-gold-500/70">(Türkiye saati)</span>, boş = tüm gün
               </span>
               <input id="ev-time-start" type="time"
                 class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
@@ -263,11 +263,31 @@ const seedData = [
             <label class="block md:col-span-2">
               <span class="block text-xs text-text-secondary mb-1.5">
                 Dış kayıt bağlantısı
-                <span class="text-text-secondary/60">— doluysa site üzerinden kayıt alınmaz, kart bu adrese gider</span>
+                <span class="text-text-secondary/60">(doluysa site üzerinden kayıt alınmaz, kart bu adrese gider)</span>
               </span>
               <input id="ev-reg-url" type="url" placeholder="https://forms.gle/..."
                 class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
             </label>
+            <div class="block md:col-span-2">
+              <span class="block text-xs text-text-secondary mb-1.5">
+                Afiş
+                <span class="text-text-secondary/60">(kartta tamamı görünür, tıklayınca büyür)</span>
+              </span>
+              <div class="flex items-center gap-2 mb-2">
+                <input id="ev-poster-file" type="file" accept="image/png,image/jpeg,image/webp,image/avif" class="hidden" />
+                <button type="button" id="ev-poster-btn"
+                  class="px-3 py-2 rounded-lg bg-gold-500/15 border border-gold-500/30 text-gold-300 text-xs font-heading font-semibold hover:bg-gold-500/25 transition-colors">
+                  Afiş yükle
+                </button>
+                <span id="ev-poster-status" class="text-xs text-text-secondary"></span>
+              </div>
+              <img id="ev-poster-preview" alt="" class="hidden mb-2 rounded-lg border border-white/10" style="max-height:150px" />
+              <label class="block">
+              <span class="sr-only">Afiş adresi</span>
+              <input id="ev-poster" type="text" placeholder="/media/afis/..."
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
+              </label>
+            </div>
             <label class="block md:col-span-2">
               <span class="block text-xs text-text-secondary mb-1.5">Disiplinler (virgülle ayırın)</span>
               <input id="ev-disciplines" type="text" placeholder="criminology, data-science"
@@ -288,7 +308,7 @@ const seedData = [
           <label class="flex items-center gap-3 mt-5 cursor-pointer">
             <input id="ev-open" type="checkbox" class="w-4 h-4 accent-[#D4A843]" />
             <span class="text-sm text-text-primary font-heading">Başvuruya açık</span>
-            <span class="text-xs text-text-secondary">— işaretlenmezse sitede "Yakında" görünür</span>
+            <span class="text-xs text-text-secondary">(işaretlenmezse sitede "Yakında" görünür)</span>
           </label>
 
           <p id="event-form-error" class="hidden text-red-400 text-sm mt-4"></p>
@@ -373,10 +393,10 @@ const seedData = [
       <div class="mb-4">
         <label class="block text-text-secondary text-xs font-heading font-medium mb-1.5">Rozet</label>
         <select id="badge-select" class="w-full px-4 py-2.5 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm focus:border-gold-500/50 focus:outline-none">
-          <option value="pioneer">Öncü — Kurucu dönem katılımcısı</option>
-          <option value="mentor">Mentor — Mentorluk katkısı</option>
-          <option value="contributor">Katkıcı — Yayın sürecine katkı</option>
-          <option value="scholar">Akademisyen — Akademik yayın üretti</option>
+          <option value="pioneer">Öncü: Kurucu dönem katılımcısı</option>
+          <option value="mentor">Mentor: Mentorluk katkısı</option>
+          <option value="contributor">Katkıcı: Yayın sürecine katkı</option>
+          <option value="scholar">Akademisyen: Akademik yayın üretti</option>
         </select>
       </div>
       <div class="flex gap-3">
@@ -585,6 +605,80 @@ const seedData = [
 
   function setVal(id, v) { document.getElementById(id).value = v == null ? '' : v; }
 
+  /*
+   * Afiş yükleme.
+   *
+   * Dosya /api/upload'a gidiyor, R2'ye yazılıyor ve dönen site içi yol adres
+   * alanına yazılıyor. Alan düzenlenebilir kalıyor: eskiden repoya konmuş
+   * afişler (/social/...) hâlâ elle yazılabilsin.
+   */
+  function afisOnizlemeTazele() {
+    var adres = (document.getElementById('ev-poster') || {}).value || '';
+    var onizleme = document.getElementById('ev-poster-preview');
+    if (!onizleme) return;
+    if (adres) {
+      onizleme.src = adres;
+      onizleme.classList.remove('hidden');
+    } else {
+      onizleme.removeAttribute('src');
+      onizleme.classList.add('hidden');
+    }
+  }
+
+  (function kurAfisYukleme() {
+    var dugme = document.getElementById('ev-poster-btn');
+    var girdi = document.getElementById('ev-poster-file');
+    var durum = document.getElementById('ev-poster-status');
+    var adresAlani = document.getElementById('ev-poster');
+    if (!dugme || !girdi || !adresAlani) return;
+
+    adresAlani.addEventListener('input', afisOnizlemeTazele);
+    dugme.addEventListener('click', function () { girdi.click(); });
+
+    girdi.addEventListener('change', function () {
+      var dosya = girdi.files && girdi.files[0];
+      if (!dosya) return;
+
+      // Sunucu da kontrol ediyor; buradaki kontrol kullanıcıyı 8 MB'ı boşuna
+      // yüklemekten kurtarıyor.
+      if (dosya.size > 8 * 1024 * 1024) {
+        durum.textContent = 'Dosya çok büyük (en fazla 8 MB).';
+        durum.className = 'text-xs text-status-closed';
+        girdi.value = '';
+        return;
+      }
+
+      durum.textContent = 'Yükleniyor...';
+      durum.className = 'text-xs text-text-secondary';
+      dugme.disabled = true;
+
+      var form = new FormData();
+      form.append('file', dosya);
+
+      fetch('/api/upload', { method: 'POST', body: form, credentials: 'include' })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (sonuc) {
+          if (!sonuc.ok) {
+            durum.textContent = sonuc.d.error || 'Yüklenemedi.';
+            durum.className = 'text-xs text-status-closed';
+            return;
+          }
+          adresAlani.value = sonuc.d.url;
+          afisOnizlemeTazele();
+          durum.textContent = 'Yüklendi. Kaydetmeyi unutmayın.';
+          durum.className = 'text-xs text-status-open';
+        })
+        .catch(function () {
+          durum.textContent = 'Bağlantı hatası.';
+          durum.className = 'text-xs text-status-closed';
+        })
+        .then(function () {
+          dugme.disabled = false;
+          girdi.value = '';
+        });
+    });
+  })();
+
   function openEventForm(id) {
     var ev = id ? eventsCache.filter(function (x) { return x.id === id; })[0] : null;
     document.getElementById('event-form-title').textContent = ev ? 'Etkinliği Düzenle' : 'Yeni Etkinlik';
@@ -605,7 +699,12 @@ const seedData = [
     setVal('ev-attendees', ev && ev.attendees != null ? ev.attendees : '');
     setVal('ev-platform', ev ? (ev.platform || '') : '');
     setVal('ev-reg-url', ev ? (ev.registrationUrl || '') : '');
+    setVal('ev-poster', ev ? (ev.posterUrl || '') : '');
+    afisOnizlemeTazele();
     setVal('ev-disciplines', ev && ev.disciplines ? ev.disciplines.join(', ') : '');
+
+
+
     document.getElementById('ev-open').checked = !!(ev && ev.registrationOpen);
 
     document.getElementById('event-form').classList.remove('hidden');
@@ -663,6 +762,7 @@ const seedData = [
         ? null : parseInt(document.getElementById('ev-attendees').value, 10),
       platform: document.getElementById('ev-platform').value,
       registrationUrl: document.getElementById('ev-reg-url').value,
+      posterUrl: document.getElementById('ev-poster').value,
       disciplines: document.getElementById('ev-disciplines').value
         .split(',').map(function (s) { return s.trim(); }).filter(Boolean),
       registrationOpen: document.getElementById('ev-open').checked,
@@ -887,7 +987,7 @@ const seedData = [
           return '<div class="glass-subtle p-3 flex justify-between items-center"><span class="text-xs text-text-primary truncate">'+esc(r.workshop||r.id)+'</span><span class="badge text-[10px] badge-discipline">'+(statusMap[r.status]||esc(r.status))+'</span></div>';
         }).join('')+'</div>' : '')
         + (certs.length > 0 ? '<h4 class="text-sm font-heading font-bold text-text-primary mt-6 mb-3">Sertifikalar ('+certs.length+')</h4><div class="space-y-2">'+certs.map(function(c){
-          return '<div class="glass-subtle p-3 text-xs"><span class="text-gold-500 font-mono">'+esc(c.id)+'</span> — '+esc(c.type||'')+'</div>';
+          return '<div class="glass-subtle p-3 text-xs"><span class="text-gold-500 font-mono">'+esc(c.id)+'</span> · '+esc(c.type||'')+'</div>';
         }).join('')+'</div>' : '')
         + (badges.length > 0 ? '<h4 class="text-sm font-heading font-bold text-text-primary mt-6 mb-3">Rozetler ('+badges.length+')</h4><div class="space-y-2">'+badges.map(function(b){
           return '<div class="glass-subtle p-3 text-xs">'+esc(b.badgeId)+'</div>';
@@ -960,7 +1060,7 @@ const seedData = [
 
   function openCertModal(regId, name, workshop) {
     pendingCertRegId = regId;
-    document.getElementById('cert-modal-info').textContent = name + ' — ' + workshop;
+    document.getElementById('cert-modal-info').textContent = name + ' · ' + workshop;
     document.getElementById('cert-type-select').value = 'participation';
     var m = document.getElementById('cert-modal'); m.classList.remove('hidden'); m.classList.add('flex');
   }
