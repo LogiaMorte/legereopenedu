@@ -261,6 +261,14 @@ const seedData = [
                 class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm focus:outline-none focus:border-gold-500/50" />
             </label>
             <label class="block md:col-span-2">
+              <span class="block text-xs text-text-secondary mb-1.5">
+                Dış kayıt bağlantısı
+                <span class="text-text-secondary/60">— doluysa site üzerinden kayıt alınmaz, kart bu adrese gider</span>
+              </span>
+              <input id="ev-reg-url" type="url" placeholder="https://forms.gle/..."
+                class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
+            </label>
+            <label class="block md:col-span-2">
               <span class="block text-xs text-text-secondary mb-1.5">Disiplinler (virgülle ayırın)</span>
               <input id="ev-disciplines" type="text" placeholder="criminology, data-science"
                 class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
@@ -596,6 +604,7 @@ const seedData = [
     setVal('ev-max', ev ? ev.maxParticipants : 50);
     setVal('ev-attendees', ev && ev.attendees != null ? ev.attendees : '');
     setVal('ev-platform', ev ? (ev.platform || '') : '');
+    setVal('ev-reg-url', ev ? (ev.registrationUrl || '') : '');
     setVal('ev-disciplines', ev && ev.disciplines ? ev.disciplines.join(', ') : '');
     document.getElementById('ev-open').checked = !!(ev && ev.registrationOpen);
 
@@ -653,6 +662,7 @@ const seedData = [
       attendees: document.getElementById('ev-attendees').value === ''
         ? null : parseInt(document.getElementById('ev-attendees').value, 10),
       platform: document.getElementById('ev-platform').value,
+      registrationUrl: document.getElementById('ev-reg-url').value,
       disciplines: document.getElementById('ev-disciplines').value
         .split(',').map(function (s) { return s.trim(); }).filter(Boolean),
       registrationOpen: document.getElementById('ev-open').checked,

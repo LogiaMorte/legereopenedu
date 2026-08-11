@@ -64,6 +64,21 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       return new Response(JSON.stringify({ error: 'Etkinlik bulunamadı.' }), { status: 404, headers });
     }
 
+    /*
+     * Kaydı dış formda toplanan etkinliğe buradan başvuru alınmaz. Kart zaten
+     * forma yönlendiriyor, ama uç açık kalırsa doğrudan istek atan biri KV'ye
+     * yazabilir ve kayıtlar iki kanala bölünür — kimin geleceği bilinemez.
+     */
+    if (eventRecord.registrationUrl) {
+      return new Response(
+        JSON.stringify({
+          error: 'Bu etkinliğin kaydı site üzerinden değil, duyurulan form üzerinden alınıyor.',
+          registrationUrl: eventRecord.registrationUrl,
+        }),
+        { status: 409, headers },
+      );
+    }
+
     // Yalnızca başvuruya açık ve henüz başlamamış etkinliklere kayıt alınır.
     if (!canRegister(eventRecord)) {
       return new Response(
