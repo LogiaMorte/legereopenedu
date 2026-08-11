@@ -488,27 +488,67 @@ export function initProfile(): void {
     document.getElementById('onboard-edit')?.addEventListener('click', openEditForm);
   };
 
+  /**
+   * Profil yükleme.
+   *
+   * Buradaki ayrım kritik: "kimlik doğrulanamadı" ile "profil çizilirken hata
+   * oldu" AYNI ŞEY DEĞİL. Eskiden renderProfile() de try bloğunun içindeydi ve
+   * çizim sırasındaki herhangi bir hata catch'e düşüp "Giriş yapmanız
+   * gerekiyor." ekranını gösteriyordu — kullanıcı girişliyken.
+   *
+   * Bu yanlış tanı, gerçek hatayı da tamamen gizliyordu: konsolda iz yoktu,
+   * belirti "oturum düşüyor" gibi görünüyordu ve haftalarca çerez/oturum
+   * tarafında arandı. Oysa /api/auth/me 200 dönüyordu — nav'daki üye ve admin
+   * bağlantılarının aynı sayfada açılması bunun kanıtıydı.
+   *
+   * Artık: kimlik doğrulandıysa içerik GÖSTERİLİR. Çizimin bir parçası
+   * patlarsa sayfa boş kalmaz, hata konsola yazılır.
+   */
   const loadProfile = async () => {
+    let res: Response;
     try {
-      const res = await fetch('/api/auth/me', { credentials: 'include' });
-      clearTimeout(loadTimeout);
-      if (!res.ok) {
-        loadingEl.classList.add('hidden');
-        notLoggedEl.classList.remove('hidden');
-        // Bozuk/çakışan oturum çerezlerini temizle ki login döngüsü kırılsın
-        document.cookie = 'legere_logged_in=; Path=/; Max-Age=0; SameSite=Lax; Secure';
-        document.cookie =
-          'legere_logged_in=; Path=/; Max-Age=0; SameSite=Lax; Secure; Domain=.legereopenedu.com';
-        return;
-      }
-      const data = await res.json();
-      renderProfile(data);
-      loadingEl.classList.add('hidden');
-      contentEl.classList.remove('hidden');
-    } catch {
+      res = await fetch('/api/auth/me', { credentials: 'include' });
+    } catch (err) {
+      // Ağ hatası: kimlik durumu bilinmiyor, oturumu yok saymak yanlış olurdu
+      // ama gösterebileceğimiz bir şey de yok.
+      console.error('[profile] /api/auth/me isteğine ulaşılamadı:', err);
       clearTimeout(loadTimeout);
       loadingEl.classList.add('hidden');
       notLoggedEl.classList.remove('hidden');
+      return;
+    }
+    clearTimeout(loadTimeout);
+
+    if (!res.ok) {
+      loadingEl.classList.add('hidden');
+      notLoggedEl.classList.remove('hidden');
+      // Bozuk/çakışan oturum çerezlerini temizle ki login döngüsü kırılsın
+      document.cookie = 'legere_logged_in=; Path=/; Max-Age=0; SameSite=Lax; Secure';
+      document.cookie =
+        'legere_logged_in=; Path=/; Max-Age=0; SameSite=Lax; Secure; Domain=.legereopenedu.com';
+      return;
+    }
+
+    let data: Parameters<typeof renderProfile>[0];
+    try {
+      data = (await res.json()) as Parameters<typeof renderProfile>[0];
+    } catch (err) {
+      console.error('[profile] /api/auth/me yanıtı okunamadı:', err);
+      loadingEl.classList.add('hidden');
+      notLoggedEl.classList.remove('hidden');
+      return;
+    }
+
+    // Kimlik doğrulandı — içerik buradan sonra her hâlükârda gösterilir.
+    loadingEl.classList.add('hidden');
+    contentEl.classList.remove('hidden');
+
+    try {
+      renderProfile(data);
+    } catch (err) {
+      // Tek bir alanın çizimi patlasa bile sayfa ayakta kalır; kullanıcıyı
+      // giriş ekranına atmak bu hatanın karşılığı değil.
+      console.error('[profile] profil çizilirken hata:', err);
     }
   };
 
