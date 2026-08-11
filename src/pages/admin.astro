@@ -268,14 +268,26 @@ const seedData = [
               <input id="ev-reg-url" type="url" placeholder="https://forms.gle/..."
                 class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
             </label>
-            <label class="block md:col-span-2">
+            <div class="block md:col-span-2">
               <span class="block text-xs text-text-secondary mb-1.5">
-                Afiş adresi (site içi yol)
-                <span class="text-text-secondary/60">(kartta sabit yükseklikte kırpılır, tıklayınca tamamı açılır)</span>
+                Afiş
+                <span class="text-text-secondary/60">(kartta tamamı görünür, tıklayınca büyür)</span>
               </span>
-              <input id="ev-poster" type="text" placeholder="/social/afis-2026-08-16.png"
+              <div class="flex items-center gap-2 mb-2">
+                <input id="ev-poster-file" type="file" accept="image/png,image/jpeg,image/webp,image/avif" class="hidden" />
+                <button type="button" id="ev-poster-btn"
+                  class="px-3 py-2 rounded-lg bg-gold-500/15 border border-gold-500/30 text-gold-300 text-xs font-heading font-semibold hover:bg-gold-500/25 transition-colors">
+                  Afiş yükle
+                </button>
+                <span id="ev-poster-status" class="text-xs text-text-secondary"></span>
+              </div>
+              <img id="ev-poster-preview" alt="" class="hidden mb-2 rounded-lg border border-white/10" style="max-height:150px" />
+              <label class="block">
+              <span class="sr-only">Afiş adresi</span>
+              <input id="ev-poster" type="text" placeholder="/media/afis/..."
                 class="w-full px-3 py-2 rounded-lg bg-white/5 border border-white/10 text-text-primary text-sm font-mono focus:outline-none focus:border-gold-500/50" />
-            </label>
+              </label>
+            </div>
             <label class="block md:col-span-2">
               <span class="block text-xs text-text-secondary mb-1.5">Disiplinler (virgülle ayırın)</span>
               <input id="ev-disciplines" type="text" placeholder="criminology, data-science"
@@ -593,6 +605,80 @@ const seedData = [
 
   function setVal(id, v) { document.getElementById(id).value = v == null ? '' : v; }
 
+  /*
+   * Afiş yükleme.
+   *
+   * Dosya /api/upload'a gidiyor, R2'ye yazılıyor ve dönen site içi yol adres
+   * alanına yazılıyor. Alan düzenlenebilir kalıyor: eskiden repoya konmuş
+   * afişler (/social/...) hâlâ elle yazılabilsin.
+   */
+  function afisOnizlemeTazele() {
+    var adres = (document.getElementById('ev-poster') || {}).value || '';
+    var onizleme = document.getElementById('ev-poster-preview');
+    if (!onizleme) return;
+    if (adres) {
+      onizleme.src = adres;
+      onizleme.classList.remove('hidden');
+    } else {
+      onizleme.removeAttribute('src');
+      onizleme.classList.add('hidden');
+    }
+  }
+
+  (function kurAfisYukleme() {
+    var dugme = document.getElementById('ev-poster-btn');
+    var girdi = document.getElementById('ev-poster-file');
+    var durum = document.getElementById('ev-poster-status');
+    var adresAlani = document.getElementById('ev-poster');
+    if (!dugme || !girdi || !adresAlani) return;
+
+    adresAlani.addEventListener('input', afisOnizlemeTazele);
+    dugme.addEventListener('click', function () { girdi.click(); });
+
+    girdi.addEventListener('change', function () {
+      var dosya = girdi.files && girdi.files[0];
+      if (!dosya) return;
+
+      // Sunucu da kontrol ediyor; buradaki kontrol kullanıcıyı 8 MB'ı boşuna
+      // yüklemekten kurtarıyor.
+      if (dosya.size > 8 * 1024 * 1024) {
+        durum.textContent = 'Dosya çok büyük (en fazla 8 MB).';
+        durum.className = 'text-xs text-status-closed';
+        girdi.value = '';
+        return;
+      }
+
+      durum.textContent = 'Yükleniyor...';
+      durum.className = 'text-xs text-text-secondary';
+      dugme.disabled = true;
+
+      var form = new FormData();
+      form.append('file', dosya);
+
+      fetch('/api/upload', { method: 'POST', body: form, credentials: 'include' })
+        .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+        .then(function (sonuc) {
+          if (!sonuc.ok) {
+            durum.textContent = sonuc.d.error || 'Yüklenemedi.';
+            durum.className = 'text-xs text-status-closed';
+            return;
+          }
+          adresAlani.value = sonuc.d.url;
+          afisOnizlemeTazele();
+          durum.textContent = 'Yüklendi. Kaydetmeyi unutmayın.';
+          durum.className = 'text-xs text-status-open';
+        })
+        .catch(function () {
+          durum.textContent = 'Bağlantı hatası.';
+          durum.className = 'text-xs text-status-closed';
+        })
+        .then(function () {
+          dugme.disabled = false;
+          girdi.value = '';
+        });
+    });
+  })();
+
   function openEventForm(id) {
     var ev = id ? eventsCache.filter(function (x) { return x.id === id; })[0] : null;
     document.getElementById('event-form-title').textContent = ev ? 'Etkinliği Düzenle' : 'Yeni Etkinlik';
@@ -614,7 +700,11 @@ const seedData = [
     setVal('ev-platform', ev ? (ev.platform || '') : '');
     setVal('ev-reg-url', ev ? (ev.registrationUrl || '') : '');
     setVal('ev-poster', ev ? (ev.posterUrl || '') : '');
+    afisOnizlemeTazele();
     setVal('ev-disciplines', ev && ev.disciplines ? ev.disciplines.join(', ') : '');
+
+
+
     document.getElementById('ev-open').checked = !!(ev && ev.registrationOpen);
 
     document.getElementById('event-form').classList.remove('hidden');
