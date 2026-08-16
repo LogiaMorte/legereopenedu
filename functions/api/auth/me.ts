@@ -16,6 +16,7 @@ import {
   jsonResponseWithCookies,
   isAdminEmail,
 } from '../../_shared';
+import { readEvents } from '../events';
 import badgesData from '../../../src/data/badges.json';
 
 interface Env {
@@ -87,11 +88,16 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       }
     }
 
-    // Get registrations via regIds (parallel KV fetches)
+    // Kayıtlar + etkinlik başlıkları aynı turda. Başlıklar KV'deki
+    // etkinlik kaydından — profilde slug (`ws-2026-...`) yerine okunabilir
+    // ad görünsün. Etkinlik silinmişse id'ye düşülür.
     const regIds = member.regIds || [];
-    const regResults = await Promise.all(
-      regIds.map((regId: string) => env.REGISTRATIONS.get(regId))
-    );
+    const [regResults, events] = await Promise.all([
+      Promise.all(regIds.map((regId: string) => env.REGISTRATIONS.get(regId))),
+      readEvents(env.REGISTRATIONS),
+    ]);
+    const titles = new Map(events.map((e) => [e.id, e.title] as const));
+
     const registrations = regResults
       .filter((data): data is string => data !== null)
       .map((data) => {
@@ -99,6 +105,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         return {
           id: reg.id,
           workshop: reg.workshop,
+          workshopTitle: titles.get(reg.workshop) || undefined,
           status: reg.status || 'pending',
           timestamp: reg.timestamp,
         };
@@ -147,7 +154,13 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           linkedinSub: member.linkedinSub ? true : false,
         },
         registrations,
-        certificates: member.certificates || [],
+        certificates: ((member.certificates || []) as Array<Record<string, unknown>>).map((c) => {
+          const workshopId = typeof c.workshopId === 'string' ? c.workshopId : '';
+          return {
+            ...c,
+            workshopTitle: c.workshopTitle || (workshopId ? titles.get(workshopId) : undefined) || undefined,
+          };
+        }),
         badges: allBadges,
         _nav: isAdmin ? { admin: true } : undefined,
       }),

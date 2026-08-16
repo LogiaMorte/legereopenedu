@@ -100,8 +100,8 @@ async function verifyGoogleToken(idToken: string, clientId: string): Promise<Goo
       ['verify'],
     );
 
-    const signatureBytes = base64UrlDecode(parts[2]);
-    const dataBytes = new TextEncoder().encode(parts[0] + '.' + parts[1]);
+    const signatureBytes = Uint8Array.from(base64UrlDecode(parts[2]));
+    const dataBytes = Uint8Array.from(new TextEncoder().encode(parts[0] + '.' + parts[1]));
     const valid = await crypto.subtle.verify('RSASSA-PKCS1-v1_5', cryptoKey, signatureBytes, dataBytes);
     if (!valid) return null;
 

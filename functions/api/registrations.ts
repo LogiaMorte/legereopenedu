@@ -175,6 +175,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           id: certId,
           type: body.certType,
           workshopId: reg.workshop,
+          workshopTitle: certTitle,
           issueDate: cert.issueDate,
         });
         await env.REGISTRATIONS.put(memberKey, JSON.stringify(member), {
