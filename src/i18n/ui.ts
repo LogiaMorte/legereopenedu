@@ -411,7 +411,8 @@ export const ui = {
     'lp.faq.a5': 'Yeni kurulduk; boş takvim gerçek durum, makyaj değil. 2026 güz programı katılanların çalışma alanına göre kuruluyor. Bu yüzden kayıt, beklemeye değil şekillendirmeye çağrı.',
     'lp.faq.q6': 'Kayıttan sonra ne olur?',
     'lp.faq.a6': 'Microsoft Teams topluluğuna davet edilirsin. Tartışma ve üretim orada, kayıt altında yürür. WhatsApp benzeri kanallara taşınmaz.',
-    'lp.faq.more': 'Cevabınız yoksa kaydolun veya doğrudan yazın — genellikle 48 saat içinde dönüş yapıyoruz.',
+    'lp.faq.moreBefore': 'Sorunuz burada yoksa',
+    'lp.faq.moreAfter': ' adresine yazın. Genellikle 48 saat içinde dönüş yapıyoruz.',
     'lp.faq.cta': 'Topluluğa katıl',
 
     'lp.sticky.note': 'Ücretsiz · tek tık · KVKK',
@@ -835,7 +836,8 @@ export const ui = {
     'lp.faq.a5': 'We are newly founded; an empty calendar is the real state, not a cover. The autumn 2026 programme is built around those who join. Registering is a call to shape the term, not to wait for it.',
     'lp.faq.q6': 'What happens after I register?',
     'lp.faq.a6': 'You are invited to the Microsoft Teams community. Discussion and production stay there, and sessions are recorded. They are not moved to channels such as WhatsApp.',
-    'lp.faq.more': 'If your question is not here, join or write directly — we usually reply within 48 hours.',
+    'lp.faq.moreBefore': 'If your question isn’t here, write to',
+    'lp.faq.moreAfter': '. We usually reply within 48 hours.',
     'lp.faq.cta': 'Join the community',
 
     'lp.sticky.note': 'Free · one click · KVKK',
