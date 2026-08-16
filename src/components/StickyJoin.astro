@@ -1,0 +1,71 @@
+---
+/**
+ * Mobil yapışkan katıl çubuğu — hero geçildikten sonra, Join görünürken gizlenir.
+ * Masaüstünde nav CTA zaten durduğu için CSS ile kapatılır.
+ */
+import { useTranslations } from '../i18n/utils';
+import type { Lang } from '../i18n/languages';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const signupPath = lang === 'en' ? '/en/signup' : '/signup';
+---
+
+<div id="lg-sticky" class="lg-sticky" hidden>
+  <p class="lg-sticky__note">{t('lp.sticky.note')}</p>
+  <a href={signupPath} class="lg-sticky__cta">
+    {t('nav.cta')} <span aria-hidden="true">→</span>
+  </a>
+</div>
+
+<style>
+  .lg-sticky {
+    display: none;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 50;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    background: rgba(10, 10, 15, 0.92);
+    backdrop-filter: blur(14px);
+    border-top: 1px solid rgba(212, 168, 67, 0.22);
+  }
+  .lg-sticky.is-on { display: flex; }
+
+  .lg-sticky__note {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: #8e8e9e;
+    flex: 1;
+    min-width: 0;
+  }
+
+  .lg-sticky__cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, #b8922e, #d4a843);
+    color: var(--color-bg-primary);
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 11px 16px;
+    border-radius: 8px;
+    white-space: nowrap;
+    flex: none;
+  }
+  .lg-sticky__cta:hover { color: var(--color-bg-primary); }
+
+  @media (min-width: 561px) {
+    .lg-sticky { display: none !important; }
+  }
+</style>

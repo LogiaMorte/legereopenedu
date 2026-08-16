@@ -1,0 +1,231 @@
+---
+/**
+ * 05 · Sık sorulanlar — itirazları CTA'dan önce kapatır.
+ *
+ * Seçici akademik çevrelerin (Bradbury Group, SFI-benzeri davet sayfaları)
+ * ortak kalıbı: kim / ücret / zaman / boş takvim dürüstçe yanıtlanır.
+ * Üye sayısı uydurulmaz; boş takvim gerçek durum olarak bırakılır.
+ */
+import { useTranslations } from '../../i18n/utils';
+import type { Lang } from '../../i18n/languages';
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const signupPath = lang === 'en' ? '/en/signup' : '/signup';
+
+const path = [
+  { num: '01', title: t('lp.path1.title'), body: t('lp.path1.body') },
+  { num: '02', title: t('lp.path2.title'), body: t('lp.path2.body') },
+  { num: '03', title: t('lp.path3.title'), body: t('lp.path3.body') },
+];
+
+const faqs = [
+  { q: t('lp.faq.q1'), a: t('lp.faq.a1') },
+  { q: t('lp.faq.q2'), a: t('lp.faq.a2') },
+  { q: t('lp.faq.q3'), a: t('lp.faq.a3') },
+  { q: t('lp.faq.q4'), a: t('lp.faq.a4') },
+  { q: t('lp.faq.q5'), a: t('lp.faq.a5') },
+  { q: t('lp.faq.q6'), a: t('lp.faq.a6') },
+];
+
+const faqLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: faqs.map((item) => ({
+    '@type': 'Question',
+    name: item.q,
+    acceptedAnswer: { '@type': 'Answer', text: item.a },
+  })),
+};
+---
+
+<section id="faq" data-reveal class="lg-sec lg-faq">
+  <div class="lg-sec__head">
+    <span class="lg-sec__num">05</span>
+    <h2 class="lg-sec__title">{t('lp.faq.title')}</h2>
+    <span class="lg-sec__kicker">{t('lp.faq.kicker')}</span>
+  </div>
+
+  <p class="lg-faq__pathLabel">{t('lp.path.kicker')}</p>
+  <div data-stagger class="lg-faq__path">
+    {path.map((step) => (
+      <div class="lg-faq__step">
+        <span class="lg-faq__stepNum">{step.num}</span>
+        <h3 class="lg-faq__stepTitle">{step.title}</h3>
+        <p class="lg-faq__stepBody">{step.body}</p>
+      </div>
+    ))}
+  </div>
+
+  <div class="lg-faq__list">
+    {faqs.map((item) => (
+      <details name="lg-faq" class="lg-faq__item">
+        <summary class="lg-faq__q">
+          <span>{item.q}</span>
+          <span class="lg-faq__mark" aria-hidden="true"></span>
+        </summary>
+        <p class="lg-faq__a">{item.a}</p>
+      </details>
+    ))}
+  </div>
+
+  <div class="lg-faq__foot">
+    <p class="lg-faq__more">{t('lp.faq.more')}</p>
+    <a href={signupPath} class="lg-btn-gold">
+      {t('lp.faq.cta')} <span class="lg-btn-gold__arrow">→</span>
+    </a>
+  </div>
+</section>
+
+<script type="application/ld+json" set:html={JSON.stringify(faqLd)} />
+
+<style>
+  .lg-faq__pathLabel {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--color-gold-500);
+    margin-top: 36px;
+  }
+
+  .lg-faq__path {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    margin-top: 14px;
+  }
+
+  .lg-faq__step {
+    background: rgba(255, 255, 255, 0.028);
+    border: 1px solid rgba(240, 237, 230, 0.07);
+    border-radius: 14px;
+    padding: 22px 20px 24px;
+  }
+
+  .lg-faq__stepNum {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--color-gold-500);
+    border: 1px solid rgba(212, 168, 67, 0.26);
+    border-radius: 5px;
+    padding: 3px 6px;
+  }
+
+  .lg-faq__stepTitle {
+    font-family: var(--font-heading);
+    font-size: 18px;
+    font-weight: 600;
+    margin-top: 12px;
+    color: var(--color-text-primary);
+  }
+
+  .lg-faq__stepBody {
+    font-size: 14px;
+    line-height: 1.65;
+    color: #8e8e9e;
+    margin-top: 8px;
+    text-wrap: pretty;
+  }
+
+  .lg-faq__list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 36px;
+  }
+
+  .lg-faq__item {
+    background: rgba(255, 255, 255, 0.022);
+    border: 1px solid rgba(240, 237, 230, 0.07);
+    border-radius: 12px;
+    padding: 0 20px;
+  }
+  .lg-faq__item[open] {
+    border-color: rgba(212, 168, 67, 0.28);
+    background: rgba(212, 168, 67, 0.045);
+  }
+
+  .lg-faq__q {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--font-heading);
+    font-size: 16.5px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    padding: 16px 0;
+  }
+  .lg-faq__q::-webkit-details-marker { display: none; }
+
+  .lg-faq__mark {
+    position: relative;
+    width: 14px;
+    height: 14px;
+    flex: none;
+  }
+  .lg-faq__mark::before,
+  .lg-faq__mark::after {
+    content: '';
+    position: absolute;
+    background: var(--color-gold-500);
+    border-radius: 1px;
+  }
+  .lg-faq__mark::before {
+    left: 0;
+    right: 0;
+    top: 6px;
+    height: 1.5px;
+  }
+  .lg-faq__mark::after {
+    top: 0;
+    bottom: 0;
+    left: 6px;
+    width: 1.5px;
+    transition: transform 180ms ease, opacity 180ms ease;
+  }
+  .lg-faq__item[open] .lg-faq__mark::after {
+    transform: rotate(90deg);
+    opacity: 0;
+  }
+
+  .lg-faq__a {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--color-text-secondary);
+    padding: 0 0 18px;
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
+
+  .lg-faq__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-top: 28px;
+    padding: 22px 24px;
+    background: rgba(255, 255, 255, 0.022);
+    border: 1px solid rgba(212, 168, 67, 0.14);
+    border-radius: 14px;
+  }
+  .lg-faq__more {
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: #8e8e9e;
+    max-width: 52ch;
+    text-wrap: pretty;
+  }
+
+  @media (max-width: 800px) {
+    .lg-faq__path { grid-template-columns: minmax(0, 1fr); }
+  }
+</style>

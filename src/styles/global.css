@@ -59,6 +59,17 @@ body {
   color: var(--color-gold-50);
 }
 
+:focus-visible {
+  outline: 2px solid var(--color-gold-500);
+  outline-offset: 3px;
+}
+
+@media (max-width: 560px) {
+  body:has(.lg-sticky.is-on) #back-to-top {
+    bottom: 5.75rem;
+  }
+}
+
 /* ============================================
    Glass Morphism
    ============================================ */

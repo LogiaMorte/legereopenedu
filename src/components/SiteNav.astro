@@ -3,8 +3,8 @@
  * Yapışkan navigasyon — one-pager tasarımı.
  *
  * Eski Header.astro'nun yerini alır. Farkları: üstte kaydırma ilerleme çubuğu,
- * 5 bölüm bağlantısı (13 değil), her zaman görünen altın CTA, mobilde tam ekran
- * menü. CTA mobilde de görünür kalır — dönüşüm yolu hiçbir genişlikte gizlenmez.
+ * 5 bölüm bağlantısı, dil seçici, misafirde Giriş + altın CTA.
+ * Mobilde CTA yapışkan çubuğa ve menüye taşınır; dil seçici görünür kalır.
  */
 import { useTranslations } from '../i18n/utils';
 import type { Lang } from '../i18n/languages';
@@ -18,6 +18,7 @@ const t = useTranslations(lang);
 
 const base = lang === 'en' ? '/en' : '';
 const signupPath = `${base}/signup`;
+const loginPath = `${base}/login`;
 const profilePath = `${base}/profile`;
 // Mutlak yol: nav her sayfada var, alt sayfalardan da ana sayfadaki bölüme gitmeli
 const home = lang === 'en' ? '/en/' : '/';
@@ -26,7 +27,7 @@ const links = [
   { href: `${home}#programs`, label: t('nav.programs') },
   { href: `${home}#events`, label: t('nav.events') },
   { href: `${home}#fields`, label: t('nav.fields') },
-  { href: `${home}#join`, label: t('nav.join') },
+  { href: `${home}#faq`, label: t('nav.faq') },
 ];
 ---
 
@@ -61,6 +62,7 @@ const links = [
         bu amaçla — bkz. functions/_shared.ts buildLoginCookies).
         Varsayılan çıkış yapmış hâli: ziyaretçilerin çoğu öyle.
       */}
+      <a href={loginPath} id="lg-cta-login" class="lg-nav__login">{t('nav.login')}</a>
       <a href={signupPath} id="lg-cta-guest" class="lg-nav__cta">{t('nav.cta')} <span class="lg-nav__arrow">→</span></a>
       <div id="lg-cta-member" class="lg-nav__member" hidden>
         <a href={`${base}/admin`} id="lg-nav-admin" class="lg-nav__adminLink" hidden>{t('nav.admin')}</a>
@@ -80,6 +82,14 @@ const links = [
 
   <div id="lg-menu" class="lg-menu">
     {links.map((l) => <a href={l.href}>{l.label}</a>)}
+    <a href={`${home}#join`}>{t('nav.join')}</a>
+    <div class="lg-menu__lang">
+      {lang === 'tr'
+        ? <><span class="is-active">TR</span><a href="/en/">EN</a></>
+        : <><a href="/">TR</a><span class="is-active">EN</span></>}
+    </div>
+    <a href={loginPath} id="lg-menu-login">{t('nav.login')}</a>
+    <a href={signupPath} id="lg-menu-join" class="lg-menu__cta">{t('nav.cta')}</a>
     <a href={profilePath} id="lg-menu-profile" hidden>{t('nav.profile')}</a>
     <a href={`${base}/admin`} id="lg-menu-admin" hidden>{t('nav.admin')}</a>
   </div>
@@ -181,6 +191,17 @@ const links = [
   .lg-nav__lang a { color: var(--color-text-secondary); padding: 4px 7px; }
   .lg-nav__lang a:hover { color: var(--color-text-primary); }
 
+  .lg-nav__login {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--color-text-secondary);
+    padding: 8px 2px;
+    white-space: nowrap;
+    flex: none;
+  }
+  .lg-nav__login:hover { color: var(--color-text-primary); }
+
   .lg-nav__cta {
     display: inline-flex;
     align-items: center;
@@ -277,14 +298,54 @@ const links = [
   }
   .lg-menu a:hover { color: var(--color-gold-200); }
 
+  .lg-menu__lang {
+    display: none;
+    align-items: center;
+    gap: 2px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    border: 1px solid rgba(240, 237, 230, 0.14);
+    border-radius: 5px;
+    padding: 3px;
+    margin-top: 8px;
+    width: fit-content;
+  }
+  .lg-menu__lang .is-active {
+    background: rgba(212, 168, 67, 0.16);
+    color: var(--color-gold-200);
+    padding: 4px 8px;
+    border-radius: 3px;
+  }
+  .lg-menu__lang a {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--color-text-secondary);
+    padding: 4px 8px;
+    border-bottom: none;
+  }
+  .lg-menu__cta {
+    display: none;
+    margin-top: 8px;
+    background: linear-gradient(135deg, #b8922e, #d4a843);
+    color: var(--color-bg-primary) !important;
+    font-weight: 600;
+    text-align: center;
+    border-radius: 8px;
+    border-bottom: none !important;
+    padding: 12px 16px !important;
+  }
+
   @media (max-width: 1080px) {
     .lg-nav__links { display: none; }
     .lg-nav__burger { display: flex; }
+    .lg-nav__login { display: none; }
+    .lg-menu__lang { display: flex; }
+    .lg-menu__cta { display: block; }
   }
 
   @media (max-width: 560px) {
-    .lg-nav__inner { padding: 0 18px; gap: 14px; }
-    .lg-nav__cta { padding: 10px 14px; font-size: 12px; }
-    .lg-nav__lang { display: none; }
+    .lg-nav__inner { padding: 0 18px; gap: 10px; }
+    .lg-nav__cta { display: none; }
   }
 </style>

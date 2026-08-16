@@ -14,7 +14,7 @@
 
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 /** Deploy cache-bust — DOM'a yazılır ki tree-shake olmasın */
-const SITE_BUILD_ID = '2026-08-10-cookie-loop-fix';
+const SITE_BUILD_ID = '2026-08-16-site-polish';
 
 /** Reveal'lar yalnızca JS varken gizlenir; aksi halde içerik hiç görünmezdi. */
 function markJsReady(): void {
@@ -299,11 +299,22 @@ function initMemberNav(): void {
   if (!isLoggedIn) return;
 
   const guest = document.getElementById('lg-cta-guest');
+  const login = document.getElementById('lg-cta-login');
   const member = document.getElementById('lg-cta-member');
   const menuProfile = document.getElementById('lg-menu-profile');
+  const menuLogin = document.getElementById('lg-menu-login');
+  const menuJoin = document.getElementById('lg-menu-join');
+  const sticky = document.getElementById('lg-sticky');
   if (guest) guest.hidden = true;
+  if (login) login.hidden = true;
   if (member) member.hidden = false;
   if (menuProfile) menuProfile.hidden = false;
+  if (menuLogin) menuLogin.hidden = true;
+  if (menuJoin) menuJoin.hidden = true;
+  if (sticky) {
+    sticky.hidden = true;
+    sticky.classList.remove('is-on');
+  }
 
   // Admin rozetini yalnızca sunucu doğrularsa göster.
   fetch('/api/auth/me', { credentials: 'same-origin' })
@@ -335,6 +346,52 @@ function initBackToTop(): void {
   toggle();
 }
 
+// ── Mobil yapışkan katıl çubuğu ──
+
+function initStickyJoin(): void {
+  const bar = document.getElementById('lg-sticky');
+  if (!bar) return;
+
+  const hide = () => {
+    bar.classList.remove('is-on');
+    bar.hidden = true;
+  };
+
+  const isLoggedIn = document.cookie.split(';').some((c) => c.trim().startsWith('legere_logged_in='));
+  if (isLoggedIn) {
+    hide();
+    return;
+  }
+
+  const path = location.pathname.replace(/\/+$/, '') || '/';
+  if (/(?:^|\/)(login|signup|profile|admin)$/.test(path)) {
+    hide();
+    return;
+  }
+
+  const hero = document.getElementById('top');
+  const join = document.getElementById('join');
+
+  const update = () => {
+    if (window.matchMedia('(min-width: 561px)').matches) {
+      hide();
+      return;
+    }
+    const heroVisible = hero ? hero.getBoundingClientRect().bottom > 88 : window.scrollY < 280;
+    const joinRect = join?.getBoundingClientRect();
+    const joinVisible = joinRect
+      ? joinRect.top < window.innerHeight * 0.78 && joinRect.bottom > 64
+      : false;
+    const show = !heroVisible && !joinVisible;
+    bar.hidden = !show;
+    bar.classList.toggle('is-on', show);
+  };
+
+  on(window, 'scroll', update, { passive: true });
+  on(window, 'resize', update, { passive: true });
+  update();
+}
+
 export function initSite(): void {
   // Önceki sayfanın global dinleyicilerini ve animasyon döngüsünü bırak
   cleanup();
@@ -348,5 +405,6 @@ export function initSite(): void {
   initSpotlight();
   initCounter();
   initBackToTop();
+  initStickyJoin();
 }
 
