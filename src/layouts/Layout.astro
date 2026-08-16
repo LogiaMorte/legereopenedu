@@ -25,6 +25,7 @@ import headingLatinExt from '@fontsource-variable/space-grotesk/files/space-grot
 import { ClientRouter } from 'astro:transitions';
 import SiteNav from '../components/SiteNav.astro';
 import SiteFooter from '../components/SiteFooter.astro';
+import StickyJoin from '../components/StickyJoin.astro';
 import RegistrationModal from '../components/RegistrationModal.astro';
 
 interface Props {
@@ -62,7 +63,10 @@ const showAlternates = !noindex;
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#0A0A0F" />
+  <meta name="color-scheme" content="dark" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/favicon.svg" />
   <link rel="preload" href={headingLatin} as="font" type="font/woff2" crossorigin />
   <link rel="preload" href={headingLatinExt} as="font" type="font/woff2" crossorigin />
   <link rel="canonical" href={canonicalUrl} />
@@ -136,6 +140,7 @@ const showAlternates = !noindex;
   <SiteFooter lang={lang} />
   <!--email_on-->
   <RegistrationModal lang={lang} />
+  <StickyJoin lang={lang} />
 
   <!-- Back to Top Button -->
   <button

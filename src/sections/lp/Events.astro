@@ -46,6 +46,7 @@ const labels = buildEventLabels(lang, t);
       <span id="lg-feed-label">{t('lp.events.feedLoading')}</span>
     </div>
   </div>
+  <p class="lg-ev__note">{t('lp.events.note')}</p>
 
   <!-- İskelet: gerçek kartla aynı yükseklikte, içerik gelince kaybolur -->
   <div id="lg-ev-skeleton" class="lg-ev__grid">
@@ -140,6 +141,15 @@ const labels = buildEventLabels(lang, t);
   }
   .lg-ev__feedDot.is-loading { background: var(--color-status-upcoming); }
   .lg-ev__feedDot.is-error { background: var(--color-status-closed); }
+
+  .lg-ev__note {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: #8e8e9e;
+    margin-top: 14px;
+    max-width: 68ch;
+    text-wrap: pretty;
+  }
 
   .lg-ev__grid {
     display: grid;

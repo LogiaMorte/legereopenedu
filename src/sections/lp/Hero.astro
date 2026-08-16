@@ -53,6 +53,11 @@ const ticker = [...disciplines, ...disciplines];
       </div>
 
       <p class="lg-hero__micro">{t('lp.hero.micro')}</p>
+      <ul class="lg-hero__chips">
+        <li>{t('lp.hero.chip1')}</li>
+        <li>{t('lp.hero.chip2')}</li>
+        <li>{t('lp.hero.chip3')}</li>
+      </ul>
     </div>
 
     <div class="lg-hero__panel">
@@ -206,6 +211,27 @@ const ticker = [...disciplines, ...disciplines];
     color: #6e6e80;
     margin-top: 18px;
     animation: lgIn 0.8s ease 0.7s both;
+  }
+
+  .lg-hero__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 14px;
+    padding: 0;
+    list-style: none;
+    animation: lgIn 0.8s ease 0.82s both;
+  }
+  .lg-hero__chips li {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--color-gold-200);
+    background: rgba(212, 168, 67, 0.08);
+    border: 1px solid rgba(212, 168, 67, 0.22);
+    border-radius: 999px;
+    padding: 6px 11px;
   }
 
   .lg-hero__panel { animation: lgUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.56s both; }
