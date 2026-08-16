@@ -419,6 +419,7 @@ export const ui = {
 
     'lp.footer.tagline': 'Disiplinlerarası açık akademik araştırma ağı. Kriminoloji · sosyoloji · felsefe · veri bilimi.',
     'lp.footer.trust': 'VERİLER AB/TR SUNUCULARINDA · TLS 1.3',
+    'lp.footer.social': 'Sosyal',
     'lp.footer.site': 'Site',
     'lp.footer.legal': 'Yasal & Etik',
     'lp.footer.motto': 'LEGERE · OKUMAK, SEÇMEK, BİR ARAYA GETİRMEK',
@@ -844,6 +845,7 @@ export const ui = {
 
     'lp.footer.tagline': 'An open interdisciplinary academic research network. Criminology · sociology · philosophy · data science.',
     'lp.footer.trust': 'DATA IN EU/TR DATA CENTRES · TLS 1.3',
+    'lp.footer.social': 'Social',
     'lp.footer.site': 'Site',
     'lp.footer.legal': 'Legal & Ethics',
     'lp.footer.motto': 'LEGERE · TO READ, TO SELECT, TO BRING TOGETHER',
