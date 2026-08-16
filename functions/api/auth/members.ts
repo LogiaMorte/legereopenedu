@@ -9,7 +9,7 @@
  *   action: 'audit-log' — Audit log getir
  */
 
-import { corsHeaders, optionsResponse, parseJsonBody, verifyAdmin, generateToken } from '../../_shared';
+import { corsHeaders, optionsResponse, parseJsonBody, verifyAdmin, generateToken, isAdminEmail } from '../../_shared';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
@@ -59,6 +59,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
             registrationCount: (member.regIds || []).length,
             certificateCount: (member.certificates || []).length,
             badgeCount: (member.adminBadges || []).length,
+            deactivated: member.deactivated === true,
+            isAdmin: isAdminEmail(member.email || '', env.ADMIN_EMAILS),
           };
         });
 
@@ -73,7 +75,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     if (body.action === 'detail' && body.email) {
-      const memberData = await env.REGISTRATIONS.get(`member:${body.email}`);
+      const memberData =
+        (await env.REGISTRATIONS.get(`member:${body.email}`)) ||
+        (await env.REGISTRATIONS.get(`member:${body.email.toLowerCase()}`));
       if (!memberData) {
         return new Response(JSON.stringify({ error: 'Member not found' }), { status: 404, headers });
       }
@@ -104,6 +108,8 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           signupSource: member.signupSource || 'unknown',
           showFullName: member.showFullName ?? true,
           showEmail: member.showEmail ?? false,
+          deactivated: member.deactivated === true,
+          isAdmin: isAdminEmail(member.email || '', env.ADMIN_EMAILS),
         },
         registrations,
         certificates: member.certificates || [],
@@ -113,22 +119,60 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     // ── DEACTIVATE MEMBER ──
     if (body.action === 'deactivate' && body.email) {
-      const memberData = await env.REGISTRATIONS.get(`member:${body.email}`);
+      const target = body.email.toLowerCase();
+      if (isAdminEmail(target, env.ADMIN_EMAILS)) {
+        return new Response(
+          JSON.stringify({ error: 'Yönetici hesap devre dışı bırakılamaz.', code: 'admin_protected' }),
+          { status: 403, headers },
+        );
+      }
+      if (target === adminEmail.toLowerCase()) {
+        return new Response(
+          JSON.stringify({ error: 'Kendi hesabınızı devre dışı bırakamazsınız.', code: 'self_lockout' }),
+          { status: 400, headers },
+        );
+      }
+      const memberKey = `member:${target}`;
+      const memberData =
+        (await env.REGISTRATIONS.get(memberKey)) ||
+        (await env.REGISTRATIONS.get(`member:${body.email}`));
       if (!memberData) {
         return new Response(JSON.stringify({ error: 'Member not found' }), { status: 404, headers });
       }
       const member = JSON.parse(memberData);
-      // Invalidate token — forces logout, prevents new logins
       member.token = generateToken();
       member.deactivated = true;
       member.deactivatedAt = new Date().toISOString();
       member.deactivatedBy = adminEmail;
-      await env.REGISTRATIONS.put(`member:${body.email}`, JSON.stringify(member));
+      await env.REGISTRATIONS.put(memberKey, JSON.stringify(member));
 
-      // Audit log
       const logKey = `audit:${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
       await env.REGISTRATIONS.put(logKey, JSON.stringify({
         ts: new Date().toISOString(), admin: adminEmail, action: 'deactivate', target: body.email, detail: '',
+      }), { expirationTtl: 60 * 60 * 24 * 365 });
+
+      return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+    }
+
+    // ── REACTIVATE MEMBER ──
+    if (body.action === 'reactivate' && body.email) {
+      const target = body.email.toLowerCase();
+      const memberKey = `member:${target}`;
+      const memberData =
+        (await env.REGISTRATIONS.get(memberKey)) ||
+        (await env.REGISTRATIONS.get(`member:${body.email}`));
+      if (!memberData) {
+        return new Response(JSON.stringify({ error: 'Member not found' }), { status: 404, headers });
+      }
+      const member = JSON.parse(memberData);
+      member.deactivated = false;
+      delete member.deactivatedAt;
+      delete member.deactivatedBy;
+      await env.REGISTRATIONS.put(memberKey, JSON.stringify(member));
+
+      const logKey = `audit:${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      await env.REGISTRATIONS.put(logKey, JSON.stringify({
+        ts: new Date().toISOString(), admin: adminEmail, action: 'reactivate', target: body.email, detail: '',
       }), { expirationTtl: 60 * 60 * 24 * 365 });
 
       return new Response(JSON.stringify({ success: true }), { status: 200, headers });

@@ -16,11 +16,13 @@ import {
   jsonResponseWithCookies,
   notifyAdmin,
   ensureSessionToken,
+  isAdminEmail,
 } from '../../_shared';
 import {
   type AuthMode,
   loadMemberByEmail,
   isDeactivated,
+  reactivateMember,
   createSocialMember,
   putMember,
   bumpMemberCount,
@@ -157,7 +159,10 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     if (existing) {
       if (isDeactivated(existing.member)) {
-        return errJson(headers, 403, 'deactivated', 'This account has been deactivated');
+        if (!isAdminEmail(existing.keyEmail, env.ADMIN_EMAILS) && !isAdminEmail(email, env.ADMIN_EMAILS)) {
+          return errJson(headers, 403, 'deactivated', 'This account has been deactivated');
+        }
+        reactivateMember(existing.member);
       }
 
       const member = existing.member;

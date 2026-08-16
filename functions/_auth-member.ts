@@ -87,6 +87,14 @@ export function isDeactivated(member: MemberRecord): boolean {
   return member.deactivated === true;
 }
 
+/** Yönetici / site sahibi hesabını tekrar aç (self-lockout kurtarma). */
+export function reactivateMember(member: MemberRecord): MemberRecord {
+  member.deactivated = false;
+  delete member.deactivatedAt;
+  delete member.deactivatedBy;
+  return member;
+}
+
 export function createSocialMember(identity: SocialIdentity): MemberRecord {
   return {
     email: identity.email,
