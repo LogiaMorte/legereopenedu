@@ -9,12 +9,14 @@ import {
   redirectWithCookies,
   notifyAdmin,
   ensureSessionToken,
+  isAdminEmail,
 } from '../../_shared';
 import {
   parseAndVerifyLinkedInState,
   clearLinkedInOAuthCookie,
   loadMemberByEmail,
   isDeactivated,
+  reactivateMember,
   createSocialMember,
   putMember,
   bumpMemberCount,
@@ -222,14 +224,17 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
     if (existing) {
       if (isDeactivated(existing.member)) {
-        return redirectError(
-          url.origin,
-          redirectPage,
-          'deactivated',
-          lang === 'en'
-            ? 'This account has been deactivated'
-            : 'Bu hesap devre dışı bırakılmış',
-        );
+        if (!isAdminEmail(existing.keyEmail, env.ADMIN_EMAILS) && !isAdminEmail(email, env.ADMIN_EMAILS)) {
+          return redirectError(
+            url.origin,
+            redirectPage,
+            'deactivated',
+            lang === 'en'
+              ? 'This account has been deactivated'
+              : 'Bu hesap devre dışı bırakılmış',
+          );
+        }
+        reactivateMember(existing.member);
       }
 
       const member = existing.member;

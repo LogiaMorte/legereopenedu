@@ -274,10 +274,29 @@ export function redirectWithCookies(
 // ── Admin Verification ──
 
 /**
+ * Site sahibi — ADMIN_EMAILS env boş olsa bile her zaman yönetici.
+ * Env ile ek admin eklenebilir (virgülle ayrılmış).
+ */
+export const OWNER_ADMIN_EMAILS = ['serdarogluhaktan@gmail.com'];
+
+export function parseAdminEmailList(envValue?: string): string[] {
+  const fromEnv = (envValue || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+  const owners = OWNER_ADMIN_EMAILS.map((e) => e.toLowerCase());
+  return [...new Set([...owners, ...fromEnv])];
+}
+
+export function isAdminEmail(email: string, envValue?: string): boolean {
+  return parseAdminEmailList(envValue).includes(email.toLowerCase());
+}
+
+/**
  * Verify that the request comes from an admin member.
  * Uses the existing session cookie (legere_token) and checks:
  *   1. Valid session (cookie + token match)
- *   2. Email is in ADMIN_EMAILS env var (comma-separated list)
+ *   2. Email is owner list or ADMIN_EMAILS env
  *
  * Returns the admin's email on success, null on failure.
  */
@@ -286,22 +305,20 @@ export async function verifyAdmin(
   kv: KVNamespace,
   adminEmails: string | undefined,
 ): Promise<string | null> {
-  if (!adminEmails) return null;
+  const allowed = parseAdminEmailList(adminEmails);
+  const candidates = listSessionTokenCandidates(request);
+  if (candidates.length === 0) return null;
 
-  const session = parseSessionCookie(request);
-  if (!session) return null;
-
-  // Check if email is in admin list
-  const allowed = adminEmails.split(',').map(e => e.trim().toLowerCase());
-  if (!allowed.includes(session.email.toLowerCase())) return null;
-
-  // Verify session token against KV
   try {
-    const memberData = await kv.get(`member:${session.email}`);
-    if (!memberData) return null;
-    const member = JSON.parse(memberData);
-    if (member.token !== session.token) return null;
-    return session.email;
+    for (const session of candidates) {
+      if (!allowed.includes(session.email.toLowerCase())) continue;
+      const memberData = await kv.get(`member:${session.email}`);
+      if (!memberData) continue;
+      const member = JSON.parse(memberData);
+      if (member.token !== session.token) continue;
+      return session.email;
+    }
+    return null;
   } catch {
     return null;
   }

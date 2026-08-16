@@ -14,6 +14,7 @@ import {
   generateToken,
   buildLogoutCookies,
   jsonResponseWithCookies,
+  isAdminEmail,
 } from '../../_shared';
 import badgesData from '../../../src/data/badges.json';
 
@@ -73,10 +74,17 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   try {
     const member = session.member as any;
     if (member.deactivated === true) {
-      return new Response(JSON.stringify({ error: 'Account deactivated', code: 'deactivated' }), {
-        status: 403,
-        headers,
-      });
+      if (isAdminEmail(session.email, env.ADMIN_EMAILS)) {
+        member.deactivated = false;
+        delete member.deactivatedAt;
+        delete member.deactivatedBy;
+        await env.REGISTRATIONS.put(`member:${session.email}`, JSON.stringify(member));
+      } else {
+        return new Response(JSON.stringify({ error: 'Account deactivated', code: 'deactivated' }), {
+          status: 403,
+          headers,
+        });
+      }
     }
 
     // Get registrations via regIds (parallel KV fetches)
@@ -112,9 +120,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
 
     const allBadges = [...autoBadges, ...(member.adminBadges || [])];
 
-    // Check admin status (hidden from profile UI, only used for header nav)
-    const adminEmails = env.ADMIN_EMAILS || '';
-    const isAdmin = adminEmails.split(',').map(e => e.trim().toLowerCase()).includes(session.email.toLowerCase());
+    const isAdmin = isAdminEmail(session.email, env.ADMIN_EMAILS);
 
     return new Response(
       JSON.stringify({
