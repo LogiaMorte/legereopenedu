@@ -35,7 +35,7 @@
 
 ### Sayfa Bilgileri
 - **Sayfa Adi:** Legere Open Edu
-- **URL onerisi:** linkedin.com/company/legereopenedu
+- **URL:** linkedin.com/company/legere-open-edu
 - **Sektor:** Research Services / Higher Education
 - **Boyut:** 2-10
 - **Web sitesi:** https://legereopenedu.com
@@ -73,7 +73,7 @@ legereopenedu.com
 ## INSTAGRAM KURULUMU
 
 ### Hesap Bilgileri
-- **Kullanici adi onerisi:** @legereopenedu
+- **Kullanici adi:** @legereopenedu
 - **Hesap turu:** Isletme (Business) veya Icerik Olusturucu (Creator)
 - **Kategori:** Education / Research
 

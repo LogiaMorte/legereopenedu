@@ -144,6 +144,10 @@ body {
   transform: translateY(-2px);
 }
 
+.btn-gold:active {
+  transform: translateY(0) scale(0.975);
+}
+
 .btn-outline {
   display: inline-flex;
   align-items: center;
@@ -163,6 +167,10 @@ body {
   background: rgba(212, 168, 67, 0.1);
   border-color: var(--color-gold-500);
   box-shadow: 0 0 20px rgba(212, 168, 67, 0.15);
+}
+
+.btn-outline:active {
+  transform: scale(0.975);
 }
 
 /* ============================================

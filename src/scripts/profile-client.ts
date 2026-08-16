@@ -15,6 +15,8 @@ export interface ProfileStrings {
   saveGenericError: string;
   connectionError: string;
   linkedinVerifiedTitle: string;
+  loadError: string;
+  retry: string;
 }
 
 export interface ProfileConfig {
@@ -52,6 +54,7 @@ type ProfileUser = {
 type Registration = {
   id: string;
   workshop?: string;
+  workshopTitle?: { tr?: string; en?: string } | string;
   status?: string;
   timestamp?: string;
 };
@@ -59,7 +62,7 @@ type Registration = {
 type Certificate = {
   id: string;
   type?: string;
-  workshopTitle?: string;
+  workshopTitle?: { tr?: string; en?: string } | string;
   workshopId?: string;
   issueDate?: string;
 };
@@ -84,6 +87,19 @@ function esc(str: unknown): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
+}
+
+function localizedTitle(
+  title: { tr?: string; en?: string } | string | undefined,
+  locale: string,
+  fallback: string,
+): string {
+  if (title && typeof title === 'object') {
+    const lang = locale.toLowerCase().startsWith('en') ? 'en' : 'tr';
+    return title[lang] || title.tr || title.en || fallback;
+  }
+  if (typeof title === 'string' && title.trim()) return title;
+  return fallback;
 }
 
 let toastTimer = 0;
@@ -129,7 +145,15 @@ export function initProfile(): void {
   const loadingEl = document.getElementById('profile-loading');
   const contentEl = document.getElementById('profile-content');
   const notLoggedEl = document.getElementById('profile-not-logged-in');
+  const errorEl = document.getElementById('profile-load-error');
   if (!loadingEl || !contentEl || !notLoggedEl) return;
+
+  const showPanel = (which: 'loading' | 'content' | 'guest' | 'error') => {
+    loadingEl.classList.toggle('hidden', which !== 'loading');
+    contentEl.classList.toggle('hidden', which !== 'content');
+    notLoggedEl.classList.toggle('hidden', which !== 'guest');
+    errorEl?.classList.toggle('hidden', which !== 'error');
+  };
 
   const S = config.strings;
   const {
@@ -162,13 +186,6 @@ export function initProfile(): void {
     });
   });
   switchTab('overview');
-
-  const loadTimeout = window.setTimeout(() => {
-    if (loadingEl && !loadingEl.classList.contains('hidden')) {
-      loadingEl.classList.add('hidden');
-      notLoggedEl.classList.remove('hidden');
-    }
-  }, 10000);
 
   const refreshContribution = (
     university: string,
@@ -431,7 +448,7 @@ export function initProfile(): void {
             const date = cert.issueDate
               ? `<p class="text-xs text-text-secondary/60 mt-0.5">${new Date(cert.issueDate).toLocaleDateString(config.locale)}</p>`
               : '';
-            return `<div class="glass-subtle p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div class="min-w-0"><div class="flex items-center gap-2 mb-1"><span class="text-sm font-heading font-semibold ${typeColor}">${esc(typeLabel)}</span><span class="text-xs font-mono text-text-secondary">${esc(cert.id)}</span></div><p class="text-xs text-text-secondary truncate">${esc(cert.workshopTitle || cert.workshopId || '-')}</p>${date}</div><div class="flex items-center gap-2 shrink-0"><a href="${config.verifyPath}?cert=${encodeURIComponent(cert.id)}" class="text-xs text-gold-500 hover:text-gold-300 font-heading transition-colors">${esc(S.verifyLabel)}</a></div></div>`;
+            return `<div class="glass-subtle p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div class="min-w-0"><div class="flex items-center gap-2 mb-1"><span class="text-sm font-heading font-semibold ${typeColor}">${esc(typeLabel)}</span><span class="text-xs font-mono text-text-secondary">${esc(cert.id)}</span></div><p class="text-xs text-text-secondary truncate">${esc(localizedTitle(cert.workshopTitle, config.locale, cert.workshopId || '-'))}</p>${date}</div><div class="flex items-center gap-2 shrink-0"><a href="${config.verifyPath}?cert=${encodeURIComponent(cert.id)}" class="text-xs text-gold-500 hover:text-gold-300 font-heading transition-colors">${esc(S.verifyLabel)}</a></div></div>`;
           })
           .join('');
       }
@@ -459,7 +476,7 @@ export function initProfile(): void {
       const when = r.timestamp
         ? `<p class="text-xs text-text-secondary/60 mt-0.5">${new Date(r.timestamp).toLocaleDateString(config.locale, { day: 'numeric', month: 'long', year: 'numeric' })}</p>`
         : '';
-      return `<div class="glass-subtle p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2"><div class="min-w-0"><p class="text-sm font-heading font-medium text-text-primary truncate">${esc(r.workshop || r.id)}</p>${when}</div><span class="badge ${status.cls} shrink-0">${esc(status.label)}</span></div>`;
+      return `<div class="glass-subtle p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2"><div class="min-w-0"><p class="text-sm font-heading font-medium text-text-primary truncate">${esc(localizedTitle(r.workshopTitle, config.locale, r.workshop || r.id))}</p>${when}</div><span class="badge ${status.cls} shrink-0">${esc(status.label)}</span></div>`;
     };
 
     if (upcoming.length > 0) {
@@ -504,24 +521,30 @@ export function initProfile(): void {
    * Artık: kimlik doğrulandıysa içerik GÖSTERİLİR. Çizimin bir parçası
    * patlarsa sayfa boş kalmaz, hata konsola yazılır.
    */
+  let inflight: AbortController | null = null;
   const loadProfile = async () => {
+    inflight?.abort();
+    showPanel('loading');
+    const ac = new AbortController();
+    inflight = ac;
+    const abortTimer = window.setTimeout(() => ac.abort(), 8000);
     let res: Response;
     try {
-      res = await fetch('/api/auth/me', { credentials: 'include' });
+      res = await fetch('/api/auth/me', { credentials: 'include', signal: ac.signal });
     } catch (err) {
-      // Ağ hatası: kimlik durumu bilinmiyor, oturumu yok saymak yanlış olurdu
-      // ama gösterebileceğimiz bir şey de yok.
+      if (inflight !== ac) return;
+      // Ağ / zaman aşımı: kimlik durumu bilinmiyor. "Giriş yapın" demek
+      // yavaş bir API'yi oturum düşmüş gibi gösterir — ayrı hata paneli.
       console.error('[profile] /api/auth/me isteğine ulaşılamadı:', err);
-      clearTimeout(loadTimeout);
-      loadingEl.classList.add('hidden');
-      notLoggedEl.classList.remove('hidden');
+      clearTimeout(abortTimer);
+      showPanel('error');
       return;
     }
-    clearTimeout(loadTimeout);
+    clearTimeout(abortTimer);
+    if (inflight !== ac) return;
 
     if (!res.ok) {
-      loadingEl.classList.add('hidden');
-      notLoggedEl.classList.remove('hidden');
+      showPanel('guest');
       // Bozuk/çakışan oturum çerezlerini temizle ki login döngüsü kırılsın
       document.cookie = 'legere_logged_in=; Path=/; Max-Age=0; SameSite=Lax; Secure';
       document.cookie =
@@ -534,14 +557,12 @@ export function initProfile(): void {
       data = (await res.json()) as Parameters<typeof renderProfile>[0];
     } catch (err) {
       console.error('[profile] /api/auth/me yanıtı okunamadı:', err);
-      loadingEl.classList.add('hidden');
-      notLoggedEl.classList.remove('hidden');
+      showPanel('error');
       return;
     }
 
     // Kimlik doğrulandı — içerik buradan sonra her hâlükârda gösterilir.
-    loadingEl.classList.add('hidden');
-    contentEl.classList.remove('hidden');
+    showPanel('content');
 
     try {
       renderProfile(data);
@@ -632,6 +653,10 @@ export function initProfile(): void {
     document.cookie =
       'legere_logged_in=; Path=/; Max-Age=0; SameSite=Lax; Secure; Domain=.legereopenedu.com';
     window.location.href = config.homePath;
+  });
+
+  document.getElementById('profile-retry')?.addEventListener('click', () => {
+    loadProfile();
   });
 
   loadProfile();

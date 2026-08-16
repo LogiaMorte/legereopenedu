@@ -27,6 +27,7 @@ import SiteNav from '../components/SiteNav.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import StickyJoin from '../components/StickyJoin.astro';
 import RegistrationModal from '../components/RegistrationModal.astro';
+import siteConfig from '../data/config.json';
 
 interface Props {
   lang: 'tr' | 'en';
@@ -112,6 +113,7 @@ const showAlternates = !noindex;
     "alternateName": "OWL - Open Workshop Lab",
     "url": "https://legereopenedu.com",
     "email": "INFO_EMAIL_PLACEHOLDER",
+    "sameAs": [siteConfig.social.linkedin, siteConfig.social.instagram],
     "description": "Independent interdisciplinary academic research network at the intersection of criminology, sociology, philosophy, and data science.",
     "areaServed": "Global",
     "knowsAbout": ["Criminology", "Sociology", "Philosophy", "Data Science", "Law", "Psychology", "Anthropology"]

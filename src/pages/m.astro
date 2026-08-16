@@ -169,8 +169,10 @@ document.addEventListener('astro:page-load', function() {
   }
 
   async function loadPublicProfile() {
+    var ac = new AbortController();
+    var abortTimer = setTimeout(function() { ac.abort(); }, 8000);
     try {
-      var res = await fetch('/api/public-profile?id=' + encodeURIComponent(profileId));
+      var res = await fetch('/api/public-profile?id=' + encodeURIComponent(profileId), { signal: ac.signal });
       if (!res.ok) {
         loadingEl.classList.add('hidden');
         notfoundEl.classList.remove('hidden');
@@ -183,6 +185,8 @@ document.addEventListener('astro:page-load', function() {
     } catch (err) {
       loadingEl.classList.add('hidden');
       notfoundEl.classList.remove('hidden');
+    } finally {
+      clearTimeout(abortTimer);
     }
   }
 
@@ -221,10 +225,16 @@ document.addEventListener('astro:page-load', function() {
     }
     document.getElementById('pp-verification-badges').innerHTML = badgesHtml;
 
-    // LinkedIn link
+    // LinkedIn link — yalnızca http(s)
     if (p.linkedin) {
-      document.getElementById('pp-linkedin').classList.remove('hidden');
-      document.getElementById('pp-linkedin-link').href = p.linkedin;
+      var li = document.getElementById('pp-linkedin-link');
+      try {
+        var u = new URL(p.linkedin);
+        if (u.protocol === 'https:' || u.protocol === 'http:') {
+          document.getElementById('pp-linkedin').classList.remove('hidden');
+          li.href = u.toString();
+        }
+      } catch (e) { /* ignore */ }
     }
 
     // Stats

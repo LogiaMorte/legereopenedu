@@ -32,6 +32,21 @@ const t = useTranslations(lang);
         </div>
       </div>
 
+      <!-- Load error (timeout / network — NOT the same as logged out) -->
+      <div id="profile-load-error" class="hidden">
+        <div class="glass gold-glow rounded-2xl p-8 text-center max-w-md mx-auto">
+          <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gold-500/10 border border-gold-500/20 mb-4">
+            <svg class="w-8 h-8 text-gold-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12V12.75Z" />
+            </svg>
+          </div>
+          <h1 class="text-xl font-heading font-bold text-text-primary mb-2">{t('profile.loadError')}</h1>
+          <button type="button" id="profile-retry" class="btn-gold justify-center text-sm py-3 mt-4 inline-flex">
+            {t('profile.retry')}
+          </button>
+        </div>
+      </div>
+
       <!-- Loading State (skeleton) -->
       <div id="profile-loading" class="space-y-6" aria-busy="true" aria-live="polite">
         <div class="glass rounded-2xl p-6 sm:p-8">
@@ -366,8 +381,8 @@ const t = useTranslations(lang);
       var content = document.getElementById('profile-content');
       if (!loading || loading.classList.contains('hidden') || (content && !content.classList.contains('hidden'))) return;
       loading.classList.add('hidden');
-      var notLogged = document.getElementById('profile-not-logged-in');
-      if (notLogged) notLogged.classList.remove('hidden');
+      var err = document.getElementById('profile-load-error');
+      if (err) err.classList.remove('hidden');
     }, 12000);
   })();
 </script>

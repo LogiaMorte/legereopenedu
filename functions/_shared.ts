@@ -45,6 +45,18 @@ export function optionsResponse(request: Request, methods = 'POST, OPTIONS'): Re
 
 // ── HTML Escaping (XSS prevention for email templates) ──
 
+/** Yalnızca http(s) adresleri. javascript: / data: bağlarını keser. */
+export function safeHttpUrl(raw: unknown): string {
+  if (typeof raw !== 'string' || !raw.trim()) return '';
+  try {
+    const u = new URL(raw.trim());
+    if (u.protocol === 'https:' || u.protocol === 'http:') return u.toString();
+  } catch {
+    return '';
+  }
+  return '';
+}
+
 export function escapeHtml(str: string): string {
   return str
     .replace(/&/g, '&amp;')

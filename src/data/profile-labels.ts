@@ -16,6 +16,8 @@ export const profileLabelsTr = {
     saveGenericError: 'Bir hata oluştu. Lütfen tekrar deneyin.',
     connectionError: 'Bağlantı hatası.',
     linkedinVerifiedTitle: 'LinkedIn tarafından doğrulanmış',
+    loadError: 'Profil yüklenemedi. Ağ yavaş veya kesik olabilir.',
+    retry: 'Tekrar dene',
   },
   badgeMeta: {
     'first-workshop': { icon: '🎓', name: 'İlk Adım', desc: 'İlk atölyeyi tamamladı' },
@@ -73,6 +75,8 @@ export const profileLabelsEn = {
     saveGenericError: 'An error occurred.',
     connectionError: 'Connection error.',
     linkedinVerifiedTitle: 'Verified by LinkedIn',
+    loadError: 'Could not load your profile. The network may be slow.',
+    retry: 'Try again',
   },
   badgeMeta: {
     'first-workshop': { icon: '🎓', name: 'First Step', desc: 'Completed first workshop' },

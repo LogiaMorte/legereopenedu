@@ -19,6 +19,7 @@ import {
   type EventStatus,
 } from '../utils/events';
 import { disciplineLabel } from '../i18n/disciplines';
+import { safeHttpUrl } from '../utils/http';
 
 export interface ApiEvent {
   id: string;
@@ -231,7 +232,7 @@ function card(ev: ApiEvent, count: number, L: EventLabels): HTMLElement {
    * KV'ye kayıt yazılmaz — tek doğruluk kaynağı dış form olur. Karışık iki
    * kanaldan kayıt almak, kimin geleceğini bilememek demek.
    */
-  const external = status === 'open' && !isFull ? ev.registrationUrl?.trim() : '';
+  const external = status === 'open' && !isFull ? safeHttpUrl(ev.registrationUrl) : '';
   if (external) {
     const link = h('a', 'lg-card__cta is-solid', L.cta.open);
     link.setAttribute('href', external);
@@ -399,12 +400,15 @@ export function initEvents(): void {
    * (Cloudflare kenar önbelleği bu modülün URL'sinde HTML sunuyordu) ve neyin
    * bozulduğunu anlamak uzun sürdü. Artık konsola net bir iz düşüyor.
    */
-  fetch('/api/events')
+  const ac = new AbortController();
+  const abortTimer = window.setTimeout(() => ac.abort(), 8000);
+  fetch('/api/events', { signal: ac.signal })
     .then((r) => {
       if (!r.ok) throw new Error(`/api/events HTTP ${r.status}`);
-      return r.json();
+      return r.json() as Promise<unknown>;
     })
-    .then((d: ApiPayload | null) => {
+    .then((raw: unknown) => {
+      const d = raw as ApiPayload | null;
       if (!d || !Array.isArray(d.events)) throw new Error('/api/events beklenmeyen gövde');
       counts = d.counts || {};
       const all = sortForDisplay(d.events);
@@ -415,5 +419,6 @@ export function initEvents(): void {
     .catch((err) => {
       console.error('[events] liste yüklenemedi:', err instanceof Error ? err.message : err);
       finish(false);
-    });
+    })
+    .finally(() => window.clearTimeout(abortTimer));
 }

@@ -8,6 +8,7 @@
  */
 import { useTranslations } from '../../i18n/utils';
 import type { Lang } from '../../i18n/languages';
+import ContactEmail from '../../components/ContactEmail.astro';
 
 interface Props {
   lang: Lang;
@@ -74,7 +75,10 @@ const faqLd = {
   </div>
 
   <div class="lg-faq__foot">
-    <p class="lg-faq__more">{t('lp.faq.more')}</p>
+    <p class="lg-faq__more">
+      {t('lp.faq.moreBefore')}{' '}
+      <ContactEmail class="lg-faq__mail" />{t('lp.faq.moreAfter')}
+    </p>
     <a href={signupPath} class="lg-btn-gold">
       {t('lp.faq.cta')} <span class="lg-btn-gold__arrow">→</span>
     </a>
@@ -191,8 +195,8 @@ const faqLd = {
     width: 1.5px;
     transition: transform 180ms ease, opacity 180ms ease;
   }
+  .lg-faq__item[open] .lg-faq__mark::before,
   .lg-faq__item[open] .lg-faq__mark::after {
-    transform: rotate(90deg);
     opacity: 0;
   }
 
@@ -224,6 +228,12 @@ const faqLd = {
     max-width: 52ch;
     text-wrap: pretty;
   }
+  .lg-faq__mail {
+    color: var(--color-gold-500);
+    border-bottom: 1px solid rgba(212, 168, 67, 0.4);
+    word-break: break-word;
+  }
+  .lg-faq__mail:hover { color: var(--color-gold-200); }
 
   @media (max-width: 800px) {
     .lg-faq__path { grid-template-columns: minmax(0, 1fr); }

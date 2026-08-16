@@ -177,8 +177,8 @@ const t = useTranslations(lang);
       </div>
 
       <!-- Success state -->
-      <div id="reg-success-state" class="hidden text-center py-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-status-open/10 border border-status-open/25 mb-4">
+      <div id="reg-success-state" class="hidden text-center py-8 lg-signup-success">
+        <div class="lg-signup-success__mark inline-flex items-center justify-center w-16 h-16 rounded-full bg-status-open/10 border border-status-open/25 mb-4">
           <svg class="w-8 h-8 text-status-open" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
           </svg>
@@ -226,6 +226,7 @@ const t = useTranslations(lang);
       formState.classList.add('hidden');
       notLoggedIn.classList.add('hidden');
       successState.classList.add('hidden');
+      successState.classList.remove('is-shown');
     }
 
     // Open modal
@@ -252,7 +253,9 @@ const t = useTranslations(lang);
         return;
       }
 
-      fetch('/api/auth/me', { credentials: 'same-origin' })
+      var ac = new AbortController();
+      var abortTimer = setTimeout(function() { ac.abort(); }, 8000);
+      fetch('/api/auth/me', { credentials: 'same-origin', signal: ac.signal })
         .then(function(res) {
           if (!res.ok) throw new Error('Not authenticated');
           return res.json();
@@ -264,7 +267,8 @@ const t = useTranslations(lang);
         .catch(function() {
           hideAllStates();
           notLoggedIn.classList.remove('hidden');
-        });
+        })
+        .finally(function() { clearTimeout(abortTimer); });
     };
 
     function showFormWithUser(user) {
@@ -331,6 +335,7 @@ const t = useTranslations(lang);
           cachedUser = null; // invalidate cache to refresh registrations
           hideAllStates();
           successState.classList.remove('hidden');
+          successState.classList.add('is-shown');
         } else {
           var result = await res.json().catch(function() { return {}; });
           if (result.error && result.error.indexOf('zaten') > -1) {

@@ -6,7 +6,7 @@
  * The ID is a 12-char prefix of SHA-256(email) — not reversible.
  */
 
-import { corsHeaders, optionsResponse } from '../_shared';
+import { corsHeaders, optionsResponse, safeHttpUrl } from '../_shared';
 
 interface Env {
   REGISTRATIONS: KVNamespace;
@@ -65,7 +65,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         department: member.department || '',
         joinDate: member.joinDate || '',
         picture: member.picture || '',
-        linkedin: member.linkedin || '',
+        linkedin: safeHttpUrl(member.linkedin),
         linkedinVerified: member.linkedinVerified || false,
         linkedinVerifications: member.linkedinVerifications || [],
       },

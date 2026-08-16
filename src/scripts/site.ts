@@ -169,6 +169,7 @@ function initParticles(): void {
   let h = 0;
   let dots: { x: number; y: number; vx: number; vy: number }[] = [];
   let raf = 0;
+  let inView = true;
 
   const resize = () => {
     const r = canvas.getBoundingClientRect();
@@ -189,6 +190,10 @@ function initParticles(): void {
   };
 
   const tick = () => {
+    if (!inView || document.hidden) {
+      raf = 0;
+      return;
+    }
     ctx.clearRect(0, 0, w, h);
     for (let i = 0; i < dots.length; i++) {
       const d = dots[i];
@@ -222,24 +227,44 @@ function initParticles(): void {
 
   resize();
   let ro: ResizeObserver | null = null;
+  let io: IntersectionObserver | null = null;
   if ('ResizeObserver' in window) {
     ro = new ResizeObserver(resize);
     ro.observe(canvas);
   } else {
     on(window, 'resize', resize);
   }
+
+  const syncLoop = () => {
+    const shouldRun = inView && !document.hidden;
+    if (shouldRun && !raf) raf = requestAnimationFrame(tick);
+    if (!shouldRun && raf) {
+      cancelAnimationFrame(raf);
+      raf = 0;
+    }
+  };
+
   tick();
 
-  // Sekme arkadayken boşuna çizme
-  on(document, 'visibilitychange', () => {
-    if (document.hidden) cancelAnimationFrame(raf);
-    else raf = requestAnimationFrame(tick);
-  });
+  // Sekme arkadayken ve hero ekran dışındayken boşuna çizme
+  on(document, 'visibilitychange', syncLoop);
+  if ('IntersectionObserver' in window) {
+    io = new IntersectionObserver(
+      (entries) => {
+        inView = entries.some((e) => e.isIntersecting);
+        syncLoop();
+      },
+      { rootMargin: '80px' },
+    );
+    io.observe(canvas);
+  }
 
   // Sayfa değişince döngüyü durdur: yoksa her gezinmede bir RAF daha koşar
   teardown.push(() => {
     cancelAnimationFrame(raf);
+    raf = 0;
     ro?.disconnect();
+    io?.disconnect();
   });
 }
 
@@ -319,7 +344,7 @@ function initMemberNav(): void {
   // Admin rozetini yalnızca sunucu doğrularsa göster.
   fetch('/api/auth/me', { credentials: 'same-origin' })
     .then((r) => (r.ok ? r.json() : null))
-    .then((d) => {
+    .then((d: { _nav?: { admin?: boolean } } | null) => {
       if (!d?._nav?.admin) return;
       const a = document.getElementById('lg-nav-admin');
       const m = document.getElementById('lg-menu-admin');
