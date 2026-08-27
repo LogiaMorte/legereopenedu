@@ -42,6 +42,8 @@ export interface ApiEvent {
    * Doluysa kart sitenin kayıt modalını AÇMAZ, doğrudan bu adrese gider.
    */
   registrationUrl?: string;
+  /** Etkinlik afişi. Kartta sabit yükseklikte şerit olarak kırpılır. */
+  posterUrl?: string;
   platform?: string;
   location?: Record<string, string>;
 }
@@ -176,6 +178,52 @@ function card(ev: ApiEvent, count: number, L: EventLabels): HTMLElement {
   const isDone = status === 'completed';
 
   const el = h('article', `lg-card${isDone ? ' is-done' : ''}`);
+
+  /*
+   * Afiş şeridi.
+   *
+   * Afiş KIRPILMIYOR, küçültülüyor. Kırpmayı önce denedim: afişler dikey (4:5),
+   * kart genişliğinde 722px yüksekliğe geliyor ve makul bir şeride sığan kısmı
+   * yalnızca %21 kalıyordu. O dilim afişin başlığını da, tarih/saat bloğunu da
+   * kesiyordu, yani ekrandaki afiş afişi anlatmıyordu.
+   *
+   * Bunun yerine sabit yükseklikli şeride afişin TAMAMI oturuyor (contain),
+   * yanlarda kalan boşluğu afişin bulanıklaştırılmış kopyası dolduruyor.
+   * Yükseklik sabit olduğu için ızgaradaki diğer kartlar etkilenmiyor.
+   *
+   * Arka plan CSS `background-image` yerine ikinci bir <img> ile yapılıyor:
+   * adres panelden geliyor ve CSS'e string olarak gömülseydi tırnak kaçırma
+   * yoluyla stil enjeksiyonuna açık olurdu. `.src` ataması bu riski taşımaz.
+   */
+  const poster = ev.posterUrl?.trim();
+  if (poster) {
+    const wrap = h('a', 'lg-card__poster');
+    wrap.setAttribute('href', poster);
+    wrap.setAttribute('target', '_blank');
+    wrap.setAttribute('rel', 'noopener noreferrer');
+    wrap.setAttribute('aria-label', `${ev.title?.[lang] ?? ev.id} afişi`);
+
+    const bg = document.createElement('img');
+    bg.className = 'lg-card__posterBg';
+    bg.src = poster;
+    bg.alt = '';
+    bg.setAttribute('aria-hidden', 'true');
+    bg.loading = 'lazy';
+    bg.decoding = 'async';
+
+    const img = document.createElement('img');
+    img.className = 'lg-card__posterImg';
+    img.src = poster;
+    // Başlık, tarih ve açıklama zaten kartta yazıyor; afişi ekran okuyucuya
+    // tekrar ettirmenin faydası yok. Bağlantının adı aria-label'da.
+    img.alt = '';
+    img.loading = 'lazy';
+    img.decoding = 'async';
+
+    wrap.appendChild(bg);
+    wrap.appendChild(img);
+    el.appendChild(wrap);
+  }
 
   const top = h('div', 'lg-card__top');
   top.appendChild(h('span', 'lg-card__type', L.type[ev.type] ?? ev.type));
