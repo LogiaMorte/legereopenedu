@@ -14,6 +14,8 @@ import {
   generateToken,
   buildLogoutCookies,
   jsonResponseWithCookies,
+  needsRehash,
+  hashPassword,
 } from '../../_shared';
 
 interface Env {
@@ -151,6 +153,7 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     }
 
     const body = await parseJsonBody<{
+      action?: string;
       showFullName?: boolean;
       showEmail?: boolean;
       showPublicProfile?: boolean;
@@ -164,6 +167,74 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
 
     if (!body) {
       return new Response(JSON.stringify({ error: 'Invalid or oversized request body' }), { status: 400, headers });
+    }
+
+    // ── GDPR: Export all personal data ──
+    if (body.action === 'export-data') {
+      const regIds = member.regIds || [];
+      const regResults = await Promise.all(
+        regIds.map((regId: string) => env.REGISTRATIONS.get(regId))
+      );
+      const registrations = regResults
+        .filter((data): data is string => data !== null)
+        .map((data) => JSON.parse(data));
+
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        personal: {
+          email: member.email,
+          schoolEmail: member.schoolEmail || null,
+          name: member.name,
+          university: member.university || null,
+          department: member.department || null,
+          linkedin: member.linkedin || null,
+          interests: member.interests || [],
+          ideas: member.ideas || null,
+          joinDate: member.joinDate,
+          picture: member.picture || null,
+          signupSource: member.signupSource || 'email',
+          linkedinVerified: member.linkedinVerified || false,
+          showFullName: member.showFullName ?? true,
+          showEmail: member.showEmail ?? false,
+          showPublicProfile: member.showPublicProfile ?? false,
+        },
+        registrations: registrations.map((r: any) => ({
+          id: r.id,
+          workshop: r.workshop,
+          status: r.status,
+          timestamp: r.timestamp,
+          reviewedAt: r.reviewedAt || null,
+        })),
+        certificates: member.certificates || [],
+        badges: member.adminBadges || [],
+      };
+
+      return new Response(JSON.stringify(exportData), {
+        status: 200,
+        headers: { ...headers, 'Content-Disposition': 'attachment; filename="legere-data-export.json"' },
+      });
+    }
+
+    // ── GDPR: Delete account ──
+    if (body.action === 'delete-account') {
+      // Remove public profile index if exists
+      if (member.publicProfileId) {
+        await env.REGISTRATIONS.delete(`public-profile:${member.publicProfileId}`);
+      }
+      // Remove school email alias
+      if (member.schoolEmail && member.schoolEmail !== member.email) {
+        await env.REGISTRATIONS.delete(`member-alias:${member.schoolEmail}`);
+      }
+      // Delete the member record
+      await env.REGISTRATIONS.delete(`member:${session.email}`);
+
+      const logoutCookies = buildLogoutCookies();
+      return jsonResponseWithCookies(
+        { success: true, message: 'Account deleted' },
+        200,
+        headers,
+        logoutCookies,
+      );
     }
 
     // Privacy toggles

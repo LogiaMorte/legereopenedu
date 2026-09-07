@@ -52,26 +52,61 @@ export function escapeHtml(str: string): string {
     .replace(/'/g, '&#39;');
 }
 
-// ── Password Hashing (SHA-256, Workers-compatible) ──
+// ── Password Hashing (PBKDF2, Workers-compatible) ──
 
-const HASH_PREFIX = 'sha256:';
+const PBKDF2_PREFIX = 'pbkdf2:';
+const LEGACY_SHA256_PREFIX = 'sha256:';
+const PBKDF2_ITERATIONS = 100_000;
 
 export async function hashPassword(password: string): Promise<string> {
+  const salt = new Uint8Array(16);
+  crypto.getRandomValues(salt);
+  const keyMaterial = await crypto.subtle.importKey(
+    'raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits'],
+  );
+  const derived = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+    keyMaterial, 256,
+  );
+  const saltHex = Array.from(salt, b => b.toString(16).padStart(2, '0')).join('');
+  const hashHex = Array.from(new Uint8Array(derived), b => b.toString(16).padStart(2, '0')).join('');
+  return `${PBKDF2_PREFIX}${saltHex}:${hashHex}`;
+}
+
+async function legacySha256(password: string): Promise<string> {
   const data = new TextEncoder().encode(password);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashHex = Array.from(new Uint8Array(hashBuffer), b => b.toString(16).padStart(2, '0')).join('');
-  return HASH_PREFIX + hashHex;
+  return LEGACY_SHA256_PREFIX + Array.from(new Uint8Array(hashBuffer), b => b.toString(16).padStart(2, '0')).join('');
 }
 
 export async function verifyPassword(input: string, stored: string): Promise<boolean> {
-  if (stored.startsWith(HASH_PREFIX)) {
-    const inputHash = await hashPassword(input);
+  if (stored.startsWith(PBKDF2_PREFIX)) {
+    const rest = stored.slice(PBKDF2_PREFIX.length);
+    const [saltHex, hashHex] = rest.split(':');
+    if (!saltHex || !hashHex) return false;
+    const salt = new Uint8Array(saltHex.match(/.{2}/g)!.map(b => parseInt(b, 16)));
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw', new TextEncoder().encode(input), 'PBKDF2', false, ['deriveBits'],
+    );
+    const derived = await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', salt, iterations: PBKDF2_ITERATIONS, hash: 'SHA-256' },
+      keyMaterial, 256,
+    );
+    const inputHex = Array.from(new Uint8Array(derived), b => b.toString(16).padStart(2, '0')).join('');
+    return constantTimeCompare(inputHex, hashHex);
+  }
+  if (stored.startsWith(LEGACY_SHA256_PREFIX)) {
+    const inputHash = await legacySha256(input);
     return constantTimeCompare(inputHash, stored);
   }
-  // Legacy: plain text — always hash to prevent timing side-channel
-  const inputHash = await hashPassword(input);
-  const storedHash = await hashPassword(stored);
+  // Legacy plain text — hash both to prevent timing side-channel
+  const inputHash = await legacySha256(input);
+  const storedHash = await legacySha256(stored);
   return constantTimeCompare(inputHash, storedHash);
+}
+
+export function needsRehash(stored: string): boolean {
+  return !stored.startsWith(PBKDF2_PREFIX);
 }
 
 // ── Constant-time comparison (timing attack prevention) ──
@@ -100,7 +135,7 @@ export async function parseJsonBody<T = unknown>(request: Request): Promise<T | 
 }
 
 export function isPasswordHashed(stored: string): boolean {
-  return stored.startsWith(HASH_PREFIX);
+  return stored.startsWith(PBKDF2_PREFIX) || stored.startsWith(LEGACY_SHA256_PREFIX);
 }
 
 // ── Token & Password Generation ──
@@ -112,11 +147,17 @@ export function generateToken(): string {
 }
 
 export function generatePassword(): string {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const bytes = new Uint8Array(6);
+  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lower = 'abcdefghjkmnpqrstuvwxyz';
+  const digits = '23456789';
+  const all = upper + lower + digits;
+  const bytes = new Uint8Array(10);
   crypto.getRandomValues(bytes);
   let code = '';
-  for (let i = 0; i < 6; i++) code += chars[bytes[i] % chars.length];
+  code += upper[bytes[0] % upper.length];
+  code += lower[bytes[1] % lower.length];
+  code += digits[bytes[2] % digits.length];
+  for (let i = 3; i < 10; i++) code += all[bytes[i] % all.length];
   return 'LGR-' + code;
 }
 

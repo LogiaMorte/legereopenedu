@@ -88,6 +88,11 @@ const t = useTranslations(lang);
 
 <script data-cfasync="false" is:inline>
 document.addEventListener('astro:page-load', function() {
+  if (document.cookie.indexOf('legere_logged_in=') !== -1) {
+    window.location.href = '/profile';
+    return;
+  }
+
   var loadingEl = document.getElementById('auth-loading');
   var errorEl = document.getElementById('login-error');
   if (!loadingEl || !errorEl) return;

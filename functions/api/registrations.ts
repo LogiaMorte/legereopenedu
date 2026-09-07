@@ -42,9 +42,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       action: 'list' | 'accept' | 'reject' | 'issue-certificate' | 'award-badge';
       regId?: string;
       workshop?: string;
+      status?: string;
       message?: string;
       certType?: 'participation' | 'achievement' | 'contribution';
       badgeId?: string;
+      limit?: number;
+      offset?: number;
     }>(request);
 
     if (!body) {
@@ -77,16 +80,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
       }
       const list = await env.REGISTRATIONS.list({ prefix: 'reg_' });
       const kvResults = await Promise.all(list.keys.map((k) => env.REGISTRATIONS.get(k.name)));
-      const registrations = kvResults
+      let registrations = kvResults
         .filter((data): data is string => data !== null)
         .map((data) => JSON.parse(data))
-        .filter((reg) => !body.workshop || reg.workshop === body.workshop);
+        .filter((reg) => !body.workshop || reg.workshop === body.workshop)
+        .filter((reg) => !body.status || reg.status === body.status);
       registrations.sort(
         (a: any, b: any) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime(),
       );
+
+      // Pagination
+      const totalFiltered = registrations.length;
+      const limit = Math.min(Math.max(body.limit || 50, 1), 200);
+      const offset = Math.max(body.offset || 0, 0);
+      const page = registrations.slice(offset, offset + limit);
+
       const total = await env.REGISTRATIONS.get('count:total');
       return new Response(
-        JSON.stringify({ total: parseInt(total || '0'), count: registrations.length, registrations }),
+        JSON.stringify({ total: parseInt(total || '0'), count: totalFiltered, registrations: page, limit, offset }),
         { status: 200, headers },
       );
     }
@@ -106,6 +117,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (body.action === 'issue-certificate') {
       if (!body.certType) {
         return new Response(JSON.stringify({ error: 'Missing certType' }), { status: 400, headers });
+      }
+
+      // Idempotency: check if same cert type already issued for this workshop
+      {
+        const checkKey = `member:${reg.email.toLowerCase()}`;
+        const checkData = await env.REGISTRATIONS.get(checkKey);
+        if (checkData) {
+          const checkMember = JSON.parse(checkData);
+          const duplicate = (checkMember.certificates || []).some(
+            (c: any) => c.type === body.certType && c.workshopId === reg.workshop
+          );
+          if (duplicate) {
+            return new Response(
+              JSON.stringify({ error: 'Certificate already issued for this workshop and type' }),
+              { status: 409, headers },
+            );
+          }
+        }
       }
 
       reg.status = 'completed';

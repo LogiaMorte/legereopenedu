@@ -30,6 +30,9 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     const body = await parseJsonBody<{
       action?: string;
       email?: string;
+      search?: string;
+      limit?: number;
+      offset?: number;
     }>(request);
 
     if (!body) {
@@ -62,14 +65,31 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
           };
         });
 
+      // Server-side search
+      let filtered = members;
+      if (body.search && typeof body.search === 'string') {
+        const q = body.search.toLowerCase().trim();
+        filtered = members.filter(m =>
+          m.email.toLowerCase().includes(q) ||
+          m.name.toLowerCase().includes(q) ||
+          m.university.toLowerCase().includes(q)
+        );
+      }
+
       // Sort by join date descending (newest first)
-      members.sort((a, b) => {
+      filtered.sort((a, b) => {
         if (!a.joinDate) return 1;
         if (!b.joinDate) return -1;
         return new Date(b.joinDate).getTime() - new Date(a.joinDate).getTime();
       });
 
-      return new Response(JSON.stringify({ members, total: members.length }), { status: 200, headers });
+      // Pagination
+      const total = filtered.length;
+      const limit = Math.min(Math.max(body.limit || 50, 1), 200);
+      const offset = Math.max(body.offset || 0, 0);
+      const page = filtered.slice(offset, offset + limit);
+
+      return new Response(JSON.stringify({ members: page, total, limit, offset }), { status: 200, headers });
     }
 
     if (body.action === 'detail' && body.email) {

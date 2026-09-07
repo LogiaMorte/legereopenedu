@@ -235,7 +235,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           member = JSON.parse(memberData);
           member.token = generateToken();
           if (!member.linkedinSub) member.linkedinSub = userInfo.sub;
-          member.linkedinVerified = true;
+          member.linkedinVerified = verifications.length > 0;
           member.linkedinVerifications = verifications;
           if (userInfo.picture) member.picture = userInfo.picture;
           if (basicProfile.headline) member.linkedinHeadline = basicProfile.headline;
@@ -274,7 +274,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         ideas: '',
         signupSource: 'linkedin',
         linkedinSub: userInfo.sub,
-        linkedinVerified: true,
+        linkedinVerified: verifications.length > 0,
         linkedinVerifications: verifications,
         signupIp: request.headers.get('CF-Connecting-IP') || 'unknown',
         signupCountry: request.headers.get('CF-IPCountry') || 'unknown',

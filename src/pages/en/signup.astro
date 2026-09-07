@@ -133,13 +133,18 @@ const t = useTranslations(lang);
 
 <script data-cfasync="false" is:inline>
 document.addEventListener('astro:page-load', function() {
+  var params = new URLSearchParams(window.location.search);
+  if (document.cookie.indexOf('legere_logged_in=') !== -1 && params.get('success') !== 'new') {
+    window.location.href = '/en/profile';
+    return;
+  }
+
   var loadingEl = document.getElementById('auth-loading');
   var errorEl = document.getElementById('signup-error');
   var formState = document.getElementById('signup-form-state');
   var successState = document.getElementById('signup-success-state');
   if (!loadingEl || !errorEl) return;
 
-  var params = new URLSearchParams(window.location.search);
   if (params.get('success') === 'new') {
     if (formState) formState.classList.add('hidden');
     if (successState) successState.classList.remove('hidden');
