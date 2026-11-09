@@ -155,6 +155,43 @@ document.addEventListener('astro:page-load', function() {
     return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
   }
 
+  /*
+   * Harita okumasında kendi anahtarı şartı: `cert.type` değeri "__proto__" ya
+   * da "constructor" olduğunda düz `MAP[key]` Object.prototype'tan bir şey
+   * döndürüp sayfaya "undefined" basıyor. Veri panelden geliyor ama sayfa
+   * herkese açık; sessiz bir bozulmaya bırakmaya değmez.
+   */
+  function pick(map, key) {
+    return Object.prototype.hasOwnProperty.call(map, key) ? map[key] : undefined;
+  }
+
+  /*
+   * Dış bağlantı izin listesi: yalnızca http/https. Sunucu da süzüyor
+   * (functions/api/auth/me.ts) ama KV'de eski kayıtlar durabilir ve bu değer
+   * doğrudan href'e yazılıyor.
+   */
+  function safeUrl(raw) {
+    if (typeof raw !== 'string') return '';
+    var trimmed = raw.trim();
+    if (!trimmed || trimmed.length > 300) return '';
+    var collapsed = '';
+    for (var ci = 0; ci < trimmed.length; ci++) {
+      var code = trimmed.charCodeAt(ci);
+      // Tarayıcı şema içindeki boşluk ve kontrol karakterlerini yok sayar.
+      if (code > 32 && code !== 127) collapsed += trimmed.charAt(ci);
+    }
+    if (!collapsed) return '';
+    var withScheme = /^[a-z][a-z0-9+.-]*:/i.test(collapsed) ? collapsed : 'https://' + collapsed;
+    try {
+      var u = new URL(withScheme);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
+      if (!u.hostname) return '';
+      return u.toString();
+    } catch (e) {
+      return '';
+    }
+  }
+
   // Get profile ID from query param: /m?id=xxxxxxxxxxxx
   var params = new URLSearchParams(window.location.search);
   var profileId = params.get('id') || '';
@@ -190,10 +227,11 @@ document.addEventListener('astro:page-load', function() {
     var p = data.profile;
 
     // Avatar
-    if (p.picture) {
+    var safePicture = safeUrl(p.picture);
+    if (safePicture) {
       var container = document.getElementById('pp-avatar-container');
       var img = document.createElement('img');
-      img.src = p.picture;
+      img.src = safePicture;
       img.alt = '';
       img.className = 'w-20 h-20 rounded-full object-cover';
       container.textContent = '';
@@ -213,7 +251,7 @@ document.addEventListener('astro:page-load', function() {
     var verifications = p.linkedinVerifications || [];
     var VERIFY_LABELS = { 'IDENTITY': 'Kimlik', 'EMPLOYMENT': 'Kurum', 'EDUCATION': 'Eğitim' };
     verifications.forEach(function(v) {
-      var label = VERIFY_LABELS[v] || esc(v);
+      var label = pick(VERIFY_LABELS, v) || v;
       badgesHtml += '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-heading font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>' + esc(label) + '</span>';
     });
     if (p.linkedinVerified) {
@@ -222,9 +260,10 @@ document.addEventListener('astro:page-load', function() {
     document.getElementById('pp-verification-badges').innerHTML = badgesHtml;
 
     // LinkedIn link
-    if (p.linkedin) {
+    var safeLinkedin = safeUrl(p.linkedin);
+    if (safeLinkedin) {
       document.getElementById('pp-linkedin').classList.remove('hidden');
-      document.getElementById('pp-linkedin-link').href = p.linkedin;
+      document.getElementById('pp-linkedin-link').href = safeLinkedin;
     }
 
     // Stats
@@ -236,7 +275,7 @@ document.addEventListener('astro:page-load', function() {
     if (data.certificates.length > 0) {
       document.getElementById('pp-certs-section').classList.remove('hidden');
       document.getElementById('pp-certs-list').innerHTML = data.certificates.map(function(cert) {
-        var typeLabel = CERT_TYPES[cert.type] || esc(cert.type);
+        var typeLabel = pick(CERT_TYPES, cert.type) || cert.type;
         var typeColor = cert.type === 'achievement' ? 'text-gold-300' : cert.type === 'contribution' ? 'text-status-upcoming' : 'text-status-open';
         return '<div class="glass-subtle p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div class="min-w-0"><div class="flex items-center gap-2 mb-1"><span class="text-sm font-heading font-semibold ' + typeColor + '">' + esc(typeLabel) + '</span><span class="text-xs font-mono text-text-secondary">' + esc(cert.id) + '</span></div>' + (cert.issueDate ? '<p class="text-xs text-text-secondary/60 mt-0.5">' + new Date(cert.issueDate).toLocaleDateString('tr-TR') + '</p>' : '') + '</div><a href="/verify?cert=' + encodeURIComponent(cert.id) + '" class="text-xs text-gold-500 hover:text-gold-300 font-heading transition-colors shrink-0">Doğrula</a></div>';
       }).join('');
@@ -246,7 +285,7 @@ document.addEventListener('astro:page-load', function() {
     if (data.badges.length > 0) {
       document.getElementById('pp-badges-section').classList.remove('hidden');
       document.getElementById('pp-badges-list').innerHTML = data.badges.map(function(b) {
-        var meta = BADGE_META[b.badgeId] || { icon: '\u{1F396}\uFE0F', name: b.badgeId, desc: '' };
+        var meta = pick(BADGE_META, b.badgeId) || { icon: '\u{1F396}\uFE0F', name: b.badgeId, desc: '' };
         return '<div class="glass-subtle px-4 py-3 rounded-xl flex items-center gap-3" title="' + esc(meta.desc) + '"><span class="text-2xl">' + meta.icon + '</span><div><div class="text-sm font-heading font-semibold text-text-primary">' + esc(meta.name) + '</div><div class="text-xs text-text-secondary">' + esc(meta.desc) + '</div></div></div>';
       }).join('');
     }

@@ -1,90 +1,96 @@
-# Legere Open Edu - Genel Eleştiri, İyileştirme ve Geliştirme Planı
+# Legere Open Edu — İyileştirme durumu
 
-## BÖLÜM 1: KRİTİK — Performans & Script Yükleme
-
-### 1.1 Profil Sayfası Script Optimizasyonu (profile.astro + en/profile.astro)
-- **Sorun:** Profil sayfası `fetch('/api/auth/me')` çağrısı için timeout yok — API yavaşsa spinner sonsuza kadar döner
-- **Sorun:** `data-cfasync="false"` eksik — Cloudflare Rocket Loader script'leri geciktiriyor
-- **Çözüm:** 8s timeout ekle, `data-cfasync="false"` ekle, hata durumunda kullanıcıya net mesaj göster
-
-### 1.2 API `/api/auth/me` — Seri KV Sorguları
-- **Sorun:** `regIds` döngüsünde her kayıt için seri `await env.REGISTRATIONS.get(regId)` çağrısı yapılıyor (O(n) seri istek)
-- **Çözüm:** `Promise.all()` ile paralel KV sorguları yaparak yanıt süresini düşür
-
-### 1.3 RegistrationModal Script Optimizasyonu
-- **Sorun:** Modal her sayfa yüklemesinde init oluyor, config fetch her seferinde yapılıyor
-- **Çözüm:** Config sonucunu cache'le (sessionStorage), tekrar fetch etme
+Bu dosya bir yapılacaklar listesi değil, **ne yapıldı ve ne kaldı** kaydıdır.
+Önceki sürüm hepsi "yapılacak" diye duran bir listeydi ve maddelerin çoğu
+arada çözüldüğü için dosya kodla uyuşmuyordu.
 
 ---
 
-## BÖLÜM 2: YÜKSEK — Güvenlik
+## Doğrulama
 
-### 2.1 XSS Açıkları (innerHTML ile kullanıcı verisi)
-- **Sorun:** `profile.astro:396` — `user.picture` doğrudan innerHTML'e enjekte ediliyor
-- **Sorun:** `profile.astro:510-513` — `cert.workshopTitle`, `r.workshop` gibi veriler HTML escape edilmeden innerHTML'e yazılıyor
-- **Sorun:** `profile.astro:521` — Badge meta desc innerHTML'e yazılıyor
-- **Çözüm:** `textContent` kullan veya HTML escape fonksiyonu ekle (`&`, `<`, `>`, `"`, `'` karakterleri)
+```bash
+npm run verify     # tsc --noEmit + testler (3 saat dilimi) + astro build
+```
 
-### 2.2 API Güvenlik İyileştirmeleri
-- **Sorun:** `/api/registrations.ts` — `list` action'ı sayfalama (pagination) olmadan tüm kayıtları belleğe yüklüyor
-- **Çözüm:** Limit + cursor pagination ekle (max 100 kayıt/sayfa)
+Ayrı ayrı: `npm run check` (tip denetimi), `npm test`, `npm run build`.
 
----
-
-## BÖLÜM 3: ORTA — Kod Kalitesi & DRY
-
-### 3.1 TR/EN Profil Sayfaları Kod Tekrarı
-- **Sorun:** `profile.astro` (629 satır) ve `en/profile.astro` (497 satır) ~300 satır birebir aynı JavaScript mantığı içeriyor
-- **Çözüm:** Ortak mantığı `src/scripts/profile.js` olarak ayır, sadece dil string'lerini parametre olarak geçir
-
-### 3.2 TR/EN Login/Signup Sayfa Tekrarları
-- **Sorun:** 4 auth sayfasında (login TR/EN, signup TR/EN) benzer script mantığı tekrarlanıyor
-- **Çözüm:** Ortak auth script'i `src/scripts/auth.js` olarak ayır
+`npm test` aynı paketi **UTC, Europe/Istanbul ve America/New_York** dilimlerinde
+koşar. Bu bir kaprisi değil: `deriveStatus` üç farklı ortamda çalışıyor
+(build makinesi, ziyaretçinin tarayıcısı, UTC'de koşan Cloudflare Worker) ve
+tek dilimde koşan bir paket diliminden kaynaklanan hatayı göremez.
 
 ---
 
-## BÖLÜM 4: ORTA — UX İyileştirmeleri
+## Bu turda kapatılanlar
 
-### 4.1 Profil Kaydetme UX'i
-- **Sorun:** "Kaydet" butonuna basıldığında loading state yok, 1sn sonra sessizce reload yapılıyor
-- **Çözüm:** Kaydet butonuna spinner ekle, disabled durumu ekle, başarı sonrası in-place güncelleme yap (reload kaldır)
+### Etkinlik durumu artık saat diliminden bağımsız (hata)
+`src/utils/events.ts` "bugün"ü çalıştığı makinenin yerel diliminden alıyordu.
+Worker UTC'de koştuğu için TR saatiyle 00:00–03:00 arasında sunucu ile tarayıcı
+**ayrı günde** oluyordu: kart "Tamamlandı" derken `/api/register` o etkinliğe
+kayıt kabul etmeye devam ediyor, ya da tersi oluyordu. Gün hesabı artık
+`Europe/Istanbul` üzerinden yapılıyor (`SITE_TIME_ZONE`) ve gün karşılaştırması
+`Date` nesnesi yerine sıralanabilir tam sayı (`20260803`) ile yapılıyor.
+Kapsayan testler: `tests/events.test.ts`.
 
-### 4.2 Privacy Toggle Sessiz Hata
-- **Sorun:** Toggle değiştiğinde API başarısız olursa kullanıcı bilgilendirilmiyor, toggle geri alınmıyor
-- **Çözüm:** API hatasında toggle'ı eski durumuna döndür, toast/bildirim göster
+### LinkedIn bağlantısı izin listesine alındı (güvenlik)
+Eski süzgeç `^(javascript|data|vbscript):` ile BAŞLAYAN dizeyi reddediyordu.
+Tarayıcı şema içindeki sekme ve satır sonunu yok saydığı için
+`java<TAB>script:alert(1)` süzgeçten geçiyor, KV'ye yazılıyor ve herkese açık
+`/m` sayfasında bir `<a href>` değerine konuyordu. Artık tek temizleme noktası
+`src/utils/url.ts` → `sanitizeExternalUrl`: izin listesi (`http`, `https`),
+`URL` ile ayrıştırma, kontrol karakterlerinin ayrıştırmadan önce atılması.
+Sunucuda (`functions/api/auth/me.ts`) ve tarayıcıda (profil + `/m`) birlikte
+uygulanıyor — sunucu kapı, istemci tarafı KV'de duran eski kayıtlara karşı.
+Kapsayan testler: `tests/url.test.ts`.
 
-### 4.3 Profil Skeleton Loading
-- **Sorun:** Profil yüklenirken sadece spinner var, layout shift oluyor
-- **Çözüm:** Skeleton placeholder ekle (gri kutular)
+### Çifte HTML kaçışı (görünür bozulma)
+`INTEREST_LABELS[i] || esc(i)` sonucu bir daha `esc()`'leniyordu; haritada
+olmayan bir etiket `Ar&Ge` yerine `Ar&amp;amp;Ge` olarak görünüyordu. Aynı
+kalıp sertifika türü ve LinkedIn doğrulama etiketlerinde de vardı.
+
+### Harita okumalarında kendi anahtarı şartı
+`BADGE_META[b.badgeId]` gibi düz okumalar, anahtar `__proto__` ya da
+`constructor` olduğunda `Object.prototype` döndürüp yedek değeri devre dışı
+bırakıyor ve ekrana `undefined` basıyordu. `pick()` yardımcısı eklendi
+(`profile-client.ts` ve `m.astro`).
+
+### Tip denetimi temizlendi ve kalıcılaştı
+`tsc --noEmit` üç hata veriyordu ve hiçbir komut bunu çalıştırmıyordu:
+`crypto.subtle` için `BufferSource` uyuşmazlığı (`google.ts`), `r.json()`
+dönüşünün `unknown` olması (`events-client.ts`), `_nav` alanının tipsizliği
+(`site.ts`). Üçü düzeltildi, `npm run check` ile tekrarı engellendi.
 
 ---
 
-## BÖLÜM 5: DÜŞÜK — Performans & SEO
+## Daha önce kapatılmış maddeler (kodda doğrulandı)
 
-### 5.1 ParticleCanvas Mobil Performansı
-- **Sorun:** 50 parçacık + O(n²) bağlantı hesabı mobilde gereksiz CPU tüketiyor
-- **Çözüm:** Mobilde parçacık sayısını 20'ye düşür, veya mobilde tamamen devre dışı bırak
-
-### 5.2 Font Optimizasyonu
-- **Sorun:** 3 font ailesi (Space Grotesk, Inter, JetBrains Mono) toplamda 10 ağırlık yükleniyor
-- **Çözüm:** Kullanılmayan ağırlıkları kaldır (JetBrains Mono 500 gerçekten lazım mı?), `font-display: swap` doğrula
-
-### 5.3 Preconnect Eksiklikleri
-- **Sorun:** Google hesap servisleri için preconnect yok
-- **Çözüm:** Layout'a `<link rel="preconnect" href="https://accounts.google.com" />` ekle
+- Profil yüklemesinde zaman aşımı ve `data-cfasync="false"` — var.
+- `/api/auth/me` kayıt okumaları `Promise.all` ile paralel — var.
+- XSS: profil/`m` çıktıları `esc()` üzerinden, `textContent` tercih ediliyor.
+- `/api/registrations` `list` — cursor sayfalama, sayfa başı en çok 100 kayıt.
+- TR/EN kod tekrarı — `profile-client.ts`, `auth-client.ts`, `events-client.ts`
+  ortak modüllerine ayrıldı.
+- Kaydet butonunda spinner + disabled, gizlilik anahtarında hata geri alma.
+- Güvenlik başlıkları + CSP — `public/_headers`.
+- `preconnect` (accounts.google.com, apis.google.com) — `Layout.astro`.
+- `prefers-reduced-motion` ve 561px altı için canvas/spotlight kurulmuyor.
 
 ---
 
-## UYGULAMA ÖNCELİK SIRASI
+## Kalanlar
 
-| Adım | Konu | Öncelik | Tahmini Etki |
-|------|------|---------|-------------|
-| 1 | XSS açıklarını kapat (2.1) | KRİTİK | Güvenlik |
-| 2 | Profil script timeout + cfasync (1.1) | KRİTİK | Yükleme hızı |
-| 3 | API seri sorgu → paralel (1.2) | YÜKSEK | API hızı |
-| 4 | Profil kaydetme UX (4.1) | ORTA | Kullanıcı deneyimi |
-| 5 | Privacy toggle hata yönetimi (4.2) | ORTA | Güvenilirlik |
-| 6 | Preconnect + font optimizasyonu (5.3, 5.2) | DÜŞÜK | İlk yükleme |
-| 7 | Kod tekrarı refactoring (3.1, 3.2) | DÜŞÜK | Bakım kolaylığı |
-| 8 | Skeleton loading (4.3) | DÜŞÜK | Algılanan hız |
-| 9 | Particle canvas mobil (5.1) | DÜŞÜK | Mobil pil/CPU |
+### RegistrationModal yapılandırma önbelleği — BİLEREK YAPILMADI
+Eski plan `/api/config` sonucunun `sessionStorage`'da önbelleğe alınmasını
+öneriyordu. Yapılmadı: yanıt kontenjan/kayıt durumu taşıyor ve bayat bir kopya
+kapanmış bir etkinliği açık gösterir. Kazanç tek bir küçük istek, bedeli yanlış
+bilgi. Gerekirse çözüm önbellek değil, `Cache-Control` ile kısa ömürlü uç.
+
+### Test kapsamı
+Şu an yalnızca saf yardımcılar (`events`, `url`) test ediliyor. Sırada:
+`functions/_shared.ts` çerez ayrıştırma (`parseTokenValue` sınır durumları) ve
+`functions/api/events.ts` → `findEvent`. Bunlar KV taklidi gerektiriyor.
+
+### Cloudflare Pages Functions için otomatik denetim
+`tsc --noEmit` `functions/` altını kapsıyor, ama uçların davranışı için
+`wrangler pages dev` ile duman testi yok. Üretimde kırılan şeyler (KV
+tohumlanmamış, `config:events` yok) ancak canlıda görülüyor.

@@ -16,6 +16,7 @@ import {
   jsonResponseWithCookies,
   isAdminEmail,
 } from '../../_shared';
+import { sanitizeExternalUrl } from '../../../src/utils/url';
 import badgesData from '../../../src/data/badges.json';
 
 interface Env {
@@ -218,10 +219,12 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     if (typeof body.ideas === 'string') member.ideas = body.ideas.trim().slice(0, 2000);
 
     if (typeof body.linkedin === 'string') {
-      let linkedin = body.linkedin.trim().slice(0, 300);
-      if (linkedin && /^(javascript|data|vbscript):/i.test(linkedin)) linkedin = '';
-      else if (linkedin && !linkedin.startsWith('http')) linkedin = 'https://' + linkedin;
-      member.linkedin = linkedin || undefined;
+      /*
+       * İzin listesi: yalnızca http/https. Eski filtre "javascript:" ile
+       * BAŞLAYAN dizeyi reddediyordu; `java	script:alert(1)` ise tarayıcıda
+       * çalışıp süzgeçten geçiyordu ve bu değer /m sayfasında href'e yazılıyor.
+       */
+      member.linkedin = sanitizeExternalUrl(body.linkedin) || undefined;
     }
 
     if (Array.isArray(body.interests)) {

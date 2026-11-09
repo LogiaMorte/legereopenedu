@@ -319,7 +319,8 @@ function initMemberNav(): void {
   // Admin rozetini yalnızca sunucu doğrularsa göster.
   fetch('/api/auth/me', { credentials: 'same-origin' })
     .then((r) => (r.ok ? r.json() : null))
-    .then((d) => {
+    .then((raw) => {
+      const d = raw as { _nav?: { admin?: boolean } } | null;
       if (!d?._nav?.admin) return;
       const a = document.getElementById('lg-nav-admin');
       const m = document.getElementById('lg-menu-admin');
