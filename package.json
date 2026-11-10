@@ -7,7 +7,10 @@
     "build": "astro build",
     "deploy": "echo 'Cloudflare Pages handles deployment automatically'",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "test": "node tests/run.mjs",
+    "check": "tsc --noEmit",
+    "verify": "npm run check && npm test && npm run build"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.3.0",

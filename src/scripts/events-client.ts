@@ -404,7 +404,8 @@ export function initEvents(): void {
       if (!r.ok) throw new Error(`/api/events HTTP ${r.status}`);
       return r.json();
     })
-    .then((d: ApiPayload | null) => {
+    .then((raw) => {
+      const d = raw as ApiPayload | null;
       if (!d || !Array.isArray(d.events)) throw new Error('/api/events beklenmeyen gövde');
       counts = d.counts || {};
       const all = sortForDisplay(d.events);

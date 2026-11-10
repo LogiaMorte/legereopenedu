@@ -51,12 +51,19 @@ type JwksCache = { keys: JsonWebKey[]; fetchedAt: number };
 let jwksCache: JwksCache | null = null;
 const JWKS_TTL_MS = 60 * 60 * 1000;
 
-function base64UrlDecode(str: string): Uint8Array {
+/*
+ * Dönüş tipi bilerek `Uint8Array<ArrayBuffer>`: crypto.subtle `BufferSource`
+ * bekliyor ve çıplak `Uint8Array` (ArrayBufferLike) TS5 altında ona atanamıyor.
+ * Tampon elde açılıyor, böylece SharedArrayBuffer olasılığı tipten düşüyor.
+ */
+function base64UrlDecode(str: string): Uint8Array<ArrayBuffer> {
   const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
   const pad = base64.length % 4;
   const padded = pad ? base64 + '='.repeat(4 - pad) : base64;
   const binary = atob(padded);
-  return Uint8Array.from(binary, (c) => c.charCodeAt(0));
+  const bytes = new Uint8Array(new ArrayBuffer(binary.length));
+  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  return bytes;
 }
 
 async function fetchGoogleJwks(): Promise<JsonWebKey[]> {
